@@ -1,1 +1,2246 @@
-/Users/sethallen/DSP/SEIJIV2/_meta/study-buddy/knowledge-base.yaml
+##############################################################################
+# DevOps & Platform Engineering Knowledge Base
+#
+# Schema Design Notes:
+#   - Hierarchical categories convey conceptual relationships
+#   - Each leaf topic has metadata for agentic quiz/learning use
+#   - Fields per topic:
+#       name:          Display name
+#       description:   One-line explanation (what it IS, not how to use it)
+#       difficulty:    1-5 (1=foundational, 3=intermediate, 5=expert)
+#       priority:      critical | high | medium | low
+#       prerequisites: List of topic names you should understand first
+#       related:       Sibling/cross-cutting topics
+#       tags:          Freeform tags for filtering
+#       status:        not_started | exposed | conceptual | applied | proficient | mastered
+#       source_context: Which guide/doc covers this in depth
+#
+# Usage for agentic application:
+#   - Quiz mode: pick a topic, generate questions from description + relationships
+#   - Guided learning: traverse prerequisites as a DAG to build learning paths
+#   - Spaced repetition: use status + last_reviewed to schedule reviews
+#   - Explain mode: use related + prerequisites to provide contextual explanations
+##############################################################################
+
+metadata:
+  version: "1.0.0"
+  created: "2025-03-04"
+  owner: "seffie"
+  description: >
+    Comprehensive technical knowledge base for DevOps, Platform Engineering,
+    Cloud Architecture, Identity/Auth, and Kubernetes internals.
+  difficulty_scale:
+    1: "Foundational — core concept everyone should know"
+    2: "Beginner — requires basic context"
+    3: "Intermediate — working professional knowledge"
+    4: "Advanced — deep internals and edge cases"
+    5: "Expert — protocol specs, wire formats, source-level understanding"
+  status_values:
+    not_started: "No engagement with this topic yet"
+    exposed: "Has encountered the concept but cannot explain independently"
+    conceptual: "Can explain the concept; understands the what and why"
+    applied: "Can use in guided practice; understands the how"
+    proficient: "Can apply independently, troubleshoot, explain tradeoffs"
+    mastered: "Can teach it, debug edge cases, and connect across domains"
+  level_up_evidence_schema:
+    from_level: "Level before promotion"
+    to_level: "Level after promotion"
+    timestamp: "ISO 8601 datetime"
+    method: "learn | quiz | scenario | project | mastery_challenge"
+    summary: "1-2 sentence description of demonstrated competence"
+
+##############################################################################
+# CATEGORY 1: NETWORKING FUNDAMENTALS
+##############################################################################
+networking:
+  description: "Low-level networking concepts underlying all distributed systems"
+
+  layer_2_and_3:
+    - name: "veth pair"
+      description: "Virtual Ethernet device pair — two linked virtual NICs where traffic into one exits the other; used to connect Linux network namespaces"
+      difficulty: 3
+      priority: high
+      prerequisites: ["Network Namespace", "Linux Namespaces"]
+      related: ["Container Network Interface (CNI)", "overlay network"]
+      tags: [linux, containers, networking]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part III Chapter 3"
+
+    - name: "Network Namespace"
+      description: "Linux kernel feature providing isolated network stacks (interfaces, routes, iptables rules) per process group; each Pod gets one"
+      difficulty: 3
+      priority: critical
+      prerequisites: ["Linux Namespaces"]
+      related: ["veth pair", "Pause Container", "cgroups"]
+      tags: [linux, containers, isolation]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part III Chapter 3"
+
+    - name: "Network Address Translation (NAT)"
+      description: "Rewriting source or destination IP/port in packet headers as they traverse a router or firewall"
+      difficulty: 2
+      priority: critical
+      prerequisites: []
+      related: ["DNAT", "iptables", "kube-proxy"]
+      tags: [networking, fundamentals]
+      status: not_started
+      source_context: null
+
+    - name: "Destination Network Address Translation (DNAT)"
+      description: "NAT variant that rewrites the destination IP/port — how kube-proxy routes Service ClusterIP traffic to backend Pod IPs"
+      difficulty: 3
+      priority: high
+      prerequisites: ["NAT"]
+      related: ["iptables", "IPVS", "ClusterIP", "kube-proxy"]
+      tags: [networking, kubernetes, services]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part III Chapter 3"
+
+    - name: "MTU"
+      description: "Maximum Transmission Unit — largest packet size (bytes) a network link can carry without fragmentation; misconfigured MTU causes silent packet drops in overlay networks"
+      difficulty: 2
+      priority: medium
+      prerequisites: []
+      related: ["overlay network", "VPC CNI Plugin"]
+      tags: [networking, troubleshooting]
+      status: not_started
+      source_context: null
+
+    - name: "overlay network"
+      description: "Virtual network layered on top of the physical network using encapsulation (VXLAN, Geneve); used by CNI plugins like Flannel and Calico (in VXLAN mode) to connect Pods across nodes"
+      difficulty: 3
+      priority: critical
+      prerequisites: ["veth pair", "MTU"]
+      related: ["Container Network Interface (CNI)", "VPC CNI Plugin"]
+      tags: [networking, kubernetes, cni]
+      status: not_started
+      source_context: null
+
+    - name: "Elastic Network Interfaces (ENIs)"
+      description: "AWS virtual network cards attached to EC2 instances; VPC CNI assigns secondary IPs from ENIs directly to Pods, avoiding overlay overhead"
+      difficulty: 3
+      priority: critical
+      prerequisites: ["overlay network"]
+      related: ["VPC CNI Plugin", "IRSA", "EKS Pod Identity"]
+      tags: [aws, networking, eks]
+      status: not_started
+      source_context: null
+
+  packet_routing:
+    - name: "iptables"
+      description: "Linux userspace tool for configuring netfilter packet filtering/NAT rules in the kernel; kube-proxy's default mode programs iptables rules for Service routing"
+      difficulty: 3
+      priority: critical
+      prerequisites: ["NAT", "DNAT"]
+      related: ["IPVS", "kube-proxy", "iptables Mode"]
+      tags: [linux, networking, kubernetes]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part I"
+
+    - name: "IPVS"
+      description: "IP Virtual Server — Linux kernel-level L4 load balancer; kube-proxy's IPVS mode uses it instead of iptables for better performance at scale (O(1) vs O(n) rule matching)"
+      difficulty: 4
+      priority: high
+      prerequisites: ["iptables", "kube-proxy"]
+      related: ["iptables Mode", "IPVS Mode", "ClusterIP"]
+      tags: [linux, networking, kubernetes, performance]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part I"
+
+    - name: "IP Subnetting and CIDR Notation"
+      description: "Dividing IP address space into subnets using prefix length notation; calculating network/broadcast/host addresses from CIDR blocks"
+      difficulty: 2
+      priority: critical
+      prerequisites: []
+      related: []
+      tags: [networking, fundamentals]
+      status: not_started
+      source_context: null
+
+    - name: "Border Gateway Protocol (BGP)"
+      description: "Path-vector routing protocol exchanging reachability between autonomous systems; foundation of internet routing and AWS hybrid connectivity"
+      difficulty: 3
+      priority: critical
+      prerequisites: ["IP Subnetting and CIDR Notation"]
+      related: []
+      tags: [networking, routing, aws]
+      status: not_started
+      source_context: null
+
+    - name: "BGP Path Attributes and Route Selection"
+      description: "BGP decision process attributes (LOCAL_PREF, AS_PATH, MED, weight, origin) that determine the best path when multiple routes exist"
+      difficulty: 4
+      priority: high
+      prerequisites: ["Border Gateway Protocol (BGP)"]
+      related: []
+      tags: [networking, routing, aws]
+      status: not_started
+      source_context: null
+
+  transport_and_application_layer:
+    - name: "TLS"
+      description: "Transport Layer Security — cryptographic protocol providing confidentiality and integrity over TCP; all Kubernetes component communication uses TLS 1.2+"
+      difficulty: 2
+      priority: critical
+      prerequisites: ["X.509 Certificate"]
+      related: ["mTLS", "TLS Handshake", "ALPN"]
+      tags: [security, cryptography, fundamentals]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part II Chapter 2 Step 2"
+
+    - name: "TLS Handshake"
+      description: "Multi-step negotiation (ClientHello → ServerHello → cert verification → key exchange) that establishes an encrypted channel; X.509 client auth identity is extracted here"
+      difficulty: 3
+      priority: high
+      prerequisites: ["TLS", "X.509 Certificate"]
+      related: ["mTLS", "SNI", "ALPN"]
+      tags: [security, cryptography, kubernetes]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part II Chapter 2 Step 2"
+
+    - name: "Mutual TLS (mTLS)"
+      description: "TLS where both client and server present certificates and verify each other; used for API server ↔ etcd and service mesh communication"
+      difficulty: 3
+      priority: high
+      prerequisites: ["TLS Handshake", "X.509 Certificate", "Certificate Authority (CA)"]
+      related: ["kube-apiserver", "etcd"]
+      tags: [security, kubernetes, service-mesh]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part IV Chapter 4"
+
+    - name: "ALPN"
+      description: "Application-Layer Protocol Negotiation — TLS extension that negotiates the application protocol (HTTP/1.1 vs HTTP/2) during the TLS handshake without extra round trips"
+      difficulty: 3
+      priority: medium
+      prerequisites: ["TLS Handshake"]
+      related: ["HTTP/2"]
+      tags: [networking, protocols]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part II Chapter 2 Step 2"
+
+    - name: "HTTP/2"
+      description: "Binary framing protocol over TCP/TLS; multiplexes multiple request/response streams over a single connection; used by kubectl, kubelet, and all Kubernetes components"
+      difficulty: 3
+      priority: high
+      prerequisites: ["TLS", "ALPN"]
+      related: ["gRPC", "HTTP/2 Stream Multiplexing"]
+      tags: [networking, protocols, kubernetes]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part II Chapter 2 Step 2"
+
+    - name: "gRPC"
+      description: "Google's RPC framework built on HTTP/2 and Protocol Buffers; used for API server ↔ etcd, kubelet ↔ containerd (CRI), and etcd peer communication"
+      difficulty: 3
+      priority: high
+      prerequisites: ["HTTP/2", "Protocol Buffers (Protobuf)"]
+      related: ["CRI gRPC API", "etcd Watch API"]
+      tags: [networking, protocols, kubernetes]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part IV Chapter 4"
+
+    - name: "SNI"
+      description: "Server Name Indication — TLS extension where the client specifies the target hostname during the handshake, enabling virtual hosting on a single IP"
+      difficulty: 3
+      priority: high
+      prerequisites: ["TLS Handshake"]
+      related: ["ALPN"]
+      tags: [networking, security]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part II Chapter 2 Step 2"
+
+    - name: "Envoy"
+      description: "High-performance L4/L7 proxy and communication bus designed for large service mesh architectures; data plane for Istio and foundation for xDS protocol"
+      difficulty: 3
+      priority: high
+      prerequisites: ["HTTP/2", "TLS"]
+      related: ["xDS Protocol", "Traefik"]
+      tags: [networking, service-mesh, proxy]
+      status: not_started
+      source_context: null
+
+    - name: "xDS Protocol"
+      description: "Discovery Service protocol family (CDS, EDS, LDS, RDS, SDS) used by Envoy to dynamically receive configuration from a control plane; foundation of Istio service mesh"
+      difficulty: 4
+      priority: medium
+      prerequisites: ["gRPC", "Envoy"]
+      related: ["Traefik", "service mesh"]
+      tags: [networking, service-mesh, envoy]
+      status: not_started
+      source_context: null
+
+##############################################################################
+# CATEGORY 2: CRYPTOGRAPHY & PKI
+##############################################################################
+cryptography:
+  description: "Cryptographic primitives, certificate infrastructure, and token formats"
+
+  certificates:
+    - name: "X.509 Certificate"
+      description: "ITU-T standard for public key certificates binding an identity (Subject) to a public key, signed by a Certificate Authority; used for TLS and Kubernetes client auth"
+      difficulty: 2
+      priority: critical
+      prerequisites: []
+      related: ["Certificate Authority (CA)", "PKI", "TLS"]
+      tags: [security, cryptography, fundamentals]
+      status: not_started
+      source_context: "identity-guide, Chapter 4; kubernetes-internals-guide, Part II Step 3"
+
+    - name: "Certificate Authority (CA)"
+      description: "Trusted entity that issues and signs X.509 certificates; Kubernetes clusters have their own CA (--client-ca-file) used to sign component and user certificates"
+      difficulty: 2
+      priority: critical
+      prerequisites: ["X.509 Certificate"]
+      related: ["PKI", "Certificate Signing Request (CSR)", "kubelet TLS Bootstrap"]
+      tags: [security, cryptography, kubernetes]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part II Step 3"
+
+    - name: "Certificate Signing Request (CSR)"
+      description: "Request submitted to a CA containing a public key and identity info; Kubernetes has a certificates.k8s.io API for in-cluster CSR approval workflows"
+      difficulty: 3
+      priority: high
+      prerequisites: ["Certificate Authority (CA)", "X.509 Certificate"]
+      related: ["kubelet TLS Bootstrap"]
+      tags: [security, kubernetes]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part V Chapter 5"
+
+    - name: "Public Key Infrastructure (PKI)"
+      description: "Framework of CAs, certificates, and trust chains that enables identity verification; Kubernetes runs its own PKI for all component authentication"
+      difficulty: 3
+      priority: critical
+      prerequisites: ["X.509 Certificate", "Certificate Authority (CA)"]
+      related: ["mTLS", "TLS"]
+      tags: [security, cryptography]
+      status: not_started
+      source_context: "identity-guide, Chapter 4"
+
+  token_formats:
+    - name: "JSON Web Token (JWT)"
+      description: "Compact URL-safe token format: Base64URL(header).Base64URL(payload).Base64URL(signature); used for OIDC ID tokens and Kubernetes ServiceAccount tokens"
+      difficulty: 2
+      priority: critical
+      prerequisites: []
+      related: ["JWS", "JWE", "JWKS", "ID Token"]
+      tags: [security, tokens, identity]
+      status: not_started
+      source_context: "identity-guide, Chapter 8"
+
+    - name: "JWT Header"
+      description: "First segment of a JWT containing metadata: alg (signing algorithm), typ (token type), kid (key ID for JWKS lookup)"
+      difficulty: 3
+      priority: high
+      prerequisites: ["JWT"]
+      related: ["JWT Payload", "JWT Signature"]
+      tags: [security, tokens]
+      status: not_started
+      source_context: "identity-guide, Chapter 8"
+
+    - name: "JWT Payload"
+      description: "Second segment containing claims — key-value assertions about the subject; includes registered claims (iss, sub, aud, exp, nbf, iat, jti) and custom claims"
+      difficulty: 3
+      priority: high
+      prerequisites: ["JWT"]
+      related: ["JWT Header", "JWT Claims"]
+      tags: [security, tokens]
+      status: not_started
+      source_context: "identity-guide, Chapter 8"
+
+    - name: "JWT Signature"
+      description: "Third segment computed as ALGORITHM(base64url(header) + '.' + base64url(payload), key); prevents tampering — any change invalidates the signature"
+      difficulty: 3
+      priority: high
+      prerequisites: ["JWT Header", "JWT Payload"]
+      related: ["HMAC", "RSA", "ECDSA"]
+      tags: [security, tokens, cryptography]
+      status: not_started
+      source_context: "identity-guide, Chapter 8"
+
+    - name: "JWT Registered Claims (iss, sub, aud, exp, nbf, iat, jti)"
+      description: "Seven standardized claim names defined in RFC 7519: issuer, subject, audience, expiration, not-before, issued-at, JWT ID"
+      difficulty: 3
+      priority: high
+      prerequisites: ["JWT Payload"]
+      related: ["OIDC Claims"]
+      tags: [security, tokens, standards]
+      status: not_started
+      source_context: "identity-guide, Chapter 8"
+
+    - name: "JSON Web Signature (JWS)"
+      description: "Signed JWT — the common form where the header and payload are integrity-protected by a cryptographic signature"
+      difficulty: 3
+      priority: medium
+      prerequisites: ["JWT"]
+      related: ["JWE"]
+      tags: [security, tokens]
+      status: not_started
+      source_context: "identity-guide, Chapter 8"
+
+    - name: "JSON Web Encryption (JWE)"
+      description: "Encrypted JWT — payload is encrypted, not just signed; provides confidentiality in addition to integrity"
+      difficulty: 4
+      priority: low
+      prerequisites: ["JWS"]
+      related: ["Nested JWT"]
+      tags: [security, tokens]
+      status: not_started
+      source_context: "identity-guide, Chapter 8"
+
+    - name: "JSON Web Key Set (JWKS)"
+      description: "JSON document containing an array of public keys used to verify JWT signatures; published at the jwks_uri from OIDC discovery"
+      difficulty: 3
+      priority: high
+      prerequisites: ["JWT Signature", "OIDC Discovery"]
+      related: ["kid", "RS256"]
+      tags: [security, tokens, identity]
+      status: not_started
+      source_context: "identity-guide, Chapter 8"
+
+    - name: "Base64URL Encoding"
+      description: "URL-safe variant of Base64 that replaces +/ with -_ and omits padding; used for all three JWT segments"
+      difficulty: 2
+      priority: medium
+      prerequisites: []
+      related: ["JWT"]
+      tags: [encoding, fundamentals]
+      status: not_started
+      source_context: "identity-guide, Chapter 8"
+
+    - name: "alg: none attack"
+      description: "JWT vulnerability where an attacker changes the algorithm header to 'none' and strips the signature; libraries must reject unsigned tokens"
+      difficulty: 4
+      priority: high
+      prerequisites: ["JWT Header", "JWT Signature"]
+      related: ["JWT Validation Checklist"]
+      tags: [security, vulnerabilities]
+      status: not_started
+      source_context: "identity-guide, Chapter 8"
+
+  signing_algorithms:
+    - name: "HMAC (HS256, HS384, HS512)"
+      description: "Symmetric signing — same secret key for signing and verification; fast but requires secure key distribution; used when issuer and verifier are the same system"
+      difficulty: 3
+      priority: high
+      prerequisites: ["JWT Signature"]
+      related: ["RSA", "ECDSA"]
+      tags: [cryptography, algorithms]
+      status: not_started
+      source_context: "identity-guide, Chapter 8"
+
+    - name: "RSA (RS256, RS384, RS512)"
+      description: "Asymmetric signing — private key signs, public key verifies; public key distributable via JWKS; standard for OIDC and Kubernetes SA tokens"
+      difficulty: 3
+      priority: high
+      prerequisites: ["JWT Signature"]
+      related: ["HMAC", "ECDSA", "JWKS"]
+      tags: [cryptography, algorithms]
+      status: not_started
+      source_context: "identity-guide, Chapter 8"
+
+    - name: "ECDSA (ES256, ES384, ES512)"
+      description: "Asymmetric signing using elliptic curve cryptography; same security as RSA with smaller key sizes; increasingly common for JWTs"
+      difficulty: 4
+      priority: high
+      prerequisites: ["RSA"]
+      related: ["HMAC"]
+      tags: [cryptography, algorithms]
+      status: not_started
+      source_context: "identity-guide, Chapter 8"
+
+##############################################################################
+# CATEGORY 3: IDENTITY, AUTHENTICATION & AUTHORIZATION
+##############################################################################
+identity:
+  description: "Protocols and systems for proving identity and granting access"
+
+  core_concepts:
+    - name: "Authentication (AuthN)"
+      description: "Proving WHO you are — the result is an identity assertion or token"
+      difficulty: 1
+      priority: critical
+      prerequisites: []
+      related: ["Authorization (AuthZ)"]
+      tags: [identity, fundamentals]
+      status: not_started
+      source_context: "identity-guide, Chapter 3"
+
+    - name: "Authorization (AuthZ)"
+      description: "Determining WHAT you are allowed to do — the result is a permission grant or denial"
+      difficulty: 1
+      priority: critical
+      prerequisites: ["Authentication (AuthN)"]
+      related: ["RBAC", "ABAC", "OAuth 2.0"]
+      tags: [identity, fundamentals]
+      status: not_started
+      source_context: "identity-guide, Chapter 3"
+
+    - name: "Single Sign-On (SSO)"
+      description: "User experience outcome where authenticating once grants access to multiple applications; implemented via SAML or OIDC with session cookies at the IdP"
+      difficulty: 2
+      priority: critical
+      prerequisites: ["Authentication (AuthN)"]
+      related: ["SAML 2.0", "OIDC", "Identity Provider (IdP)"]
+      tags: [identity, user-experience]
+      status: not_started
+      source_context: "identity-guide, Chapter 9"
+
+    - name: "Identity Provider (IdP)"
+      description: "System that authenticates users and issues identity assertions; called IdP in SAML, OP in OIDC, Authorization Server in OAuth"
+      difficulty: 1
+      priority: critical
+      prerequisites: []
+      related: ["Service Provider (SP)", "Relying Party (RP)"]
+      tags: [identity, fundamentals]
+      status: not_started
+      source_context: "identity-guide, Chapter 2"
+
+    - name: "Service Provider (SP)"
+      description: "Application that trusts the IdP for authentication; SAML term — equivalent to Relying Party in OIDC and Client in OAuth"
+      difficulty: 2
+      priority: high
+      prerequisites: ["Identity Provider (IdP)"]
+      related: ["Relying Party (RP)", "Trust Relationship"]
+      tags: [identity, saml]
+      status: not_started
+      source_context: "identity-guide, Chapter 2"
+
+    - name: "Relying Party (RP)"
+      description: "OIDC term for the application that relies on the OpenID Provider for authentication"
+      difficulty: 2
+      priority: high
+      prerequisites: ["Identity Provider (IdP)"]
+      related: ["Service Provider (SP)"]
+      tags: [identity, oidc]
+      status: not_started
+      source_context: "identity-guide, Chapter 2"
+
+    - name: "Trust Relationship"
+      description: "Pre-configured exchange of metadata/certificates between IdP and SP that enables one to verify assertions from the other"
+      difficulty: 2
+      priority: high
+      prerequisites: ["Identity Provider (IdP)", "Service Provider (SP)"]
+      related: ["SAML Metadata", "OIDC Discovery"]
+      tags: [identity, federation]
+      status: not_started
+      source_context: "identity-guide, Chapter 4"
+
+    - name: "Identity Federation"
+      description: "Establishing trust between separate identity domains so users authenticated in one domain can access resources in another"
+      difficulty: 3
+      priority: critical
+      prerequisites: ["Trust Relationship", "SSO"]
+      related: ["Identity Brokering", "Hub-and-Spoke Federation"]
+      tags: [identity, federation, enterprise]
+      status: not_started
+      source_context: "identity-guide, Chapter 12"
+
+    - name: "Identity Brokering"
+      description: "Hub-and-spoke pattern where a broker (Auth0, Okta) mediates between multiple customer IdPs and your application via a single connection"
+      difficulty: 3
+      priority: medium
+      prerequisites: ["Identity Federation"]
+      related: ["Auth0", "Okta"]
+      tags: [identity, federation, architecture]
+      status: not_started
+      source_context: "identity-guide, Chapter 12"
+
+    - name: "Multi-Factor Authentication (MFA)"
+      description: "Requiring multiple proof factors (password + TOTP, biometric, hardware key) for authentication; orthogonal to protocol — happens at the IdP"
+      difficulty: 2
+      priority: critical
+      prerequisites: ["Authentication (AuthN)"]
+      related: ["TOTP", "FIDO2", "WebAuthn", "Conditional Access"]
+      tags: [identity, security]
+      status: not_started
+      source_context: "identity-guide, Chapter 14"
+
+    - name: "TOTP (Time-based One-Time Password)"
+      description: "6-digit rotating codes generated by authenticator apps using a shared secret and current time (RFC 6238)"
+      difficulty: 2
+      priority: medium
+      prerequisites: ["MFA"]
+      related: ["FIDO2"]
+      tags: [identity, security, mfa]
+      status: not_started
+      source_context: "identity-guide, Chapter 17"
+
+    - name: "FIDO2 / WebAuthn"
+      description: "Passwordless authentication standard using hardware security keys or platform authenticators (fingerprint, face); phishing-resistant"
+      difficulty: 3
+      priority: medium
+      prerequisites: ["MFA"]
+      related: ["TOTP"]
+      tags: [identity, security, passwordless]
+      status: not_started
+      source_context: "identity-guide, Chapter 17"
+
+    - name: "Conditional Access"
+      description: "Policy engine at the IdP (Entra ID, Okta) that enforces MFA, device compliance, or location restrictions based on risk signals"
+      difficulty: 3
+      priority: medium
+      prerequisites: ["MFA", "Identity Provider (IdP)"]
+      related: ["Microsoft Entra ID"]
+      tags: [identity, security, enterprise]
+      status: not_started
+      source_context: "identity-guide, Chapter 14"
+
+    - name: "Bearer Token"
+      description: "HTTP authentication scheme where the client presents an opaque or structured token in the Authorization header; server validates without further client interaction"
+      difficulty: 2
+      priority: high
+      prerequisites: ["Authentication (AuthN)"]
+      related: ["access_token", "JWT"]
+      tags: [identity, tokens, fundamentals]
+      status: not_started
+      source_context: null
+
+  saml:
+    - name: "SAML 2.0"
+      description: "XML-based open standard for exchanging authentication/authorization data between an IdP and SP; OASIS standard ratified March 2005; the dominant enterprise SSO protocol"
+      difficulty: 3
+      priority: critical
+      prerequisites: ["Authentication (AuthN)", "Identity Provider (IdP)", "Service Provider (SP)"]
+      related: ["OIDC", "XML Digital Signature"]
+      tags: [identity, saml, enterprise]
+      status: not_started
+      source_context: "identity-guide, Chapter 4"
+
+    - name: "SAML Assertion"
+      description: "XML document issued by the IdP containing Subject (who), Conditions (validity), AuthnStatement (how they authenticated), and AttributeStatement (user attributes)"
+      difficulty: 3
+      priority: critical
+      prerequisites: ["SAML 2.0"]
+      related: ["SAML Response", "XML Digital Signature"]
+      tags: [identity, saml]
+      status: not_started
+      source_context: "identity-guide, Chapter 4"
+
+    - name: "SAML Response"
+      description: "Outer XML envelope containing Status, Issuer, optional Signature, and one or more embedded Assertions"
+      difficulty: 3
+      priority: high
+      prerequisites: ["SAML Assertion"]
+      related: ["AuthnRequest", "Assertion Consumer Service (ACS)"]
+      tags: [identity, saml]
+      status: not_started
+      source_context: "identity-guide, Chapter 4"
+
+    - name: "AuthnRequest"
+      description: "XML message the SP sends to the IdP requesting authentication; contains ID, Issuer, ACS URL, and NameIDPolicy"
+      difficulty: 3
+      priority: high
+      prerequisites: ["SAML 2.0"]
+      related: ["SAML Response", "InResponseTo"]
+      tags: [identity, saml]
+      status: not_started
+      source_context: "identity-guide, Chapter 4"
+
+    - name: "Assertion Consumer Service (ACS)"
+      description: "The SP's endpoint URL that receives the SAML Response via HTTP-POST; configured in SAML metadata and validated during response processing"
+      difficulty: 3
+      priority: high
+      prerequisites: ["SAML Response"]
+      related: ["SAML Metadata", "redirect_uri"]
+      tags: [identity, saml]
+      status: not_started
+      source_context: "identity-guide, Chapter 4"
+
+    - name: "SAML Metadata"
+      description: "XML documents published by IdP and SP describing their Entity ID, endpoints, certificates, and capabilities; the basis of trust establishment"
+      difficulty: 3
+      priority: high
+      prerequisites: ["SAML 2.0", "Trust Relationship"]
+      related: ["OIDC Discovery", "EntityDescriptor"]
+      tags: [identity, saml]
+      status: not_started
+      source_context: "identity-guide, Chapter 4"
+
+    - name: "SP-Initiated Flow"
+      description: "User accesses SP first → SP sends AuthnRequest → IdP authenticates → IdP returns Response; the standard 95% case"
+      difficulty: 3
+      priority: high
+      prerequisites: ["AuthnRequest", "SAML Response", "ACS"]
+      related: ["IdP-Initiated Flow"]
+      tags: [identity, saml, flows]
+      status: not_started
+      source_context: "identity-guide, Chapter 4"
+
+    - name: "IdP-Initiated Flow"
+      description: "User starts at IdP portal, clicks app tile, IdP sends unsolicited Response directly; less secure (no InResponseTo validation)"
+      difficulty: 3
+      priority: low
+      prerequisites: ["SP-Initiated Flow"]
+      related: []
+      tags: [identity, saml, flows]
+      status: not_started
+      source_context: "identity-guide, Chapter 4"
+
+    - name: "NameID"
+      description: "User identifier in the SAML Assertion Subject; formats include emailAddress, persistent (opaque UUID), transient (per-session), and unspecified"
+      difficulty: 3
+      priority: high
+      prerequisites: ["SAML Assertion"]
+      related: ["sub claim"]
+      tags: [identity, saml]
+      status: not_started
+      source_context: "identity-guide, Chapter 4"
+
+    - name: "AudienceRestriction"
+      description: "Condition in the SAML Assertion that limits which SP(s) the assertion is valid for; the SP verifies its own Entity ID is listed"
+      difficulty: 4
+      priority: low
+      prerequisites: ["SAML Assertion"]
+      related: ["aud claim"]
+      tags: [identity, saml, security]
+      status: not_started
+      source_context: "identity-guide, Chapter 4"
+
+    - name: "AuthnStatement / AuthnContextClassRef"
+      description: "SAML element describing how and when the user authenticated (password, MFA, etc.); equivalent to OIDC's acr/amr claims"
+      difficulty: 4
+      priority: low
+      prerequisites: ["SAML Assertion"]
+      related: ["acr", "amr"]
+      tags: [identity, saml]
+      status: not_started
+      source_context: "identity-guide, Chapter 4"
+
+    - name: "XML Digital Signature (XML-DSig)"
+      description: "W3C standard for signing XML documents; SAML's security foundation — the IdP signs the Assertion with its private key, the SP verifies with the public key"
+      difficulty: 4
+      priority: high
+      prerequisites: ["SAML Assertion", "X.509 Certificate"]
+      related: ["XML Canonicalization (exc-c14n)"]
+      tags: [identity, saml, cryptography]
+      status: not_started
+      source_context: "identity-guide, Chapter 4"
+
+    - name: "SAML Bindings (HTTP-Redirect, HTTP-POST, HTTP-Artifact)"
+      description: "Transport mechanisms for SAML messages: Redirect encodes in URL params, POST uses hidden HTML form, Artifact uses back-channel SOAP resolution"
+      difficulty: 4
+      priority: low
+      prerequisites: ["SAML 2.0"]
+      related: []
+      tags: [identity, saml]
+      status: not_started
+      source_context: "identity-guide, Chapter 4"
+
+    - name: "Single Logout (SLO)"
+      description: "SAML protocol for logging out of all federated SPs when user logs out of one; brittle in practice — many orgs skip it and use short session timeouts"
+      difficulty: 4
+      priority: low
+      prerequisites: ["SAML 2.0", "SSO"]
+      related: []
+      tags: [identity, saml]
+      status: not_started
+      source_context: "identity-guide, Chapter 4"
+
+    - name: "SAML JIT Provisioning"
+      description: "Just-In-Time account creation at the SP using attributes from the first SAML assertion; simpler than SCIM but can't deprovision"
+      difficulty: 3
+      priority: medium
+      prerequisites: ["SAML 2.0", "SCIM"]
+      related: ["SCIM Provisioning"]
+      tags: [identity, saml, provisioning]
+      status: not_started
+      source_context: "identity-guide, Chapter 10"
+
+  oauth:
+    - name: "OAuth 2.0"
+      description: "Delegation framework for authorization (RFC 6749) — lets a user grant a third-party app scoped access to their resources without sharing their password"
+      difficulty: 2
+      priority: critical
+      prerequisites: ["Authorization (AuthZ)"]
+      related: ["OAuth 2.1", "OIDC", "PKCE"]
+      tags: [identity, oauth, fundamentals]
+      status: not_started
+      source_context: "identity-guide, Chapter 5"
+
+    - name: "OAuth 2.1"
+      description: "In-progress IETF consolidation of OAuth 2.0 best practices: PKCE mandatory, implicit and ROPC grants removed, exact redirect URI matching, refresh token rotation recommended"
+      difficulty: 3
+      priority: high
+      prerequisites: ["OAuth 2.0", "PKCE"]
+      related: ["MCP Authorization"]
+      tags: [identity, oauth, standards]
+      status: not_started
+      source_context: "identity-guide, Chapter 5"
+
+    - name: "Authorization Code Grant"
+      description: "Standard OAuth flow: browser redirect to IdP → user authenticates → auth code returned to callback → server exchanges code + secret for tokens (back-channel)"
+      difficulty: 3
+      priority: critical
+      prerequisites: ["OAuth 2.0"]
+      related: ["PKCE", "redirect_uri", "state parameter"]
+      tags: [identity, oauth, flows]
+      status: not_started
+      source_context: "identity-guide, Chapter 5"
+
+    - name: "Client Credentials Grant"
+      description: "Machine-to-machine OAuth flow with no user involvement; client authenticates directly with client_id + client_secret to get an access token"
+      difficulty: 3
+      priority: high
+      prerequisites: ["OAuth 2.0"]
+      related: ["ServiceAccount"]
+      tags: [identity, oauth, flows]
+      status: not_started
+      source_context: "identity-guide, Chapter 5"
+
+    - name: "PKCE (Proof Key for Code Exchange)"
+      description: "Security extension (RFC 7636) that prevents auth code interception by binding the token exchange to the client that initiated the flow via code_verifier/code_challenge"
+      difficulty: 3
+      priority: critical
+      prerequisites: ["Authorization Code Grant"]
+      related: ["code_verifier", "code_challenge", "OAuth 2.1"]
+      tags: [identity, oauth, security]
+      status: not_started
+      source_context: "identity-guide, Chapter 6"
+
+    - name: "Scopes"
+      description: "Strings that define the boundaries of what an access token permits; API-specific (e.g., calendar.readonly, repo, chat:write); OIDC defines standard scopes (openid, profile, email)"
+      difficulty: 2
+      priority: high
+      prerequisites: ["OAuth 2.0"]
+      related: ["access_token"]
+      tags: [identity, oauth]
+      status: not_started
+      source_context: "identity-guide, Chapter 5"
+
+    - name: "access_token"
+      description: "Permission slip — included in API requests as 'Authorization: Bearer <token>'; short-lived; meant to be read and validated by the resource server, not the client"
+      difficulty: 2
+      priority: critical
+      prerequisites: ["OAuth 2.0"]
+      related: ["refresh_token", "ID Token", "Bearer Token"]
+      tags: [identity, oauth, tokens]
+      status: not_started
+      source_context: "identity-guide, Chapter 5"
+
+    - name: "refresh_token"
+      description: "Long-lived token used to obtain new access tokens without re-authenticating; stored securely server-side; should be rotated on each use"
+      difficulty: 3
+      priority: high
+      prerequisites: ["access_token"]
+      related: ["Refresh Token Rotation"]
+      tags: [identity, oauth, tokens]
+      status: not_started
+      source_context: "identity-guide, Chapter 5"
+
+    - name: "DPoP (Demonstration of Proof of Possession)"
+      description: "RFC 9449 — binds tokens to a client's cryptographic key pair so stolen tokens can't be used from another machine"
+      difficulty: 5
+      priority: low
+      prerequisites: ["access_token", "JWT"]
+      related: ["Java DPoP"]
+      tags: [identity, oauth, security, advanced]
+      status: not_started
+      source_context: "identity-guide, Chapter 13"
+
+    - name: "Java DPoP"
+      description: "DPoP implementation in Java — binding OAuth tokens to client key pairs for sender-constrained access"
+      difficulty: 5
+      priority: low
+      prerequisites: ["DPoP"]
+      related: []
+      tags: [identity, oauth, java]
+      status: not_started
+      source_context: null
+
+    - name: "Token Revocation (RFC 7009)"
+      description: "OAuth endpoint where clients can invalidate access or refresh tokens; challenging for JWTs since they're stateless (requires revocation lists or short lifetimes)"
+      difficulty: 4
+      priority: medium
+      prerequisites: ["access_token", "refresh_token"]
+      related: ["Token Introspection"]
+      tags: [identity, oauth, security]
+      status: not_started
+      source_context: "identity-guide, Chapter 13"
+
+  oidc:
+    - name: "OpenID Connect (OIDC)"
+      description: "Identity layer built on OAuth 2.0; adds the ID Token (a JWT asserting who the user is), standard scopes/claims, discovery, and UserInfo endpoint"
+      difficulty: 2
+      priority: critical
+      prerequisites: ["OAuth 2.0", "JWT"]
+      related: ["SAML 2.0", "ID Token"]
+      tags: [identity, oidc, fundamentals]
+      status: not_started
+      source_context: "identity-guide, Chapter 7"
+
+    - name: "ID Token"
+      description: "JWT issued alongside the access token when openid scope is requested; asserts user identity (iss, sub, aud, exp, nonce); audience is the CLIENT, never sent to APIs"
+      difficulty: 3
+      priority: critical
+      prerequisites: ["OIDC", "JWT"]
+      related: ["access_token", "ID Token vs Access Token"]
+      tags: [identity, oidc, tokens]
+      status: not_started
+      source_context: "identity-guide, Chapter 7"
+
+    - name: "OIDC Discovery (.well-known/openid-configuration)"
+      description: "JSON document at a predictable URL containing all provider endpoints, supported scopes, signing algorithms, and JWKS URI; enables auto-configuration"
+      difficulty: 3
+      priority: high
+      prerequisites: ["OIDC"]
+      related: ["JWKS", "SAML Metadata"]
+      tags: [identity, oidc]
+      status: not_started
+      source_context: "identity-guide, Chapter 7"
+
+    - name: "UserInfo Endpoint"
+      description: "OIDC endpoint that returns additional user claims when called with a valid access token; supplements the ID Token"
+      difficulty: 3
+      priority: medium
+      prerequisites: ["OIDC", "access_token"]
+      related: ["OIDC Standard Scopes"]
+      tags: [identity, oidc]
+      status: not_started
+      source_context: "identity-guide, Chapter 7"
+
+    - name: "OIDC Standard Scopes (openid, profile, email, phone, address)"
+      description: "Standardized scope values that map to predefined sets of claims; openid is required to trigger the OIDC flow"
+      difficulty: 3
+      priority: high
+      prerequisites: ["OIDC", "Scopes"]
+      related: ["OIDC Claims"]
+      tags: [identity, oidc]
+      status: not_started
+      source_context: "identity-guide, Chapter 7"
+
+    - name: "acr / amr claims"
+      description: "Authentication Context Class Reference and Authentication Methods References — ID Token claims indicating the level and method of authentication (pwd, otp, mfa)"
+      difficulty: 4
+      priority: medium
+      prerequisites: ["ID Token"]
+      related: ["AuthnContextClassRef", "MFA"]
+      tags: [identity, oidc]
+      status: not_started
+      source_context: "identity-guide, Chapter 14"
+
+  provisioning:
+    - name: "SCIM (System for Cross-domain Identity Management)"
+      description: "RESTful protocol (RFC 7643/7644) for automating user account lifecycle (create, update, deactivate, delete) across applications via JSON/REST API"
+      difficulty: 3
+      priority: high
+      prerequisites: ["Authentication (AuthN)", "Identity Provider (IdP)"]
+      related: ["SAML JIT Provisioning", "SCIM Provisioning", "SCIM Deprovisioning"]
+      tags: [identity, provisioning, enterprise]
+      status: not_started
+      source_context: "identity-guide, Chapter 10"
+
+  platforms:
+    - name: "Okta"
+      description: "Cloud-native identity platform; acts as IdP for SAML and OIDC; has pre-built catalog (OIN) of thousands of app integrations; supports SCIM provisioning"
+      difficulty: 2
+      priority: high
+      prerequisites: ["SSO", "SAML 2.0", "OIDC"]
+      related: ["Auth0", "Microsoft Entra ID"]
+      tags: [identity, platforms]
+      status: not_started
+      source_context: "identity-guide, Chapter 11"
+
+    - name: "Microsoft Entra ID (Azure AD)"
+      description: "Microsoft's identity platform; tightly integrated with M365; supports SAML, OIDC, OAuth, SCIM; provides Conditional Access policies"
+      difficulty: 2
+      priority: high
+      prerequisites: ["SSO", "SAML 2.0", "OIDC"]
+      related: ["Okta", "Conditional Access"]
+      tags: [identity, platforms, microsoft]
+      status: not_started
+      source_context: "identity-guide, Chapter 11"
+
+    - name: "Auth0"
+      description: "Developer-focused identity platform (by Okta); supports OIDC, OAuth, SAML; Universal Login; social connections; can act as identity broker"
+      difficulty: 2
+      priority: high
+      prerequisites: ["OIDC", "OAuth 2.0"]
+      related: ["Identity Brokering", "Okta"]
+      tags: [identity, platforms]
+      status: not_started
+      source_context: "identity-guide, Chapter 11"
+
+    - name: "Keycloak"
+      description: "Open-source identity platform by Red Hat; self-hosted; supports SAML, OIDC, OAuth, SCIM; commonly used as the IdP in Kubernetes clusters"
+      difficulty: 3
+      priority: medium
+      prerequisites: ["OIDC", "SAML 2.0"]
+      related: ["Dex"]
+      tags: [identity, platforms, open-source, kubernetes]
+      status: not_started
+      source_context: "identity-guide, Chapter 11"
+
+    - name: "AWS IAM Identity Center"
+      description: "AWS's built-in SSO for managing access across multiple AWS accounts and business apps; supports SAML, OIDC, SCIM from external IdPs"
+      difficulty: 3
+      priority: high
+      prerequisites: ["SSO", "SAML 2.0"]
+      related: ["IRSA", "EKS Pod Identity"]
+      tags: [identity, platforms, aws]
+      status: not_started
+      source_context: "identity-guide, Chapter 11"
+
+    - name: "AWS IAM"
+      description: "AWS Identity and Access Management service controlling who can do what across AWS; uses policies, roles, users, and groups for fine-grained access control"
+      difficulty: 2
+      priority: critical
+      prerequisites: ["Authentication (AuthN)", "Authorization (AuthZ)"]
+      related: ["IRSA", "aws-iam-authenticator", "AWS IAM Identity Center"]
+      tags: [aws, identity, security]
+      status: not_started
+      source_context: null
+
+  token_security:
+    - name: "Backend-for-Frontend (BFF)"
+      description: "Architecture pattern where the SPA delegates OAuth flows to its own backend server; tokens stay server-side, browser only gets a session cookie"
+      difficulty: 3
+      priority: medium
+      prerequisites: ["Authorization Code Grant", "PKCE"]
+      related: ["HttpOnly Cookie"]
+      tags: [identity, architecture, security]
+      status: not_started
+      source_context: "identity-guide, Chapter 13"
+
+    - name: "RBAC (Role-Based Access Control)"
+      description: "Authorization model where permissions are assigned to roles, and users are assigned to roles; Kubernetes' primary authorization mechanism"
+      difficulty: 2
+      priority: critical
+      prerequisites: ["Authorization (AuthZ)"]
+      related: ["ABAC", "Role / ClusterRole", "RoleBinding / ClusterRoleBinding"]
+      tags: [identity, authorization, kubernetes]
+      status: not_started
+      source_context: "identity-guide, Chapter 17; kubernetes-internals-guide, Part II Step 4"
+
+    - name: "ABAC (Attribute-Based Access Control)"
+      description: "Authorization model based on user/resource/environment attributes; more flexible than RBAC but more complex to manage"
+      difficulty: 3
+      priority: medium
+      prerequisites: ["RBAC"]
+      related: []
+      tags: [identity, authorization]
+      status: not_started
+      source_context: "identity-guide, Chapter 17"
+
+##############################################################################
+# CATEGORY 4: SERIALIZATION & DATA FORMATS
+##############################################################################
+serialization:
+  description: "How data is encoded for storage and transmission"
+
+
+  topics:
+    - name: "Protocol Buffers (Protobuf)"
+      description: "Google's binary serialization format using .proto IDL, field tags instead of field names, and compiled code generation; ~2.5x smaller and ~5-8x faster to deserialize than JSON"
+      difficulty: 3
+      priority: high
+      prerequisites: []
+      related: ["gRPC", "Protobuf vs JSON"]
+      tags: [serialization, performance, kubernetes]
+      status: not_started
+      source_context: "protobuf deep-dive"
+
+    - name: ".proto files"
+      description: "Interface Definition Language files that define message schemas with typed fields and integer tags; compiled by protoc into language-specific code"
+      difficulty: 3
+      priority: medium
+      prerequisites: ["Protocol Buffers (Protobuf)"]
+      related: ["protoc compiler", "Code Generation"]
+      tags: [serialization]
+      status: not_started
+      source_context: "protobuf deep-dive"
+
+    - name: "Protobuf Field Tags"
+      description: "Small integers (= 1, = 2) that uniquely identify each field on the wire; replace field name strings, enabling compact binary encoding"
+      difficulty: 4
+      priority: low
+      prerequisites: [".proto files"]
+      related: ["Protobuf Wire Types"]
+      tags: [serialization, internals]
+      status: not_started
+      source_context: "protobuf deep-dive"
+
+    - name: "Protobuf Wire Types (varint, 64-bit, length-delimited, 32-bit)"
+      description: "Encoding strategies for different data types; the wire type + field tag are packed into a single varint prefix byte"
+      difficulty: 5
+      priority: low
+      prerequisites: ["Protobuf Field Tags"]
+      related: ["Varint Encoding"]
+      tags: [serialization, internals]
+      status: not_started
+      source_context: "protobuf deep-dive"
+
+    - name: "Varint Encoding"
+      description: "Variable-length integer encoding where small numbers use fewer bytes; each byte's MSB indicates if more bytes follow"
+      difficulty: 5
+      priority: low
+      prerequisites: ["Protobuf Wire Types"]
+      related: []
+      tags: [serialization, encoding]
+      status: not_started
+      source_context: "protobuf deep-dive"
+
+    - name: "Kubernetes Protobuf Envelope"
+      description: "Custom wrapper (k8s\\x00 magic bytes + Unknown message with apiVersion, kind, raw bytes) that lets the API server identify object type without full deserialization"
+      difficulty: 5
+      priority: low
+      prerequisites: ["Protocol Buffers (Protobuf)"]
+      related: ["kube-apiserver"]
+      tags: [serialization, kubernetes, internals]
+      status: not_started
+      source_context: "protobuf deep-dive"
+
+    - name: "application/vnd.kubernetes.protobuf"
+      description: "MIME type used in Accept/Content-Type headers when Kubernetes components negotiate protobuf encoding instead of JSON"
+      difficulty: 4
+      priority: low
+      prerequisites: ["Protocol Buffers (Protobuf)"]
+      related: ["client-go"]
+      tags: [serialization, kubernetes]
+      status: not_started
+      source_context: "protobuf deep-dive"
+
+##############################################################################
+# CATEGORY 5: KUBERNETES CONTROL PLANE
+##############################################################################
+kubernetes_control_plane:
+  description: "Core control plane components and their internal mechanisms"
+
+  components:
+    - name: "kube-apiserver"
+      description: "The only component that talks to etcd; stateless REST server that authenticates, authorizes, admits, persists, and serves watches for all cluster objects"
+      difficulty: 3
+      priority: critical
+      prerequisites: []
+      related: ["etcd", "Authentication Chain", "Admission Control"]
+      tags: [kubernetes, control-plane]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part I"
+
+    - name: "etcd"
+      description: "Distributed key-value store using Raft consensus; stores entire cluster state as Protobuf under /registry/ prefix; the API server's only client"
+      difficulty: 3
+      priority: critical
+      prerequisites: []
+      related: ["Raft Consensus", "etcd Watch API", "etcd Compaction"]
+      tags: [kubernetes, control-plane, storage]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part I"
+
+    - name: "kube-controller-manager"
+      description: "Single binary embedding ~40 control loops (Deployment, ReplicaSet, Node, SA, Endpoint, etc.); watches resources via SharedInformers and reconciles current vs desired state"
+      difficulty: 3
+      priority: critical
+      prerequisites: ["kube-apiserver", "SharedInformer"]
+      related: ["Leader Election", "Reconcile Loop"]
+      tags: [kubernetes, control-plane, controllers]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part I"
+
+    - name: "kube-scheduler"
+      description: "Watches unscheduled Pods (no spec.nodeName), runs filtering and scoring plugins to select optimal node, creates Binding object"
+      difficulty: 3
+      priority: critical
+      prerequisites: ["kube-apiserver"]
+      related: ["Scheduler Filtering Phase", "Scheduler Scoring Phase"]
+      tags: [kubernetes, control-plane, scheduling]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part III Chapter 3"
+
+    - name: "ServiceAccount"
+      description: "Kubernetes API resource providing identity to pods; automatically mounted as projected tokens; foundation of pod-level authentication and RBAC"
+      difficulty: 2
+      priority: critical
+      prerequisites: ["kube-apiserver"]
+      related: ["ServiceAccount Token (Projected)", "RBAC"]
+      tags: [kubernetes, identity, security]
+      status: not_started
+      source_context: null
+
+    - name: "Lease Object"
+      description: "Lightweight Kubernetes API resource providing distributed locking and leader election; used by kubelet heartbeats and controller HA"
+      difficulty: 3
+      priority: high
+      prerequisites: ["kube-apiserver"]
+      related: ["Leader Election", "Node Lease Heartbeat"]
+      tags: [kubernetes, ha, internals]
+      status: not_started
+      source_context: null
+
+    - name: "cloud-controller-manager"
+      description: "Runs cloud-specific controllers (LoadBalancer Services, Node lifecycle, Routes); decoupled from kube-controller-manager for cloud-agnosticism"
+      difficulty: 3
+      priority: high
+      prerequisites: ["kube-controller-manager"]
+      related: []
+      tags: [kubernetes, control-plane, cloud]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part I"
+
+  etcd_internals:
+    - name: "Raft Consensus Algorithm"
+      description: "Distributed consensus protocol (Leader/Follower/Candidate roles); writes committed after quorum ack; etcd cluster of 3 tolerates 1 failure"
+      difficulty: 4
+      priority: high
+      prerequisites: ["etcd"]
+      related: ["Raft Quorum", "etcd mod_revision"]
+      tags: [distributed-systems, consensus, kubernetes]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part V Chapter 8"
+
+    - name: "etcd mod_revision / resourceVersion"
+      description: "Every etcd key has a mod_revision that increases on each mutation; Kubernetes exposes this as resourceVersion for optimistic concurrency control"
+      difficulty: 4
+      priority: high
+      prerequisites: ["etcd", "Raft Consensus"]
+      related: ["Optimistic Concurrency Control", "HTTP 409 Conflict"]
+      tags: [kubernetes, consistency, internals]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part V Chapter 8"
+
+    - name: "etcd Watch API"
+      description: "gRPC server-streaming API that notifies clients of key changes in real-time; the foundation of Kubernetes' reactive architecture"
+      difficulty: 4
+      priority: high
+      prerequisites: ["etcd", "gRPC"]
+      related: ["Watch Cache", "SharedInformer"]
+      tags: [kubernetes, internals]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part IV Chapter 4"
+
+    - name: "etcd Compaction"
+      description: "Periodic removal of old revisions (default every 5 minutes); watchers requesting versions older than compacted revision get ErrCompacted → must re-list"
+      difficulty: 4
+      priority: high
+      prerequisites: ["etcd mod_revision"]
+      related: ["HTTP 410 Gone"]
+      tags: [kubernetes, operations, internals]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part V Chapter 8"
+
+  api_server_pipeline:
+    - name: "Authentication Chain"
+      description: "Ordered list of authenticator modules; first success short-circuits; extracts UserInfo from X.509, Bearer JWT, OIDC, Webhook, or Proxy"
+      difficulty: 3
+      priority: critical
+      prerequisites: ["kube-apiserver"]
+      related: ["X.509 Auth", "ServiceAccount Token", "OIDC Authentication", "Webhook Token Authentication"]
+      tags: [kubernetes, security, authn]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part II Step 3"
+
+    - name: "ServiceAccount Token (Projected)"
+      description: "JWT signed by --service-account-key-file, mounted at /var/run/secrets/.../token via projected volume; audience-bound, time-bound (1hr), Pod-bound"
+      difficulty: 4
+      priority: critical
+      prerequisites: ["JWT", "ServiceAccount"]
+      related: ["TokenRequest API", "ServiceAccount Admission Controller"]
+      tags: [kubernetes, security, tokens]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part V Chapter 5"
+
+    - name: "Webhook Token Authentication (TokenReview)"
+      description: "API server POSTs bearer token as a TokenReview to an external webhook for validation; responses cached with TTL; used by EKS (aws-iam-authenticator)"
+      difficulty: 4
+      priority: high
+      prerequisites: ["Authentication Chain", "Bearer Token"]
+      related: ["aws-iam-authenticator"]
+      tags: [kubernetes, security, authn]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part II Step 3"
+
+    - name: "Authenticating Proxy"
+      description: "Proxy verified by --requestheader-client-ca-file passes identity via X-Remote-User/X-Remote-Group headers; used for SAML/Kerberos integration"
+      difficulty: 4
+      priority: medium
+      prerequisites: ["Authentication Chain", "X.509 Certificate"]
+      related: []
+      tags: [kubernetes, security, authn]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part II Step 3"
+
+    - name: "UserInfo Struct"
+      description: "Output of authentication: {Username, UID, Groups, Extra}; passed to authorization and attached to the request context"
+      difficulty: 3
+      priority: high
+      prerequisites: ["Authentication Chain"]
+      related: ["RBAC Authorizer", "Node Authorizer"]
+      tags: [kubernetes, security]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part II Step 3"
+
+    - name: "Node Authorizer"
+      description: "Purpose-built authorizer restricting kubelets to their own node's Secrets/ConfigMaps/PVCs and Pod/Node status updates; uses graph-based Pod-to-Node binding"
+      difficulty: 4
+      priority: medium
+      prerequisites: ["kube-apiserver", "kubelet"]
+      related: ["RBAC Authorizer"]
+      tags: [kubernetes, security, authz]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part II Step 4"
+
+    - name: "Verb Derivation"
+      description: "API server maps HTTP method to Kubernetes verb: POST→create, GET→get, PUT→update, PATCH→patch, DELETE→delete, GET+?watch=true→watch, GET collection→list"
+      difficulty: 3
+      priority: high
+      prerequisites: ["kube-apiserver"]
+      related: ["RBAC"]
+      tags: [kubernetes, internals]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part II Step 4"
+
+    - name: "Optimistic Concurrency Control"
+      description: "Conflict prevention without locking: write includes expected resourceVersion → etcd rejects if current revision differs → client retries with fresh state"
+      difficulty: 4
+      priority: high
+      prerequisites: ["etcd mod_revision"]
+      related: ["HTTP 409 Conflict", "client-go"]
+      tags: [kubernetes, consistency, internals]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part II Step 6"
+
+  admission_control:
+    - name: "Admission Control"
+      description: "Pipeline between AuthZ and etcd persistence: mutating → schema validation → validating; intercepts create/update/delete/connect (not reads)"
+      difficulty: 3
+      priority: critical
+      prerequisites: ["kube-apiserver"]
+      related: ["Mutating Admission", "Validating Admission"]
+      tags: [kubernetes, security, admission]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part II Step 5-8"
+
+    - name: "Mutating Admission Controllers"
+      description: "Admission phase that can modify the request object before persistence; runs sequentially; includes ServiceAccount, LimitRanger, and external webhooks"
+      difficulty: 3
+      priority: critical
+      prerequisites: ["Admission Control"]
+      related: ["MutatingWebhookConfiguration"]
+      tags: [kubernetes, admission]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part II Step 6"
+
+    - name: "Validating Admission Controllers"
+      description: "Admission phase that can accept or reject the final mutated object but cannot modify it; sees the object after all mutations"
+      difficulty: 3
+      priority: critical
+      prerequisites: ["Mutating Admission Controllers"]
+      related: ["ValidatingWebhookConfiguration", "ValidatingAdmissionPolicy"]
+      tags: [kubernetes, admission]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part II Step 8"
+
+    - name: "MutatingWebhookConfiguration / ValidatingWebhookConfiguration"
+      description: "Kubernetes objects that register external HTTP webhook services for dynamic admission control; specify rules, namespaceSelector, failurePolicy"
+      difficulty: 3
+      priority: high
+      prerequisites: ["Admission Control"]
+      related: ["AdmissionReview", "failurePolicy"]
+      tags: [kubernetes, admission, extensibility]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part II"
+
+    - name: "AdmissionReview"
+      description: "JSON object sent to admission webhooks containing the request details; webhook returns allow/deny decision or JSON Patch mutations"
+      difficulty: 4
+      priority: high
+      prerequisites: ["MutatingWebhookConfiguration"]
+      related: ["JSON Patch"]
+      tags: [kubernetes, admission, api]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part IV"
+
+    - name: "ValidatingAdmissionPolicy (CEL)"
+      description: "GA in K8s 1.30 — in-cluster policy validation using Common Expression Language; faster and simpler than webhook-based validation for straightforward checks"
+      difficulty: 4
+      priority: high
+      prerequisites: ["Validating Admission Controllers"]
+      related: []
+      tags: [kubernetes, admission, policy]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part II Step 8"
+
+    - name: "PodSecurity Admission"
+      description: "Built-in admission controller enforcing Pod Security Standards (Restricted, Baseline, Privileged) at namespace level; replaced PodSecurityPolicy in K8s 1.25"
+      difficulty: 3
+      priority: high
+      prerequisites: ["Admission Control"]
+      related: []
+      tags: [kubernetes, security, admission]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part II Step 8"
+
+  watch_and_caching:
+    - name: "Watch Cache"
+      description: "API server in-memory circular buffer of recent watch events per resource type; serves watchers from memory instead of relaying every event from etcd"
+      difficulty: 4
+      priority: high
+      prerequisites: ["etcd Watch API", "kube-apiserver"]
+      related: ["Watch Bookmark", "Consistent Reads"]
+      tags: [kubernetes, performance, internals]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part V Chapter 7"
+
+    - name: "Watch Bookmark"
+      description: "Periodic BOOKMARK event type containing only a resourceVersion; allows watchers to update their position without full object payloads, enabling efficient resume"
+      difficulty: 5
+      priority: medium
+      prerequisites: ["Watch Cache"]
+      related: ["HTTP 410 Gone"]
+      tags: [kubernetes, internals]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part V Chapter 7"
+
+    - name: "API Priority and Fairness (APF)"
+      description: "Request queuing and priority system (GA 1.29) preventing misbehaving controllers from starving critical components; configured via FlowSchema + PriorityLevelConfiguration"
+      difficulty: 4
+      priority: high
+      prerequisites: ["kube-apiserver"]
+      related: ["FlowSchema", "PriorityLevelConfiguration"]
+      tags: [kubernetes, performance, operations]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part V Chapter 7"
+
+##############################################################################
+# CATEGORY 6: KUBERNETES NODE COMPONENTS
+##############################################################################
+kubernetes_node:
+  description: "Components running on every worker node"
+
+  topics:
+    - name: "kubelet"
+      description: "Node agent (systemd service, not containerized) that watches API server for Pods assigned to its node, drives CRI to create containers, manages probes, reports status"
+      difficulty: 3
+      priority: critical
+      prerequisites: ["kube-apiserver"]
+      related: ["CRI", "PLEG", "containerd"]
+      tags: [kubernetes, node]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part I"
+
+    - name: "kube-proxy"
+      description: "DaemonSet that watches Service/EndpointSlice objects and programs iptables or IPVS rules for Service ClusterIP routing on each node"
+      difficulty: 3
+      priority: critical
+      prerequisites: ["iptables", "DNAT", "ClusterIP"]
+      related: ["iptables Mode", "IPVS Mode", "EndpointSlice"]
+      tags: [kubernetes, node, networking]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part I"
+
+    - name: "containerd"
+      description: "Industry-standard container runtime; kubelet communicates with it via CRI gRPC; delegates to runc for actual container creation"
+      difficulty: 3
+      priority: critical
+      prerequisites: ["kubelet"]
+      related: ["runc", "CRI gRPC API"]
+      tags: [kubernetes, containers, runtime]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part I"
+
+    - name: "runc"
+      description: "OCI-compliant low-level container runtime that creates Linux namespaces and cgroups; invoked by containerd to actually start container processes"
+      difficulty: 4
+      priority: high
+      prerequisites: ["containerd"]
+      related: ["Linux Namespaces", "cgroups"]
+      tags: [containers, runtime, linux]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part III Chapter 3"
+
+    - name: "Container Runtime Interface (CRI)"
+      description: "gRPC API specification between kubelet and container runtimes; defines RPCs like RunPodSandbox, CreateContainer, StartContainer"
+      difficulty: 4
+      priority: high
+      prerequisites: ["kubelet", "containerd", "gRPC"]
+      related: ["Pause Container"]
+      tags: [kubernetes, containers, api]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part IV Chapter 4"
+
+    - name: "Pause Container"
+      description: "Minimal container created by RunPodSandbox that holds the Pod's network namespace; all other containers in the Pod share its network stack"
+      difficulty: 4
+      priority: high
+      prerequisites: ["CRI", "Network Namespace"]
+      related: ["veth pair", "CNI"]
+      tags: [kubernetes, containers, networking]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part III Chapter 3"
+
+    - name: "Container Network Interface (CNI)"
+      description: "Specification for plugins that configure container networking; invoked by the runtime during sandbox creation to allocate IPs and set up routes"
+      difficulty: 3
+      priority: critical
+      prerequisites: ["Pause Container", "veth pair"]
+      related: ["VPC CNI Plugin", "overlay network"]
+      tags: [kubernetes, networking, cni]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part III Chapter 3"
+
+    - name: "VPC CNI Plugin"
+      description: "AWS EKS CNI that allocates secondary IPs from VPC ENIs directly to Pods; no overlay — Pods get routable VPC IPs"
+      difficulty: 3
+      priority: critical
+      prerequisites: ["CNI", "ENIs"]
+      related: ["overlay network"]
+      tags: [kubernetes, aws, eks, networking]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part III Chapter 3"
+
+    - name: "Pod Lifecycle Event Generator (PLEG)"
+      description: "kubelet subsystem that detects container state changes by periodically relisting containers from the runtime; generates Pod lifecycle events"
+      difficulty: 5
+      priority: low
+      prerequisites: ["kubelet", "CRI"]
+      related: []
+      tags: [kubernetes, internals]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part III Chapter 3"
+
+    - name: "cgroups"
+      description: "Linux kernel feature for limiting, accounting, and isolating CPU, memory, and I/O resources per process group; enforces container resource limits"
+      difficulty: 3
+      priority: critical
+      prerequisites: []
+      related: ["Linux Namespaces", "runc"]
+      tags: [linux, containers, isolation]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part III Chapter 3"
+
+    - name: "Linux Namespaces (PID, Mount, Network, UTS, IPC, User)"
+      description: "Kernel feature providing isolated views of system resources per process group; the foundation of container isolation"
+      difficulty: 3
+      priority: critical
+      prerequisites: []
+      related: ["cgroups", "Network Namespace"]
+      tags: [linux, containers, isolation]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part III Chapter 3"
+
+    - name: "Health Probes (Startup, Liveness, Readiness)"
+      description: "kubelet-driven checks: Startup delays other probes, Liveness failures restart containers, Readiness failures remove Pod from Service endpoints"
+      difficulty: 2
+      priority: critical
+      prerequisites: ["kubelet"]
+      related: ["EndpointSlice"]
+      tags: [kubernetes, operations]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part III Chapter 3"
+
+    - name: "Node Lease Heartbeat"
+      description: "Lightweight heartbeat via Lease objects in kube-node-lease namespace (every 10s, 40s TTL); replaced heavy node status updates as primary health signal"
+      difficulty: 4
+      priority: medium
+      prerequisites: ["kubelet", "Lease Object"]
+      related: ["Node Status Update"]
+      tags: [kubernetes, node, health]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part IV Chapter 4"
+
+    - name: "kubelet TLS Bootstrap"
+      description: "Process where kubelet generates a CSR, submits it to the API server, a controller approves it, and the signed client certificate is returned for future auth"
+      difficulty: 4
+      priority: high
+      prerequisites: ["Certificate Signing Request (CSR)", "X.509 Certificate", "kubelet"]
+      related: ["Certificate Authority (CA)"]
+      tags: [kubernetes, security, bootstrap]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part IV Chapter 4"
+
+##############################################################################
+# CATEGORY 7: KUBERNETES CONTROLLER INTERNALS
+##############################################################################
+kubernetes_controllers:
+  description: "The informer/controller architecture that powers all Kubernetes reconciliation"
+
+  informer_pipeline:
+    - name: "SharedInformer / SharedInformerFactory"
+      description: "Client-side caching and notification mechanism; multiple controllers watching the same resource type share a single LIST+WATCH connection and local cache"
+      difficulty: 4
+      priority: critical
+      prerequisites: ["kube-apiserver", "Watch Cache"]
+      related: ["Reflector", "DeltaFIFO", "Indexer"]
+      tags: [kubernetes, controllers, internals]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part III Chapter 3"
+
+    - name: "Reflector"
+      description: "Informer component that performs the initial LIST then opens a WATCH connection to the API server; pushes events into DeltaFIFO"
+      difficulty: 4
+      priority: high
+      prerequisites: ["SharedInformer"]
+      related: ["DeltaFIFO", "ListAndWatch"]
+      tags: [kubernetes, controllers, internals]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part III Chapter 3"
+
+    - name: "DeltaFIFO"
+      description: "Specialized queue storing change deltas (Added, Updated, Deleted, Sync) per object key; deduplicates and guarantees per-key ordering"
+      difficulty: 5
+      priority: medium
+      prerequisites: ["Reflector"]
+      related: ["Indexer"]
+      tags: [kubernetes, controllers, internals]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part III Chapter 3"
+
+    - name: "Indexer (Local Cache)"
+      description: "Thread-safe in-memory store holding current known state of every watched object; all controller Get/List reads come from here, not the API server"
+      difficulty: 4
+      priority: high
+      prerequisites: ["DeltaFIFO"]
+      related: ["SharedInformer"]
+      tags: [kubernetes, controllers, internals]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part III Chapter 3"
+
+    - name: "WorkQueue (Rate-Limited)"
+      description: "Queue between event handlers and reconcile loop; provides deduplication, exponential backoff on failure, and rate limiting"
+      difficulty: 4
+      priority: high
+      prerequisites: ["Indexer"]
+      related: ["Reconcile Loop"]
+      tags: [kubernetes, controllers, internals]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part III Chapter 3"
+
+    - name: "Reconcile Loop"
+      description: "Worker goroutines that dequeue keys, fetch objects from the Indexer cache, compare desired vs current state, and take corrective action"
+      difficulty: 3
+      priority: critical
+      prerequisites: ["WorkQueue"]
+      related: ["Level-Driven vs Edge-Driven"]
+      tags: [kubernetes, controllers, patterns]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part III Chapter 3"
+
+    - name: "Level-Driven vs Edge-Driven"
+      description: "Controllers should act on current state (level), not state transitions (edge); a controller restarting must reconcile correctly without having seen the transition"
+      difficulty: 4
+      priority: high
+      prerequisites: ["Reconcile Loop"]
+      related: []
+      tags: [kubernetes, controllers, design-patterns]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part III Chapter 3"
+
+    - name: "ListAndWatch"
+      description: "Two-phase pattern: initial LIST to get all existing objects + resourceVersion, then WATCH from that version for incremental updates"
+      difficulty: 4
+      priority: medium
+      prerequisites: ["Reflector"]
+      related: ["resourceVersion", "HTTP 410 Gone"]
+      tags: [kubernetes, controllers, api]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part III Chapter 3"
+
+    - name: "client-go"
+      description: "Official Go client library for Kubernetes; implements SharedInformers, clientsets, leader election, retry logic; defaults to protobuf for internal communication"
+      difficulty: 3
+      priority: high
+      prerequisites: ["kube-apiserver"]
+      related: ["controller-runtime", "SharedInformer"]
+      tags: [kubernetes, development, go]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part III Chapter 3"
+
+    - name: "controller-runtime"
+      description: "Higher-level Go library (used by Kubebuilder/Operator SDK) abstracting SharedInformers, caches, and reconcile loops for building Kubernetes operators"
+      difficulty: 4
+      priority: high
+      prerequisites: ["client-go", "SharedInformer"]
+      related: []
+      tags: [kubernetes, development, operators]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part III Chapter 3"
+
+  specific_controllers:
+    - name: "Deployment Controller"
+      description: "Watches Deployments, manages ReplicaSets; handles rolling updates, rollbacks, and scaling by creating/updating ReplicaSet objects"
+      difficulty: 3
+      priority: high
+      prerequisites: ["kube-controller-manager", "SharedInformer"]
+      related: ["ReplicaSet Controller"]
+      tags: [kubernetes, controllers, workloads]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part III Chapter 3"
+
+    - name: "ReplicaSet Controller"
+      description: "Watches ReplicaSets, counts matching Pods via label selector, creates or deletes Pods to match desired replica count"
+      difficulty: 3
+      priority: high
+      prerequisites: ["Deployment Controller"]
+      related: ["ownerReferences"]
+      tags: [kubernetes, controllers, workloads]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part III Chapter 3"
+
+    - name: "EndpointSlice Controller"
+      description: "Watches Pods and Services, updates EndpointSlice objects when Pods become Ready or unReady; kube-proxy watches these for routing updates"
+      difficulty: 3
+      priority: high
+      prerequisites: ["Health Probes", "kube-proxy"]
+      related: ["ClusterIP"]
+      tags: [kubernetes, controllers, networking]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part III Chapter 3"
+
+    - name: "Leader Election"
+      description: "Mechanism using a Lease object in kube-system where one replica writes its identity with a TTL; used by controller-manager and scheduler for HA"
+      difficulty: 4
+      priority: high
+      prerequisites: ["Lease Object", "Optimistic Concurrency Control"]
+      related: ["kube-controller-manager", "kube-scheduler"]
+      tags: [kubernetes, ha, internals]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part IV Chapter 4"
+
+    - name: "ownerReferences / Cascading Deletion"
+      description: "Metadata field linking child objects to parents (Deployment→ReplicaSet→Pod); garbage collector uses these for automatic cascading deletion"
+      difficulty: 3
+      priority: high
+      prerequisites: ["Deployment Controller", "ReplicaSet Controller"]
+      related: []
+      tags: [kubernetes, lifecycle]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part III Chapter 3"
+
+##############################################################################
+# CATEGORY 8: KUBERNETES NETWORKING (SERVICE LAYER)
+##############################################################################
+kubernetes_networking:
+  description: "Service abstraction, routing, and load balancing"
+
+  topics:
+    - name: "ClusterIP"
+      description: "Virtual IP assigned to a Service; only routable within the cluster; kube-proxy programs iptables/IPVS rules to DNAT to backend Pod IPs"
+      difficulty: 2
+      priority: critical
+      prerequisites: ["kube-proxy", "DNAT"]
+      related: ["EndpointSlice", "iptables Mode", "IPVS Mode"]
+      tags: [kubernetes, networking, services]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part III Chapter 3"
+
+    - name: "EndpointSlice"
+      description: "Scalable replacement for Endpoints objects; lists backend Pod IPs/ports for a Service; updated by EndpointSlice controller, consumed by kube-proxy"
+      difficulty: 3
+      priority: high
+      prerequisites: ["ClusterIP"]
+      related: ["EndpointSlice Controller", "kube-proxy"]
+      tags: [kubernetes, networking, services]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part III Chapter 3"
+
+    - name: "iptables Mode"
+      description: "kube-proxy mode that programs iptables DNAT rules for Service routing; simple but O(n) rule matching degrades at scale"
+      difficulty: 3
+      priority: high
+      prerequisites: ["iptables", "kube-proxy"]
+      related: ["IPVS Mode"]
+      tags: [kubernetes, networking]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part I"
+
+    - name: "IPVS Mode"
+      description: "kube-proxy mode using Linux IPVS for O(1) connection tracking and multiple load-balancing algorithms; better performance at scale"
+      difficulty: 4
+      priority: high
+      prerequisites: ["IPVS", "kube-proxy"]
+      related: ["iptables Mode"]
+      tags: [kubernetes, networking, performance]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part I"
+
+##############################################################################
+# CATEGORY 9: AWS NETWORKING
+##############################################################################
+aws_networking:
+  description: "AWS networking services, hybrid connectivity, DNS, load balancing, and network security"
+
+  vpc_architecture:
+    - name: "Virtual Private Cloud (VPC)"
+      description: "Logically isolated virtual network in AWS; foundation of all AWS networking with configurable IP range, subnets, route tables, and gateways"
+      difficulty: 2
+      priority: critical
+      prerequisites: []
+      related: ["VPC Subnets", "Route Tables", "Security Groups"]
+      tags: [aws, networking, fundamentals]
+      status: not_started
+      source_context: null
+
+    - name: "VPC Subnets"
+      description: "Subdivisions of a VPC's IP space within a single AZ; public subnets have routes to an IGW, private subnets do not"
+      difficulty: 2
+      priority: critical
+      prerequisites: ["Virtual Private Cloud (VPC)"]
+      related: ["Route Tables", "Network ACLs (NACLs)"]
+      tags: [aws, networking, fundamentals]
+      status: not_started
+      source_context: null
+
+    - name: "Route Tables"
+      description: "Sets of routing rules that determine where network traffic is directed; each subnet associates with exactly one route table"
+      difficulty: 2
+      priority: critical
+      prerequisites: ["VPC Subnets"]
+      related: ["Internet Gateway (IGW)", "NAT Gateway"]
+      tags: [aws, networking, fundamentals]
+      status: not_started
+      source_context: null
+
+    - name: "Internet Gateway (IGW)"
+      description: "Horizontally scaled VPC component enabling internet access; performs NAT for instances with public IPs"
+      difficulty: 2
+      priority: high
+      prerequisites: ["Virtual Private Cloud (VPC)", "Route Tables"]
+      related: ["NAT Gateway"]
+      tags: [aws, networking]
+      status: not_started
+      source_context: null
+
+    - name: "NAT Gateway"
+      description: "Managed service enabling private subnet resources to reach the internet while remaining unreachable from outside"
+      difficulty: 2
+      priority: high
+      prerequisites: ["VPC Subnets", "Route Tables", "Network Address Translation (NAT)"]
+      related: ["Internet Gateway (IGW)"]
+      tags: [aws, networking]
+      status: not_started
+      source_context: null
+
+    - name: "VPC Peering"
+      description: "Network connection between two VPCs enabling private IP routing; non-transitive, does not support overlapping CIDR"
+      difficulty: 3
+      priority: critical
+      prerequisites: ["Virtual Private Cloud (VPC)"]
+      related: ["AWS Transit Gateway"]
+      tags: [aws, networking, connectivity]
+      status: not_started
+      source_context: null
+
+    - name: "VPC Endpoints (Interface and Gateway)"
+      description: "Private connections from a VPC to AWS services without traversing the internet; Interface endpoints use ENIs, Gateway endpoints use route table entries"
+      difficulty: 3
+      priority: high
+      prerequisites: ["Virtual Private Cloud (VPC)"]
+      related: ["AWS PrivateLink"]
+      tags: [aws, networking, security]
+      status: not_started
+      source_context: null
+
+    - name: "AWS PrivateLink"
+      description: "Technology for exposing services across VPCs or accounts via private ENI-based endpoints; one-way producer/consumer model"
+      difficulty: 3
+      priority: high
+      prerequisites: ["VPC Endpoints (Interface and Gateway)"]
+      related: ["Network Load Balancer (NLB)"]
+      tags: [aws, networking, security]
+      status: not_started
+      source_context: null
+
+  hybrid_connectivity:
+    - name: "AWS Transit Gateway"
+      description: "Regional network transit hub connecting VPCs, VPNs, and Direct Connect gateways in hub-and-spoke topology; supports inter-region peering"
+      difficulty: 3
+      priority: critical
+      prerequisites: ["Virtual Private Cloud (VPC)", "VPC Peering"]
+      related: ["AWS Direct Connect", "Transit Gateway Network Manager"]
+      tags: [aws, networking, connectivity]
+      status: not_started
+      source_context: null
+
+    - name: "AWS Direct Connect"
+      description: "Dedicated private network connection from on-premises to AWS; bypasses the internet for consistent latency and higher throughput"
+      difficulty: 4
+      priority: critical
+      prerequisites: ["Virtual Private Cloud (VPC)", "Border Gateway Protocol (BGP)"]
+      related: ["AWS Transit Gateway", "Site-to-Site VPN"]
+      tags: [aws, networking, hybrid]
+      status: not_started
+      source_context: null
+
+    - name: "Site-to-Site VPN"
+      description: "Encrypted IPsec tunnel between an on-premises network and a VPC over the internet; supports static and dynamic (BGP) routing"
+      difficulty: 3
+      priority: high
+      prerequisites: ["Virtual Private Cloud (VPC)", "TLS"]
+      related: ["AWS Direct Connect", "Client VPN"]
+      tags: [aws, networking, hybrid]
+      status: not_started
+      source_context: null
+
+    - name: "Client VPN"
+      description: "Managed OpenVPN-based service for remote client access to AWS and on-premises resources"
+      difficulty: 3
+      priority: medium
+      prerequisites: ["Site-to-Site VPN"]
+      related: []
+      tags: [aws, networking, hybrid]
+      status: not_started
+      source_context: null
+
+  dns_and_cdn:
+    - name: "Amazon Route 53"
+      description: "Scalable DNS web service providing domain registration, DNS routing, and health checking; supports public and private hosted zones"
+      difficulty: 3
+      priority: critical
+      prerequisites: []
+      related: ["Route 53 Routing Policies", "Route 53 Resolver DNS Firewall"]
+      tags: [aws, networking, dns]
+      status: not_started
+      source_context: null
+
+    - name: "Route 53 Routing Policies"
+      description: "Routing strategies including simple, weighted, latency-based, failover, geolocation, geoproximity, and multivalue answer"
+      difficulty: 3
+      priority: high
+      prerequisites: ["Amazon Route 53"]
+      related: []
+      tags: [aws, networking, dns]
+      status: not_started
+      source_context: null
+
+    - name: "Amazon CloudFront"
+      description: "Global CDN with edge locations for caching and serving content; integrates with S3, ALB, and custom origins"
+      difficulty: 3
+      priority: high
+      prerequisites: ["Amazon Route 53", "TLS"]
+      related: ["AWS WAF", "AWS Shield"]
+      tags: [aws, networking, cdn]
+      status: not_started
+      source_context: null
+
+    - name: "AWS Global Accelerator"
+      description: "Networking service using anycast static IPs and AWS global network to route traffic to optimal endpoints with fast failover"
+      difficulty: 3
+      priority: high
+      prerequisites: ["Amazon Route 53"]
+      related: ["Amazon CloudFront"]
+      tags: [aws, networking, performance]
+      status: not_started
+      source_context: null
+
+  aws_load_balancing:
+    - name: "Application Load Balancer (ALB)"
+      description: "Layer 7 load balancer supporting host/path-based routing, WebSockets, HTTP/2, and target group-based routing with health checks"
+      difficulty: 3
+      priority: critical
+      prerequisites: ["VPC Subnets", "TLS", "Security Groups"]
+      related: ["Network Load Balancer (NLB)", "AWS WAF"]
+      tags: [aws, networking, load-balancing]
+      status: not_started
+      source_context: null
+
+    - name: "Network Load Balancer (NLB)"
+      description: "Layer 4 load balancer handling millions of requests per second with ultra-low latency; supports static IPs and TLS passthrough"
+      difficulty: 3
+      priority: critical
+      prerequisites: ["VPC Subnets"]
+      related: ["Application Load Balancer (ALB)", "AWS PrivateLink"]
+      tags: [aws, networking, load-balancing]
+      status: not_started
+      source_context: null
+
+    - name: "Gateway Load Balancer (GWLB)"
+      description: "Layer 3 gateway and load balancer for deploying third-party virtual network appliances transparently via GENEVE encapsulation"
+      difficulty: 4
+      priority: medium
+      prerequisites: ["Network Load Balancer (NLB)"]
+      related: ["AWS Network Firewall"]
+      tags: [aws, networking, load-balancing]
+      status: not_started
+      source_context: null
+
+  network_security:
+    - name: "Security Groups"
+      description: "Stateful virtual firewalls at the ENI level; allow-only rules evaluated as a group; default deny inbound, allow outbound"
+      difficulty: 2
+      priority: critical
+      prerequisites: ["Virtual Private Cloud (VPC)"]
+      related: ["Network ACLs (NACLs)", "Elastic Network Interfaces (ENIs)"]
+      tags: [aws, networking, security]
+      status: not_started
+      source_context: null
+
+    - name: "Network ACLs (NACLs)"
+      description: "Stateless packet filters at the subnet level; ordered allow/deny rules processed sequentially; applied to all traffic entering/leaving the subnet"
+      difficulty: 2
+      priority: critical
+      prerequisites: ["VPC Subnets"]
+      related: ["Security Groups"]
+      tags: [aws, networking, security]
+      status: not_started
+      source_context: null
+
+    - name: "AWS WAF"
+      description: "Web application firewall for filtering HTTP/S requests using customizable rules and managed rule groups; protects against SQLi, XSS, and rate-based attacks"
+      difficulty: 3
+      priority: high
+      prerequisites: ["Application Load Balancer (ALB)", "Amazon CloudFront"]
+      related: ["AWS Shield", "AWS Firewall Manager"]
+      tags: [aws, networking, security]
+      status: not_started
+      source_context: null
+
+    - name: "AWS Shield"
+      description: "DDoS protection service; Standard provides automatic L3/L4 protection; Advanced adds L7 protection, DRT access, and cost protection"
+      difficulty: 3
+      priority: high
+      prerequisites: ["Application Load Balancer (ALB)", "Amazon CloudFront"]
+      related: ["AWS WAF", "AWS Firewall Manager"]
+      tags: [aws, networking, security]
+      status: not_started
+      source_context: null
+
+    - name: "AWS Network Firewall"
+      description: "Managed stateful and stateless network firewall using Suricata-compatible rules for VPC traffic inspection and filtering"
+      difficulty: 3
+      priority: high
+      prerequisites: ["Virtual Private Cloud (VPC)", "Security Groups", "Network ACLs (NACLs)"]
+      related: ["AWS Firewall Manager"]
+      tags: [aws, networking, security]
+      status: not_started
+      source_context: null
+
+    - name: "AWS Firewall Manager"
+      description: "Centralized security policy management across multiple AWS accounts and resources in an organization"
+      difficulty: 3
+      priority: medium
+      prerequisites: ["AWS WAF", "AWS Shield", "Security Groups"]
+      related: ["AWS Network Firewall"]
+      tags: [aws, networking, security]
+      status: not_started
+      source_context: null
+
+    - name: "Route 53 Resolver DNS Firewall"
+      description: "DNS query filtering service that blocks resolution of domains associated with malicious or unwanted resources"
+      difficulty: 3
+      priority: medium
+      prerequisites: ["Amazon Route 53"]
+      related: ["AWS Network Firewall"]
+      tags: [aws, networking, security, dns]
+      status: not_started
+      source_context: null
+
+  network_observability:
+    - name: "VPC Flow Logs"
+      description: "Captures IP traffic metadata (source, dest, port, action, bytes) for VPC network interfaces; published to CloudWatch Logs or S3"
+      difficulty: 3
+      priority: critical
+      prerequisites: ["Virtual Private Cloud (VPC)", "Security Groups"]
+      related: ["VPC Traffic Mirroring", "VPC Reachability Analyzer"]
+      tags: [aws, networking, observability]
+      status: not_started
+      source_context: null
+
+    - name: "VPC Traffic Mirroring"
+      description: "Copies network traffic from ENIs to out-of-band monitoring appliances for deep packet inspection and content analysis"
+      difficulty: 4
+      priority: medium
+      prerequisites: ["Virtual Private Cloud (VPC)", "Elastic Network Interfaces (ENIs)"]
+      related: ["VPC Flow Logs"]
+      tags: [aws, networking, observability]
+      status: not_started
+      source_context: null
+
+    - name: "VPC Reachability Analyzer"
+      description: "Network diagnostics tool that analyzes path connectivity between resources without sending traffic; identifies blocking components"
+      difficulty: 3
+      priority: high
+      prerequisites: ["Virtual Private Cloud (VPC)", "Security Groups", "Network ACLs (NACLs)"]
+      related: ["VPC Flow Logs"]
+      tags: [aws, networking, observability]
+      status: not_started
+      source_context: null
+
+    - name: "Transit Gateway Network Manager"
+      description: "Global view of private network topology spanning Transit Gateways, VPNs, and SD-WAN; provides events and metrics"
+      difficulty: 3
+      priority: medium
+      prerequisites: ["AWS Transit Gateway"]
+      related: []
+      tags: [aws, networking, observability]
+      status: not_started
+      source_context: null
+
+  certificate_management:
+    - name: "AWS Certificate Manager (ACM)"
+      description: "Managed service to provision, manage, and deploy public and private TLS certificates for AWS services with automatic renewal"
+      difficulty: 2
+      priority: high
+      prerequisites: ["TLS", "X.509 Certificate"]
+      related: ["AWS Private CA (ACM PCA)"]
+      tags: [aws, networking, security, certificates]
+      status: not_started
+      source_context: null
+
+    - name: "AWS Private CA (ACM PCA)"
+      description: "Managed private certificate authority for issuing and managing internal TLS certificates within an organization"
+      difficulty: 3
+      priority: medium
+      prerequisites: ["AWS Certificate Manager (ACM)", "Certificate Authority (CA)", "Public Key Infrastructure (PKI)"]
+      related: []
+      tags: [aws, networking, security, certificates]
+      status: not_started
+      source_context: null
+
+##############################################################################
+# CATEGORY 10: EKS & AWS IDENTITY
+##############################################################################
+eks_and_aws:
+  description: "EKS-specific components and AWS identity integration"
+
+  topics:
+    - name: "IRSA (IAM Roles for Service Accounts)"
+      description: "EKS mechanism bridging K8s ServiceAccounts to IAM Roles via mutating webhook + projected token with sts.amazonaws.com audience + AssumeRoleWithWebIdentity"
+      difficulty: 4
+      priority: critical
+      prerequisites: ["ServiceAccount Token (Projected)", "OIDC", "AWS IAM"]
+      related: ["EKS Pod Identity", "OIDC Provider (IAM)"]
+      tags: [kubernetes, aws, eks, security]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part V Chapter 6"
+
+    - name: "EKS Pod Identity"
+      description: "Newer IRSA alternative (Nov 2023); Pod Identity Agent DaemonSet intercepts IMDS requests, no OIDC provider config needed"
+      difficulty: 4
+      priority: critical
+      prerequisites: ["IRSA"]
+      related: ["IMDS"]
+      tags: [kubernetes, aws, eks, security]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part V Chapter 6"
+
+    - name: "aws-iam-authenticator"
+      description: "Webhook token authenticator for EKS; validates pre-signed STS GetCallerIdentity URLs presented as bearer tokens and maps IAM identities to K8s users/groups"
+      difficulty: 4
+      priority: critical
+      prerequisites: ["Webhook Token Authentication", "AWS IAM"]
+      related: ["aws eks get-token"]
+      tags: [kubernetes, aws, eks, authn]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part II Step 3"
+
+    - name: "EBS CSI Driver"
+      description: "Container Storage Interface driver for AWS EBS volumes; handles attach/detach/mount of EBS volumes for Kubernetes PVCs"
+      difficulty: 3
+      priority: high
+      prerequisites: ["kubelet"]
+      related: []
+      tags: [kubernetes, aws, storage]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part III Chapter 3"
+
+    - name: "Karpenter"
+      description: "Kubernetes node autoscaler that directly provisions cloud instances based on pending Pod requirements; replaces Cluster Autoscaler with faster, more efficient scaling"
+      difficulty: 3
+      priority: critical
+      prerequisites: ["kube-scheduler"]
+      related: []
+      tags: [kubernetes, aws, autoscaling]
+      status: not_started
+      source_context: null
+
+##############################################################################
+# CATEGORY 11: INFRASTRUCTURE & TOOLS
+##############################################################################
+infrastructure:
+  description: "Infrastructure platforms, load balancers, and tooling"
+
+  topics:
+    - name: "Proxmox"
+      description: "Open-source virtualization platform combining KVM hypervisor and LXC containers with a web management interface; alternative to VMware/ESXi"
+      difficulty: 3
+      priority: medium
+      prerequisites: []
+      related: []
+      tags: [infrastructure, virtualization]
+      status: not_started
+      source_context: null
+
+    - name: "MetalLB"
+      description: "Bare-metal Kubernetes load balancer providing LoadBalancer Service type in non-cloud environments using ARP or BGP for IP advertisement"
+      difficulty: 3
+      priority: medium
+      prerequisites: ["ClusterIP", "kube-proxy"]
+      related: ["Traefik"]
+      tags: [kubernetes, networking, bare-metal]
+      status: not_started
+      source_context: null
+
+    - name: "Traefik"
+      description: "Cloud-native reverse proxy and ingress controller with auto-discovery, Let's Encrypt integration, and middleware chains"
+      difficulty: 3
+      priority: high
+      prerequisites: []
+      related: ["MetalLB", "xDS Protocol"]
+      tags: [kubernetes, networking, ingress]
+      status: not_started
+      source_context: null
+
+    - name: "kubeconfig"
+      description: "YAML file (~/.kube/config) containing cluster endpoints, user credentials (certs/tokens/exec plugins), and context bindings; kubectl's configuration source"
+      difficulty: 2
+      priority: critical
+      prerequisites: []
+      related: ["kubectl", "client-go"]
+      tags: [kubernetes, operations]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part II Step 1"
+
+    - name: "auger"
+      description: "CLI tool for decoding Kubernetes Protobuf objects stored in etcd; essential for debugging etcd contents that are otherwise unreadable binary"
+      difficulty: 4
+      priority: low
+      prerequisites: ["Protocol Buffers (Protobuf)", "etcd"]
+      related: ["etcdctl"]
+      tags: [kubernetes, debugging, tools]
+      status: not_started
+      source_context: "protobuf deep-dive"
+
+    - name: "SAML-tracer"
+      description: "Browser extension (Firefox/Chrome) that decodes SAML requests and responses in real-time as they flow through the browser"
+      difficulty: 2
+      priority: low
+      prerequisites: ["SAML 2.0"]
+      related: []
+      tags: [identity, debugging, tools]
+      status: not_started
+      source_context: "identity-guide, Chapter 16"
+
+##############################################################################
+# CATEGORY 12: SCHEDULER INTERNALS
+##############################################################################
+scheduler:
+  description: "kube-scheduler's filtering and scoring pipeline"
+
+  topics:
+    - name: "Scheduler Filtering Phase"
+      description: "Eliminates nodes that cannot run the Pod; plugins include NodeResourcesFit, NodeAffinity, TaintToleration, PodTopologySpread, VolumeBinding"
+      difficulty: 4
+      priority: high
+      prerequisites: ["kube-scheduler"]
+      related: ["Scheduler Scoring Phase"]
+      tags: [kubernetes, scheduling]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part III Chapter 3"
+
+    - name: "Scheduler Scoring Phase"
+      description: "Ranks candidate nodes after filtering; plugins include NodeResourcesBalancedAllocation, ImageLocality, InterPodAffinity"
+      difficulty: 4
+      priority: high
+      prerequisites: ["Scheduler Filtering Phase"]
+      related: ["Binding Object"]
+      tags: [kubernetes, scheduling]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part III Chapter 3"
+
+    - name: "Binding Object"
+      description: "POST to /api/v1/namespaces/{ns}/pods/{name}/binding that sets spec.nodeName; the scheduler's output that triggers kubelet to create the Pod"
+      difficulty: 4
+      priority: medium
+      prerequisites: ["Scheduler Scoring Phase"]
+      related: ["kubelet"]
+      tags: [kubernetes, scheduling, api]
+      status: not_started
+      source_context: "kubernetes-internals-guide, Part III Chapter 3"

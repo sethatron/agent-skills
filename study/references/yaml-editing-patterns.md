@@ -1,6 +1,6 @@
 # YAML Editing Patterns
 
-Knowledge base path: `/Users/sethallen/agent-skills/study/knowledge-base.yaml` (symlink to the canonical location).
+Knowledge base path: `/Users/sethallen/agent-skills/study/knowledge-base.yaml`.
 
 Indentation structure: 0 (category) -> 2 (subcategory) -> 4 (array `- name:`) -> 6 (topic fields).
 

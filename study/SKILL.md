@@ -2,7 +2,7 @@
 name: study-buddy
 description: >-
   Interactive study companion for the DevOps & Platform Engineering knowledge
-  base (209 topics across networking, cryptography, identity/auth, Kubernetes
+  base (200+ topics across networking, cryptography, identity/auth, Kubernetes
   internals, EKS/AWS, infrastructure, and more). Use when the user says
   "study", "teach me", "quiz me", "test me", "explain [topic]", "what is
   [topic]", "scenario", "mastery challenge", "study status", "study path",
@@ -18,7 +18,7 @@ description: >-
 
 # Study Buddy
 
-An adaptive study guide for DevOps and Platform Engineering. It teaches, quizzes, creates scenarios, assigns projects, and tracks mastery across a curated knowledge base of 209 topics organized into a prerequisite DAG.
+An adaptive study guide for DevOps and Platform Engineering. It teaches, quizzes, creates scenarios, assigns projects, and tracks mastery across a curated knowledge base of 200+ topics organized into a prerequisite DAG.
 
 ## Knowledge Base
 
@@ -40,6 +40,8 @@ On session start, read the knowledge base to understand the user's current state
 6. **If status changed:** Read `references/yaml-editing-patterns.md`, then update the KB using the exact patterns. Get the timestamp via `date -u +"%Y-%m-%dT%H:%M:%SZ"` before writing evidence.
 7. **Suggest the natural next step** — pick the ONE most relevant next action, not a menu.
 
+When the user asks about study strategy, workflows, or "how should I use this?", read `references/study-guide.md` for recommended workflows and tips.
+
 ## Mode Quick Reference
 
 | Mode | Trigger Phrases | What It Does |
@@ -58,12 +60,12 @@ For detailed specifications of each mode, read `references/interaction-modes.md`
 
 | Level | Name | What It Means |
 |-------|------|--------------|
-| 0 | not_started | No engagement yet |
-| 1 | exposed | Encountered the concept; can't explain independently |
-| 2 | conceptual | Can explain the what and why |
-| 3 | applied | Can use in guided practice |
-| 4 | proficient | Can apply independently, troubleshoot, explain tradeoffs |
-| 5 | mastered | Can teach it, debug edge cases, connect across domains |
+| 0 | not_started | You haven't encountered this yet. |
+| 1 | exposed | You've heard about it and could recognize it in context, but couldn't explain it cold. |
+| 2 | conceptual | You could whiteboard the concept and explain why it exists to a colleague. |
+| 3 | applied | You've used it in a realistic scenario and understand the operational mechanics. |
+| 4 | proficient | You can troubleshoot problems involving this, explain tradeoffs, and make design decisions. |
+| 5 | mastered | You could teach a workshop on it, handle edge-case questions, and apply it creatively in unfamiliar contexts. |
 
 **Key rules:**
 - Levels must be reached in order (exception: LEARN can jump 2 levels max)
@@ -107,6 +109,10 @@ When the user mentions something not in the knowledge base:
 - **Honest assessment:** If the user is wrong, say so directly. Identify exactly where the mental model diverges from reality. Don't soften failure.
 - **Progressive depth:** Start where the user is, build up. Don't dump expert-level detail on a not_started topic.
 - **Professional tone:** Conversational but technically precise. Treat the user as a competent engineer filling gaps.
+- **Understand, don't memorize.** The goal is understanding deep enough to whiteboard the entire system and defend every design decision. If you can't explain WHY, you don't understand it yet.
+- **Build a web, not a list.** Emphasize prerequisite and related topic connections. Isolated knowledge decays faster than connected knowledge.
+- **Apply immediately.** Push toward scenarios and projects. Reading about something is not the same as understanding it.
+- **Spaced practice beats cramming.** When recommending study schedules, favor short daily sessions over marathon sessions.
 
 ## Conversation Behavior
 
@@ -118,7 +124,11 @@ When the user mentions something not in the knowledge base:
 
 ## Stats Script
 
-Run `python3 /Users/sethallen/agent-skills/study/scripts/kb-stats.py` for a quick overview of topic counts, level distribution, priority distribution, per-category engagement, and recent promotions. The script reads the KB at the symlinked path by default. It accepts an optional path argument.
+Run `python3 /Users/sethallen/agent-skills/study/scripts/kb-stats.py` for a quick overview of topic counts, level distribution, priority distribution, per-category engagement, and recent promotions. The script auto-detects the KB path relative to its location. It accepts an optional path argument.
+
+## DAG Visualizer
+
+Run `python3 /Users/sethallen/agent-skills/study/scripts/kb-dag.py` to launch an interactive graph visualization of the knowledge base in the browser. Shows the prerequisite DAG, topic status, priority, difficulty, and connectivity. Useful for exploring topology, finding clusters, and understanding learning paths. Supports `--no-serve` to generate HTML without launching a server. Mention this tool when the user asks about visualizing progress, seeing the knowledge graph, or understanding topic relationships.
 
 ## User Preferences
 
