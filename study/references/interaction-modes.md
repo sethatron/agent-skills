@@ -26,15 +26,25 @@ None — any topic can be learned at any time, though the mode will flag unmet p
 2. **Check the user's current status** on the topic.
 3. **Check prerequisites:** if any prerequisite topic is below `conceptual`, flag it and offer to teach the prerequisite first. List which prerequisites are gaps. If the user wants to proceed anyway, continue but note where prerequisite knowledge would help.
 4. **Teach the topic** calibrated to current status:
-   - `not_started`: Start from the description. Explain WHY it exists, what problem it solves. Use `source_context` to ground the explanation. Connect to prerequisites the user has already learned. Use analogies and concrete examples.
-   - `exposed`: Deepen understanding. Focus on mechanics, not just concepts. Connect to `related` topics. Introduce common misconceptions.
-   - `conceptual` or higher: Focus on internals, tradeoffs, edge cases. When NOT to use it. Implementation details. Failure modes.
-5. **Ask 1-2 open-ended verification questions.** NEVER yes/no. NEVER multiple choice. Questions must require the user to demonstrate understanding in their own words.
-6. **Evaluate the user's response:**
-   - **Correct and demonstrates understanding:** Update status. Record evidence.
-   - **Partially correct:** Identify the specific gap. Re-explain that part. Ask a targeted follow-up.
-   - **Incorrect:** Do not give the answer immediately. Identify the misconception. Re-approach from a different angle. Ask again.
-7. **Summarize:** "You're now at [level] on [topic]. Related topics you might explore next: [related]."
+   - `not_started`: If `source_context` points to a guide file (ends in `.md`), Read it first. Use the guide's "Why This Exists" and "Core Concepts" sections as the foundation. Adapt to be conversational and interactive. Explain WHY it exists, what problem it solves. Connect to prerequisites the user has already learned. Use analogies and concrete examples. If no guide exists, teach from the description and general knowledge.
+   - `exposed`: If a guide exists, Read it and use its "How It Works" section to deepen understanding. Focus on mechanics, not just concepts. Connect to `related` topics. Introduce common misconceptions. If no guide, teach from general knowledge.
+   - `conceptual` or higher: If a guide exists, Read it and use its "Deep Dive" and "Failure Modes" sections. Focus on internals, tradeoffs, edge cases. When NOT to use it. Implementation details. Failure modes. If no guide, teach from general knowledge.
+5. **Ask 4 open-ended verification questions.** NEVER yes/no. NEVER multiple choice. Questions must require the user to demonstrate understanding in their own words. After presenting the questions, mention: "You can also request a hands-on sandbox challenge instead of (or in addition to) answering these questions — just say 'sandbox' and optionally a difficulty level 1-5."
+6. **Evaluate the user's response** across all 4 questions holistically:
+   - **Correct and demonstrates understanding:** The overall response pattern shows solid comprehension. Minor errors (arithmetic slips, imprecise terminology) with correct reasoning still count. Update status. Record evidence.
+   - **Partially correct:** Some questions answered well, others reveal specific gaps. Identify each gap. Re-explain those parts. Ask targeted follow-ups on the weak areas only.
+   - **Incorrect:** Fundamental misconceptions evident across multiple answers. Do not give the answers immediately. Identify the core misconception. Re-approach from a different angle. Ask again.
+   - If the user requests a sandbox at this step (instead of answering questions): generate the sandbox first (step 7), let the user complete it, then return to the verification questions for evaluation. Questions must still be answered for status promotion.
+7. **Sandbox offer (optional):** After successful evaluation (status updated), offer: "Want to reinforce this with a hands-on sandbox challenge? Pick a difficulty from 1 (guided) to 5 (expert), or just say 'sandbox' for a default difficulty matched to your level." If the user accepts (or requested a sandbox at any earlier point in the session):
+   - Read `references/sandbox-generation.md` for design specs and generation instructions
+   - Determine sandbox type (real vs simulated) based on topic and platform
+   - Generate the sandbox files at the sandbox directory for this topic (`{sandbox_dir}/{topic-slug}/`)
+   - `chmod +x` all `.sh` files in the sandbox directory (challenge.sh, verify.sh) — this is mandatory per sandbox-generation.md step 6
+   - Present the README content inline
+   - Instruct: "Run `./challenge.sh` to start. When you're done, run `./verify.sh` to check your solution. Run `./challenge.sh --cleanup` to tear down the environment."
+   - Wait for the user to report results, then provide feedback
+   - Sandbox does NOT affect status — it is purely for practice
+8. **Summarize:** "You're now at [level] on [topic]. Related topics you might explore next: [related]."
 
 ### Status Update Criteria
 
@@ -371,3 +381,9 @@ Session 2: [Theme]
 - Always respect the prerequisite DAG: if topic B requires topic A, topic A must appear in an earlier session (or the user must already have it at `conceptual` or above).
 - For certification-focused paths, align sessions with exam domains and weight toward high-priority topics.
 - Adjust the path if the user has already made progress — skip topics at or above the target level.
+
+### Persistence
+
+Generated paths can be saved as YAML files in `{topic_dir}/paths/` for cross-session tracking.
+See `references/path-yaml-schema.md` for the schema. When the study-buddy orchestrator
+is active, users can resume saved paths with "resume path [name]".

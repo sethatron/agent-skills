@@ -1,5 +1,5 @@
 ---
-name: study-buddy
+name: study
 description: >-
   Interactive study companion for the DevOps & Platform Engineering knowledge
   base (200+ topics across networking, cryptography, identity/auth, Kubernetes
@@ -7,7 +7,7 @@ description: >-
   "study", "teach me", "quiz me", "test me", "explain [topic]", "what is
   [topic]", "scenario", "mastery challenge", "study status", "study path",
   "what should I study next", "what should I learn next", "level up", "assign
-  project", "learning path", "knowledge base", "/study", or asks a question
+  project", "learning path", "knowledge base", "sandbox", "/study", or asks a question
   that maps to a topic in the knowledge base during a study session. Supports
   7 modes: LEARN (teach from first principles), QUIZ (test knowledge),
   SCENARIO (real-world exercises), PROJECT (hands-on builds), MASTERY
@@ -25,14 +25,46 @@ An adaptive study guide for DevOps and Platform Engineering. It teaches, quizzes
 - **Path:** `/Users/sethallen/agent-skills/study/knowledge-base.yaml`
 - **Structure:** 12 top-level categories, each containing subcategories with topic arrays
 - **Categories:** networking, cryptography, identity, serialization, kubernetes_control_plane, kubernetes_node, kubernetes_controllers, kubernetes_networking, aws_networking, eks_and_aws, infrastructure, scheduler
-- **Per topic:** name, description, difficulty (1-5), priority (critical/high/medium/low), prerequisites (names forming a DAG), related topics, tags, status (6 levels), source_context, optional level_up_evidence
+- **Per topic:** name, description, difficulty (1-5), priority (critical/high/medium/low), prerequisites (names forming a DAG), related topics, tags, status (6 levels), source_context, optional resources, optional level_up_evidence
 - **Single source of truth:** all status tracking lives in the YAML. Every promotion updates the KB directly.
+
+### Guide Documents
+
+When `source_context` ends in `.md`, it is a path to a guide document relative
+to the topic's data directory. Under study-buddy orchestration, the orchestrator
+resolves this to an absolute path via its Path Override Instructions — Read the
+resolved file before teaching. Use the guide as the primary source material for
+LEARN explanations, QUIZ question generation, and SCENARIO context.
+
+When `source_context` is a non-path string (e.g., "kubernetes-internals-guide,
+Part III Chapter 3"), treat it as contextual metadata only — it names a reference
+but is not a readable file.
+
+When `source_context` is `null`, teach from general knowledge.
+
+### Sandbox Practice Environments
+
+Optional hands-on challenges generated during LEARN mode. Sandboxes are
+self-contained scripts at `{sandbox_dir}/{topic-slug}/` that create practice
+environments — either real (using local system primitives) or simulated
+(Python-based mocks). Users can request a sandbox after answering verification
+questions or explicitly at any point during a LEARN session by saying "sandbox."
+
+Sandbox difficulty ranges from 1 (guided) to 5 (expert). If no difficulty is
+specified, it defaults to a level matched to the user's current status on the
+topic. Sandbox completion does not affect topic status.
+
+For sandbox design specs, file structure, difficulty calibration, and
+generation instructions, read `references/sandbox-generation.md`.
+
+Under study-buddy orchestration, the orchestrator resolves `{sandbox_dir}`
+to `{data_root}/{slug}/sandbox/` via its Path Override Instructions.
 
 On session start, read the knowledge base to understand the user's current state. For a quick summary, run the stats script instead of parsing the full file.
 
 ## Session Flow
 
-1. **On first interaction:** Run `python3 /Users/sethallen/agent-skills/study/scripts/kb-stats.py` for a quick summary. If the user asks about specific topics, Grep the KB for those topics and Read their blocks.
+1. **On first interaction:** Run `python3 /Users/sethallen/agent-skills/study/scripts/kb-stats.py` for a quick summary. Unless the user requests otherwise, also launch the DAG visualizer in the background: `python3 /Users/sethallen/agent-skills/study/scripts/kb-dag.py --background`. If the user asks about specific topics, Grep the KB for those topics and Read their blocks.
 2. **Determine mode** from the user's request (see Mode Quick Reference below).
 3. **If mode is ambiguous**, ask one clarifying question — don't present a menu of all 7 modes.
 4. **Load the mode spec:** Read `references/interaction-modes.md` for the selected mode's detailed behavioral specification. Follow it exactly.
@@ -81,7 +113,7 @@ For complete promotion criteria, evidence schemas, and anti-gaming rules, read `
 When a status change or evidence entry is needed:
 
 1. **Read first:** Grep the KB for the topic name to find it, then Read the surrounding lines to get the full topic block and its current state.
-2. **Use the Edit tool** with the full topic block (from `- name:` through `source_context:`) as context to ensure the `old_string` is unique. Never use bare `status: not_started` — it matches many lines.
+2. **Use the Edit tool** with the full topic block (from `- name:` through `source_context:`, plus `resources:` if present) as context to ensure the `old_string` is unique. Never use bare `status: not_started` — it matches many lines.
 3. **Append `level_up_evidence`** entries; never overwrite existing entries.
 4. **Get the timestamp** by running `date -u +"%Y-%m-%dT%H:%M:%SZ"` via Bash before writing any evidence entry.
 5. **Verify after editing:** Read back the modified section to confirm YAML integrity (correct indentation, no broken structure).
@@ -95,7 +127,7 @@ When the user mentions something not in the knowledge base:
 
 1. Grep the KB to confirm it doesn't already exist (check name and tags).
 2. Offer to add it — confirm the category and subcategory placement.
-3. Determine appropriate values for all 9 fields (name, description, difficulty, priority, prerequisites, related, tags, status: not_started, source_context).
+3. Determine appropriate values for all 10 fields (name, description, difficulty, priority, prerequisites, related, tags, status: not_started, source_context, resources: optional).
 4. Append to the appropriate subcategory array using Pattern 4 from `references/yaml-editing-patterns.md`.
 5. Verify the edit.
 
@@ -128,7 +160,7 @@ Run `python3 /Users/sethallen/agent-skills/study/scripts/kb-stats.py` for a quic
 
 ## DAG Visualizer
 
-Run `python3 /Users/sethallen/agent-skills/study/scripts/kb-dag.py` to launch an interactive graph visualization of the knowledge base in the browser. Shows the prerequisite DAG, topic status, priority, difficulty, and connectivity. Useful for exploring topology, finding clusters, and understanding learning paths. Supports `--no-serve` to generate HTML without launching a server. Mention this tool when the user asks about visualizing progress, seeing the knowledge graph, or understanding topic relationships.
+Interactive graph visualization of the knowledge base. Shows the prerequisite DAG, topic status, priority, difficulty, and connectivity. Useful for exploring topology, finding clusters, and understanding learning paths. Launched automatically in the background at session start (see Session Flow step 1). Run `python3 /Users/sethallen/agent-skills/study/scripts/kb-dag.py --stop` to stop the background server. Flags: `--background` (fork server, return immediately), `--stop` (kill background server), `--no-serve` (standalone HTML, no server), `--no-open` (suppress browser). Mention this tool when the user asks about visualizing progress, seeing the knowledge graph, or understanding topic relationships.
 
 ## User Preferences
 

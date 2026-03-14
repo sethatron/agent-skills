@@ -1,0 +1,13 @@
+{
+  "name": "kb-dag-web-tests",
+  "private": true,
+  "scripts": {
+    "test": "npx playwright test",
+    "test:headed": "npx playwright test --headed",
+    "test:report": "npx playwright show-report",
+    "fixture": "bash tests/fixtures/generate-fixture.sh"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.0"
+  }
+}

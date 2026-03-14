@@ -149,6 +149,59 @@ next_category_or_subcategory_header:
 
 ---
 
+## Pattern 5: Add or Update `resources` on a Topic
+
+### Pattern 5a: Add `resources` to a topic WITH `level_up_evidence`
+
+Insert `resources` between `source_context` and `level_up_evidence:`. Include both lines in the old_string to anchor the edit.
+
+```
+old_string:
+      source_context: "docs/topic-name.md"
+      level_up_evidence:
+
+new_string:
+      source_context: "docs/topic-name.md"
+      resources:
+        sandbox: "sandbox/topic-slug/"
+      level_up_evidence:
+```
+
+### Pattern 5b: Add `resources` to a topic WITHOUT `level_up_evidence`
+
+Include `source_context` and the next topic's `- name:` line as anchor. Insert `resources` between them.
+
+```
+old_string:
+      source_context: "docs/topic-name.md"
+
+    - name: "Next Topic Name"
+
+new_string:
+      source_context: "docs/topic-name.md"
+      resources:
+        sandbox: "sandbox/topic-slug/"
+
+    - name: "Next Topic Name"
+```
+
+### Pattern 5c: Add entry to existing `resources` block
+
+Include existing `resources` entries in old_string, append new entry.
+
+```
+old_string:
+      resources:
+        sandbox: "sandbox/topic-slug/"
+
+new_string:
+      resources:
+        sandbox: "sandbox/topic-slug/"
+        project: "projects/topic-slug/"
+```
+
+---
+
 ## Safety Rules
 
 1. **ALWAYS** read the topic's current state before editing. Grep for its name, then Read the surrounding lines to get the full block.
@@ -157,4 +210,4 @@ next_category_or_subcategory_header:
 4. **After editing**, Read the modified lines back to verify YAML validity (correct indentation, no broken structure).
 5. When a topic has `source_context: null`, match the literal string `null`, not an empty string or quotes.
 6. Get the timestamp via `date -u +"%Y-%m-%dT%H:%M:%SZ"` before writing any evidence entry. Never fabricate or hardcode timestamps.
-7. Preserve exact indentation: 4 spaces for `- name:`, 6 spaces for fields, 6 spaces for `level_up_evidence:`, 8 spaces for `- from_level:`, 10 spaces for evidence fields.
+7. Preserve exact indentation: 4 spaces for `- name:`, 6 spaces for fields, 6 spaces for `resources:`, 8 spaces for resource entries, 6 spaces for `level_up_evidence:`, 8 spaces for `- from_level:`, 10 spaces for evidence fields.

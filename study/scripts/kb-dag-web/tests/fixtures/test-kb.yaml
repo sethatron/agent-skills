@@ -1,0 +1,208 @@
+fundamentals:
+  description: "Core foundational concepts"
+  basics:
+    - name: "Alpha Concept"
+      status: mastered
+      priority: critical
+      difficulty: 1
+      description: "The root concept with no prerequisites, serving as the foundation for all other topics"
+      prerequisites: []
+      related:
+        - "Beta Theory"
+      tags:
+        - foundation
+        - core
+      source_context: "test-source-alpha"
+      resources:
+        sandbox: "https://example.com/alpha-sandbox"
+        project: "https://example.com/alpha-project"
+      level_up_evidence:
+        - from_level: "proficient"
+          to_level: "mastered"
+          timestamp: "2024-01-15"
+          method: "mastery-challenge"
+          summary: "Demonstrated complete mastery of Alpha Concept"
+
+    - name: "Beta Theory"
+      status: proficient
+      priority: high
+      difficulty: 2
+      description: "Theoretical framework building on Alpha foundations and core concepts"
+      prerequisites:
+        - "Alpha Concept"
+      related:
+        - "Alpha Concept"
+        - "Gamma Protocol"
+      tags:
+        - theory
+      source_context: "test-source-beta"
+      level_up_evidence:
+        - from_level: "applied"
+          to_level: "proficient"
+          timestamp: "2026-03-10T12:00:00Z"
+          method: "mastery_challenge"
+          summary: "Demonstrated proficient understanding of Beta Theory"
+
+    - name: "Gamma Protocol"
+      status: applied
+      priority: medium
+      difficulty: 3
+      description: "Applied protocol implementation based on Beta Theory"
+      prerequisites:
+        - "Beta Theory"
+      related:
+        - "Beta Theory"
+      tags:
+        - protocol
+        - implementation
+      source_context: null
+      level_up_evidence:
+        - from_level: "conceptual"
+          to_level: "applied"
+          timestamp: "2026-02-15T12:00:00Z"
+          method: "scenario"
+          summary: "Applied Gamma Protocol in operational scenario"
+
+    - name: "Network Address Translation (NAT)"
+      status: conceptual
+      priority: high
+      difficulty: 2
+      description: "Network address translation concepts and mechanisms"
+      prerequisites:
+        - "Alpha Concept"
+      tags:
+        - networking
+      source_context: "test-source-nat"
+      level_up_evidence:
+        - from_level: "exposed"
+          to_level: "conceptual"
+          timestamp: "2026-03-01T12:00:00Z"
+          method: "learn"
+          summary: "Explained NAT concepts and mechanisms"
+
+  advanced:
+    - name: "Epsilon Basics"
+      status: not_started
+      priority: low
+      difficulty: 1
+      description: "Introductory advanced concepts for further exploration"
+
+    - name: "Delta Advanced"
+      status: exposed
+      priority: medium
+      difficulty: 4
+      description: "Advanced techniques extending Gamma Protocol"
+      prerequisites:
+        - "Gamma Protocol"
+      related:
+        - "Kappa Framework"
+      source_context: null
+
+systems:
+  description: "Systems architecture and patterns"
+  architecture:
+    - name: "Zeta Architecture"
+      status: not_started
+      priority: high
+      difficulty: 3
+      description: "System architecture combining Beta Theory and NAT concepts"
+      prerequisites:
+        - "Beta Theory"
+        - "Network Address Translation (NAT)"
+      related:
+        - "Eta Pattern"
+      tags:
+        - architecture
+        - design
+
+    - name: "Eta Pattern"
+      status: not_started
+      priority: critical
+      difficulty: 5
+      description: "Operational pattern derived from Zeta Architecture"
+      prerequisites:
+        - "Zeta Architecture"
+      related:
+        - "Zeta Architecture"
+      tags:
+        - patterns
+
+    - name: "Theta Principle"
+      status: not_started
+      priority: low
+      difficulty: 5
+      description: "An isolated principle with no connections to other topics"
+
+    - name: "Iota Service"
+      status: not_started
+      priority: critical
+      difficulty: 3
+      description: "Service implementation extending Eta Pattern"
+      prerequisites:
+        - "Eta Pattern"
+      tags:
+        - services
+
+  operations:
+    - name: "Kappa Framework"
+      status: exposed
+      priority: high
+      difficulty: 2
+      description: "Framework built on Delta Advanced concepts"
+      prerequisites:
+        - "Delta Advanced"
+      related:
+        - "Delta Advanced"
+        - "Lambda Tool"
+      resources:
+        sandbox: "https://example.com/kappa-sandbox"
+      source_context: "test-source-kappa"
+
+    - name: "Lambda Tool"
+      status: exposed
+      priority: high
+      difficulty: 2
+      description: "Tooling that requires Alpha Concept knowledge"
+      prerequisites:
+        - "Alpha Concept"
+      related:
+        - "Kappa Framework"
+      source_context: "test-source-lambda"
+
+platforms:
+  description: "Platform deployment and edge computing"
+  cloud:
+    - name: "Mu Platform"
+      status: not_started
+      priority: medium
+      difficulty: 3
+      description: "Platform services built on Zeta Architecture"
+      prerequisites:
+        - "Zeta Architecture"
+      related:
+        - "Nu Deployment"
+      tags:
+        - platform
+
+    - name: "Nu Deployment"
+      status: not_started
+      priority: medium
+      difficulty: 3
+      description: "Deployment strategies for Mu Platform"
+      prerequisites:
+        - "Mu Platform"
+      related:
+        - "Mu Platform"
+      tags:
+        - deployment
+
+    - name: "Omicron Edge"
+      status: not_started
+      priority: critical
+      difficulty: 4
+      description: "Edge computing concepts requiring Nu and Kappa"
+      prerequisites:
+        - "Nu Deployment"
+        - "Kappa Framework"
+      tags:
+        - edge

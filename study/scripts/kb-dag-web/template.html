@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Knowledge Base DAG</title>
+<!-- STYLE_BLOCK -->
+</head>
+<body>
+<div id="loading-overlay"><div class="spinner"></div></div>
+<div id="sidebar" role="navigation" aria-label="Sidebar">
+  <button id="collapse-btn" aria-label="Toggle sidebar">&lsaquo;</button>
+  <div id="sidebar-content"></div>
+</div>
+<div id="sidebar-overlay"></div>
+<div id="cy-wrapper">
+  <div id="cy" role="img" aria-label="Knowledge base graph"></div>
+  <div id="empty-state">
+    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.4;margin-bottom:12px">
+      <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/>
+    </svg>
+    <div class="empty-title">No topics match current filters</div>
+    <div class="empty-subtitle">Try adjusting your category, status, or priority filters</div>
+    <button id="reset-filters-btn" class="action-btn" style="margin-top:12px;width:auto;display:inline-block;padding:8px 20px">Reset All Filters</button>
+  </div>
+  <div id="filter-bar"></div>
+  <div id="path-panel"></div>
+  <div id="toolbar" role="toolbar" aria-label="Graph controls">
+    <button data-action="zoomin" title="Zoom in" aria-label="Zoom in">+</button>
+    <button data-action="zoomout" title="Zoom out" aria-label="Zoom out">&minus;</button>
+    <button data-action="fit" title="Fit all" aria-label="Fit all nodes">&#8644;</button>
+  </div>
+</div>
+<div id="detail-panel" role="complementary" aria-label="Topic details">
+  <button id="detail-close" aria-label="Close detail panel">&times;</button>
+  <div id="detail-content"></div>
+</div>
+<div id="tooltip" role="tooltip"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.30.4/cytoscape.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dagre@0.8.5/dist/dagre.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/cytoscape-dagre@2.5.0/cytoscape-dagre.js"></script>
+<!-- DATA_BLOCK -->
+<!-- SCRIPT_BLOCK -->
+</body>
+</html>
