@@ -72,7 +72,9 @@ fundamentals:
         - "Alpha Concept"
       tags:
         - networking
-      source_context: "test-source-nat"
+      source_context: "docs/nat-guide.md"
+      resources:
+        sandbox: "sandbox/nat/"
       level_up_evidence:
         - from_level: "exposed"
           to_level: "conceptual"

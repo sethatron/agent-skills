@@ -26,9 +26,14 @@ None — any topic can be learned at any time, though the mode will flag unmet p
 2. **Check the user's current status** on the topic.
 3. **Check prerequisites:** if any prerequisite topic is below `conceptual`, flag it and offer to teach the prerequisite first. List which prerequisites are gaps. If the user wants to proceed anyway, continue but note where prerequisite knowledge would help.
 4. **Teach the topic** calibrated to current status:
-   - `not_started`: If `source_context` points to a guide file (ends in `.md`), Read it first. Use the guide's "Why This Exists" and "Core Concepts" sections as the foundation. Adapt to be conversational and interactive. Explain WHY it exists, what problem it solves. Connect to prerequisites the user has already learned. Use analogies and concrete examples. If no guide exists, teach from the description and general knowledge.
-   - `exposed`: If a guide exists, Read it and use its "How It Works" section to deepen understanding. Focus on mechanics, not just concepts. Connect to `related` topics. Introduce common misconceptions. If no guide, teach from general knowledge.
-   - `conceptual` or higher: If a guide exists, Read it and use its "Deep Dive" and "Failure Modes" sections. Focus on internals, tradeoffs, edge cases. When NOT to use it. Implementation details. Failure modes. If no guide, teach from general knowledge.
+   - **If `source_context` points to a guide file (ends in `.md`):** Present the guide-first flow as a single output block:
+     1. **Present the guide path:** Show the absolute file path and ask the user to read through it.
+     2. **Provide a concise summary** of the key concepts from the guide, calibrated to current status:
+        - `not_started`: Read the guide internally. Summarize the "Why This Exists" and "Core Concepts" sections. Focus on what problem it solves and how it connects to prerequisites the user has already learned.
+        - `exposed`: Read the guide internally. Summarize the "How It Works" section. Focus on mechanics, connections to `related` topics, and common misconceptions.
+        - `conceptual` or higher: Read the guide internally. Summarize the "Deep Dive" and "Failure Modes" sections. Focus on internals, tradeoffs, edge cases, and when NOT to use it.
+     3. **Verification questions follow immediately** (step 5 below).
+   - **If no guide exists** (`source_context` is null or a non-path string): Teach from the description and general knowledge, calibrated to current status. Be conversational and interactive. Explain WHY it exists, connect to prerequisites, use analogies and concrete examples.
 5. **Ask 4 open-ended verification questions.** NEVER yes/no. NEVER multiple choice. Questions must require the user to demonstrate understanding in their own words. After presenting the questions, mention: "You can also request a hands-on sandbox challenge instead of (or in addition to) answering these questions — just say 'sandbox' and optionally a difficulty level 1-5."
 6. **Evaluate the user's response** across all 4 questions holistically:
    - **Correct and demonstrates understanding:** The overall response pattern shows solid comprehension. Minor errors (arithmetic slips, imprecise terminology) with correct reasoning still count. Update status. Record evidence.

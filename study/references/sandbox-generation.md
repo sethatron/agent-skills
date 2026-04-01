@@ -25,7 +25,7 @@ Each sandbox lives in `{sandbox_dir}/{topic-slug}/`:
   - **Persistent pattern**: Stays running (interactive session). Cleanup via trap on Ctrl+C or exit. Suitable for interactive simulations.
 - `engine.py` — Backend simulation. Only present for simulated environments. Started by challenge.sh as a background process or imported directly. Communicates via stdin/stdout, files, or local socket.
 - `README.md` — Challenge description: what to accomplish, success criteria, hints (calibrated to difficulty). Written by the agent and presented to the user inline.
-- `verify.sh` — Checks the user's solution. Returns specific feedback on what was correct and what was missed. Must work while the sandbox environment is still active (before cleanup).
+- `verify.sh` — Checks the user's solution. Accepts `--show-answers` to reveal expected values on failure (hidden by default), `--task N` to verify only a specific task, and `--help` to show usage. Returns specific feedback on what was correct and what was missed. Must work while the sandbox environment is still active (before cleanup). Output format must follow the spec in `sandbox-verify-output.md`.
 
 Slug rule: same as guide generation — lowercase topic name, remove `()`, `/`, `&`, replace spaces with hyphens, collapse consecutive hyphens, strip leading/trailing hyphens.
 
@@ -79,7 +79,7 @@ When generating a sandbox:
 - At difficulty 5, require creative problem-solving or edge-case handling
 - Every challenge must have a clear, verifiable success condition
 - The README must explain what "done" looks like
-- verify.sh must give specific feedback, not just pass/fail
+- verify.sh must give specific feedback, not just pass/fail — on failure, identify which fields are wrong and show the user's incorrect value. Expected answers are hidden by default (shown only with `--show-answers`) to preserve the learning loop
 - Target completion time: 5-15 minutes (difficulty 1-3), 15-30 minutes (difficulty 4-5)
 - challenge.sh must include cleanup logic (trap or --cleanup flag) to restore system state
 - verify.sh must work while the sandbox is still active (before cleanup)

@@ -106,7 +106,53 @@ When operating in study mode for an active topic, use these paths **instead of**
 
 Once a topic is activated, all study interactions follow the study engine's SKILL.md exactly, with the path overrides above. The user interacts normally — "teach me X", "quiz me on Y", "study status" — and the orchestrator transparently routes to the correct KB.
 
+**Exception — ad-hoc prerequisites:** When an active path exists and LEARN mode flags a prerequisite gap that the user chooses to address, the orchestrator performs additional steps (guide generation, path update) before delegating to the study engine. See "Ad-Hoc Prerequisite Handling During Path Execution" below.
+
 The user can switch topics at any time with `/study-buddy [other-topic]`.
+
+## Ad-Hoc Prerequisite Handling During Path Execution
+
+**Trigger:** During LEARN mode with an active path, the study engine flags a prerequisite gap (interaction-modes.md step 3) and the user chooses to learn the prerequisite first.
+
+**Flow:**
+
+1. **Check for active path.** If no path is active, skip — delegate to study engine normally (no guide generation, no path update).
+2. **Check if already in current or earlier session.** If the prerequisite topic already appears in the current session or a completed earlier session, skip steps 3-4 — it's already tracked. Proceed directly to step 5.
+3. **Add to current session in path YAML.** Prepend the topic to the current session's `topics` list so it comes before the topic that needs it. Use `mode: LEARN` and `target: exposed` (minimum useful prerequisite level). Update `summary.topics_covered` count (+1). Use the Edit tool with the session header + first existing topic as the `old_string` anchor.
+4. **Handle duplicates in later sessions.** If the topic appears in a later session, leave it — the derivation logic will auto-complete that entry once the KB status reaches the target. No modification needed.
+5. **Generate guide if missing.** Compute the expected guide filename using the slug rule from `references/guide-generation.md`. Check if `{data_root}/{slug}/docs/{topic-slug}.md` exists.
+   - If missing: generate following `references/guide-generation.md` instructions (web research, full template, all sections substantive). If the topic's current `source_context` is a non-path string, capture it in the guide's Further Reading section.
+   - After writing: update `source_context` in the KB to point to the guide (e.g., `"docs/x-509-certificate.md"`). Use the full topic block as `old_string` per yaml-editing-patterns.md Pattern 1 / Safety Rule 3.
+   - If guide already exists: report "Guide for {topic} already exists."
+6. **Depth prompt.** Same as `resume path` step 7 — ask if the user wants the guide expanded with a more comprehensive deep-dive before proceeding. This applies to all guides, including freshly generated ones.
+7. **Delegate to study engine.** The topic now has a guide (`source_context` points to `.md` file). Proceed with LEARN mode step 4 using the guide-first flow (present path → summary → verification questions).
+
+**Recursive prerequisites:** If the pulled-forward prerequisite itself has prerequisites at `not_started`, the LEARN flow for that topic will flag them (step 3), and this entire ad-hoc handling flow triggers again. Each level is handled one topic at a time.
+
+**Path YAML edit pattern:** To prepend a topic to a session, use the Edit tool:
+
+```
+old_string:
+  - number: N
+    theme: "Session Theme"
+    topics:
+      - name: "First Existing Topic"
+        mode: LEARN
+        target: exposed
+
+new_string:
+  - number: N
+    theme: "Session Theme"
+    topics:
+      - name: "New Prerequisite Topic"
+        mode: LEARN
+        target: exposed
+      - name: "First Existing Topic"
+        mode: LEARN
+        target: exposed
+```
+
+Include enough of the first existing topic entry (all 3 fields) to guarantee uniqueness.
 
 ## Paths — Saved Learning Plans
 
@@ -167,6 +213,10 @@ A guide exists if the computed file path resolves to an actual file.
    for a specific topic — follow enrichment instructions in the reference doc
 3. **Explicit**: user says "generate guides for session N" — generate all
    missing guides for that session
+4. **Ad-hoc prerequisite pull-forward**: when a prerequisite topic is pulled
+   forward during path execution (see Ad-Hoc Prerequisite Handling), a guide
+   is generated before teaching begins — same generation flow as `resume path`
+   step 5, including web research and KB `source_context` update
 
 ### KB Integration
 

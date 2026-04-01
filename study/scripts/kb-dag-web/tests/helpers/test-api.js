@@ -220,6 +220,45 @@ class TestAPI {
   async renderReviewQueue() {
     await this.page.evaluate(() => window.__TEST__.renderReviewQueue());
   }
+
+  async getGroupingMode() {
+    return this.page.evaluate(() => window.__TEST__.getGroupingMode());
+  }
+
+  async setGroupingMode(mode) {
+    await this.page.evaluate((m) => window.__TEST__.setGroupingMode(m), mode);
+  }
+
+  async getCompoundNodes() {
+    return this.page.evaluate(() => window.__TEST__.getCompoundNodes());
+  }
+
+  async toggleSubcategory(cat, sub, checked) {
+    await this.page.evaluate(({c, s, v}) =>
+      window.__TEST__.toggleSubcategory(c, s, v), {c: cat, s: sub, v: checked});
+  }
+
+  async getActiveDetailTab() {
+    return this.page.evaluate(() => window.__TEST__.getActiveDetailTab());
+  }
+
+  async setDetailTab(tab) {
+    await this.page.evaluate((t) => window.__TEST__.setDetailTab(t), tab);
+  }
+
+  async hasGuideContent(name) {
+    return this.page.evaluate((n) => {
+      var node = window.__TEST__.getNodeByName(n);
+      return node && node.length ? !!node.data('guideContent') : false;
+    }, name);
+  }
+
+  async hasSandboxContent(name) {
+    return this.page.evaluate((n) => {
+      var node = window.__TEST__.getNodeByName(n);
+      return node && node.length ? !!node.data('sandboxContent') : false;
+    }, name);
+  }
 }
 
 module.exports = { TestAPI };

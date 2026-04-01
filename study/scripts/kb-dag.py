@@ -53,6 +53,9 @@ def parse_kb(yaml_path):
         print(f"Error parsing YAML: {e}", file=sys.stderr)
         sys.exit(1)
 
+    metadata = data.get("metadata", {})
+    kb_name = metadata.get("name") if isinstance(metadata, dict) else None
+
     skip_keys = {"metadata"}
     topics = []
     categories = {}
@@ -77,7 +80,7 @@ def parse_kb(yaml_path):
         CATEGORY_COLORS[cat_key] = PALETTE[cat_idx % len(PALETTE)]
         cat_idx += 1
 
-    return topics, categories
+    return topics, categories, kb_name
 
 
 def build_name_resolver(topics):
@@ -128,7 +131,7 @@ def build_name_resolver(topics):
     return resolve
 
 
-def build_graph_data(topics, resolve):
+def build_graph_data(topics, resolve, kb_dir):
     name_to_id = {}
     nodes = []
 
@@ -185,6 +188,24 @@ def build_graph_data(topics, resolve):
             else:
                 related_resolved.append({"raw": ref, "name": None, "nodeId": None})
 
+        sc = t.get("source_context") or ""
+        guide_content = None
+        if sc.endswith(".md"):
+            guide_path = os.path.join(kb_dir, sc)
+            if os.path.exists(guide_path):
+                with open(guide_path) as gf:
+                    guide_content = gf.read()
+
+        sandbox_path = (t.get("resources") or {}).get("sandbox", "")
+        sandbox_content = None
+        sandbox_slug = None
+        if sandbox_path and not sandbox_path.startswith("http"):
+            sandbox_slug = os.path.basename(os.path.normpath(sandbox_path))
+            readme = os.path.join(kb_dir, sandbox_path, "README.md")
+            if os.path.exists(readme):
+                with open(readme) as sf:
+                    sandbox_content = sf.read()
+
         nodes.append({"data": {
             "id": nid,
             "name": t["name"],
@@ -202,6 +223,11 @@ def build_graph_data(topics, resolve):
             "level_up_evidence": t.get("level_up_evidence") or [],
             "connections": conns,
             "size": min(30 + conns * 5, 80),
+            "guideContent": guide_content,
+            "hasGuide": guide_content is not None,
+            "sandboxContent": sandbox_content,
+            "sandboxSlug": sandbox_slug,
+            "hasSandbox": sandbox_content is not None,
         }})
 
     edges = []
@@ -411,6 +437,8 @@ def main():
     parser.add_argument("--no-open", action="store_true")
     parser.add_argument("--background", action="store_true")
     parser.add_argument("--stop", action="store_true")
+    parser.add_argument("--build-only", action="store_true",
+        help="Write split files (index.html, style.css, app.js, data.js) without starting a server")
     args = parser.parse_args()
 
     if args.stop:
@@ -418,6 +446,10 @@ def main():
 
     if args.background and args.no_serve:
         parser.error("--background and --no-serve are mutually exclusive")
+    if args.build_only and args.no_serve:
+        parser.error("--build-only and --no-serve are mutually exclusive")
+    if args.build_only and args.background:
+        parser.error("--build-only and --background are mutually exclusive")
 
     kb_path = args.kb or os.path.realpath(os.path.join(os.path.dirname(__file__), '..', 'knowledge-base.yaml'))
 
@@ -425,9 +457,9 @@ def main():
         print(f"Error: KB file not found: {kb_path}", file=sys.stderr)
         sys.exit(1)
 
-    topics, categories = parse_kb(kb_path)
+    topics, categories, kb_name = parse_kb(kb_path)
     resolve = build_name_resolver(topics)
-    nodes, edges = build_graph_data(topics, resolve)
+    nodes, edges = build_graph_data(topics, resolve, os.path.dirname(os.path.abspath(kb_path)))
     stats = compute_stats(topics, categories)
 
     config = {
@@ -436,6 +468,7 @@ def main():
         "priorityBorders": PRIORITY_BORDERS,
         "categoryColors": CATEGORY_COLORS,
         "categoryOrder": CATEGORY_ORDER,
+        "kbName": kb_name,
     }
 
     payload = {"nodes": nodes, "edges": edges, "stats": stats, "config": config}
@@ -445,16 +478,20 @@ def main():
     if out_dir:
         os.makedirs(out_dir, exist_ok=True)
 
-    html_out = generate_html(standalone=args.no_serve, data_payload=json_str)
+    standalone = args.no_serve and not args.build_only
+    html_out = generate_html(standalone=standalone, data_payload=json_str)
     with open(args.output, 'w') as f:
         f.write(html_out)
     print(f"Written to {args.output}")
 
-    if not args.no_serve:
+    if not args.no_serve or args.build_only:
         shutil.copy2(os.path.join(WEB_DIR, 'style.css'), os.path.join(out_dir, 'style.css'))
         shutil.copy2(os.path.join(WEB_DIR, 'app.js'), os.path.join(out_dir, 'app.js'))
         with open(os.path.join(out_dir, 'data.js'), 'w') as f:
             f.write(f'var DATA = {json_str};')
+        if args.build_only:
+            print(f"Build complete: {out_dir}")
+            return
         if args.background:
             daemonize(args.port, args.output, not args.no_open)
         else:

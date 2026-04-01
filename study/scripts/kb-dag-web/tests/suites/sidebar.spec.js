@@ -57,6 +57,7 @@ test.describe('Sidebar', () => {
   });
 
   test('gap item click selects node', async ({ page }) => {
+    await page.click('.sidebar-group[data-group="stats"] .sidebar-group-header');
     const firstGap = await page.$('.gap-item[data-node]');
     if (firstGap) {
       const nodeId = await firstGap.getAttribute('data-node');

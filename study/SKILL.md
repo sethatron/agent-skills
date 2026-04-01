@@ -32,9 +32,11 @@ An adaptive study guide for DevOps and Platform Engineering. It teaches, quizzes
 
 When `source_context` ends in `.md`, it is a path to a guide document relative
 to the topic's data directory. Under study-buddy orchestration, the orchestrator
-resolves this to an absolute path via its Path Override Instructions — Read the
-resolved file before teaching. Use the guide as the primary source material for
-LEARN explanations, QUIZ question generation, and SCENARIO context.
+resolves this to an absolute path via its Path Override Instructions. In LEARN
+mode, present the resolved absolute path to the user for self-study, then Read
+the guide internally to provide a concise summary and verification questions.
+Use the guide as the primary source material for QUIZ question generation and
+SCENARIO context.
 
 When `source_context` is a non-path string (e.g., "kubernetes-internals-guide,
 Part III Chapter 3"), treat it as contextual metadata only — it names a reference
@@ -161,6 +163,8 @@ Run `python3 /Users/sethallen/agent-skills/study/scripts/kb-stats.py` for a quic
 ## DAG Visualizer
 
 Interactive graph visualization of the knowledge base. Shows the prerequisite DAG, topic status, priority, difficulty, and connectivity. Useful for exploring topology, finding clusters, and understanding learning paths. Launched automatically in the background at session start (see Session Flow step 1). Run `python3 /Users/sethallen/agent-skills/study/scripts/kb-dag.py --stop` to stop the background server. Flags: `--background` (fork server, return immediately), `--stop` (kill background server), `--no-serve` (standalone HTML, no server), `--no-open` (suppress browser). Mention this tool when the user asks about visualizing progress, seeing the knowledge graph, or understanding topic relationships.
+
+The visualizer is also hosted at https://d3frpckyqspqll.cloudfront.net — share this URL or mention it when the user asks for a link to their knowledge graph. To deploy updates, run `study-buddy/infra/deploy.sh`.
 
 ## User Preferences
 

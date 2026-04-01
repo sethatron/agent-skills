@@ -77,6 +77,7 @@ test.describe('Actions', () => {
   });
 
   test('sidebar fit button works', async ({ page }) => {
+    await page.click('.sidebar-group[data-group="tools"] .sidebar-group-header');
     await page.click('[data-action="zoomin"]');
     await page.click('[data-action="zoomin"]');
     const zoomed = await page.evaluate(() => window.__TEST__.cy.zoom());

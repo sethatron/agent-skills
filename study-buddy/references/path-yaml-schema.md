@@ -30,7 +30,12 @@ The filename (without extension) is the path slug. Example: `devops/paths/aws-ne
 | `paused` | Temporarily suspended |
 | `archived` | No longer relevant |
 
-Only `status` is mutable after creation. All other fields are immutable.
+After creation, the following fields are mutable:
+- `status`: path state transitions (active → completed, etc.)
+- `sessions[].topics`: ad-hoc prerequisite topics may be prepended to a session during path execution (see study-buddy SKILL.md, "Ad-Hoc Prerequisite Handling")
+- `summary.topics_covered`: updated when ad-hoc topics are added
+
+All other fields (name, goal, created, session themes/numbers, existing topic entries, deferred, external_prerequisites, estimated_hours) are immutable.
 
 ### `summary` Block
 
@@ -109,6 +114,10 @@ When loading a path, compute each session's status by checking the KB:
 | `completed` | Every topic in the session is at or above its `target` level in the KB |
 | `in_progress` | At least one topic has been promoted beyond `not_started`, but not all are at target |
 | `pending` | No topic in the session has been engaged (all at `not_started` or below their starting level) |
+
+### Duplicate Topics Across Sessions
+
+A topic may appear in multiple sessions (e.g., pulled forward as a prerequisite to an earlier session while also appearing in its originally planned session). This is valid. The derivation logic handles it naturally — once the topic's KB status reaches a session's target, that session entry is satisfied regardless of which session actually taught it.
 
 ### Resume Logic
 

@@ -39,6 +39,20 @@ function esc(s) {
     return d.innerHTML;
 }
 
+function safeColor(c, fallback) {
+    if (!c || !/^(#[0-9a-fA-F]{3,8}|[a-zA-Z]+|rgba?\([^)]+\)|hsla?\([^)]+\))$/.test(c)) return fallback;
+    return c;
+}
+
+if (typeof marked !== 'undefined') {
+    marked.setOptions({ breaks: true });
+    marked.use({
+        renderer: {
+            html: function(token) { return esc(token.raw); }
+        }
+    });
+}
+
 var nameToId = {};
 DATA.nodes.forEach(function(n) {
     nameToId[n.data.name] = n.data.id;
@@ -46,6 +60,7 @@ DATA.nodes.forEach(function(n) {
 
 var currentTimeOverride = null;
 var pathActive = false;
+var groupingMode = 'hierarchy';
 
 // --- Shared helpers ---
 
@@ -120,13 +135,30 @@ function renderSidebar() {
     var cfg = DATA.config;
     var h = '';
 
-    h += '<h3>Search</h3>';
     h += '<div id="search-box"><input id="search-input" type="text" placeholder="Search topics..." aria-label="Search topics">';
     h += '<span class="search-shortcut">\u2318K</span>';
     h += '<button id="search-clear" aria-label="Clear search">&times;</button></div>';
     h += '<span id="search-count"></span>';
 
+    h += '<div class="sidebar-group open" data-group="study">';
+    h += '<div class="sidebar-group-header"><span class="group-chevron">&#9656;</span><span>Study</span></div>';
+    h += '<div class="sidebar-group-body">';
     h += '<div id="study-queue-container"></div>';
+    h += '<div id="review-queue-container"></div>';
+    h += '</div></div>';
+
+    h += '<div class="sidebar-group open" data-group="view">';
+    h += '<div class="sidebar-group-header"><span class="group-chevron">&#9656;</span><span>View</span></div>';
+    h += '<div class="sidebar-group-body">';
+    h += '<div class="view-toggle" id="view-toggle">';
+    h += '<button class="view-btn active" data-view="hierarchy">Hierarchy</button>';
+    h += '<button class="view-btn" data-view="category">Categorical</button>';
+    h += '</div>';
+    h += '</div></div>';
+
+    h += '<div class="sidebar-group" data-group="stats">';
+    h += '<div class="sidebar-group-header"><span class="group-chevron">&#9656;</span><span>Stats</span></div>';
+    h += '<div class="sidebar-group-body">';
 
     var pct = s.total > 0 ? Math.round(s.engaged / s.total * 100) : 0;
     h += '<h3>Progress</h3>';
@@ -139,7 +171,7 @@ function renderSidebar() {
     cfg.statusOrder.forEach(function(st) {
         var cnt = s.by_status[st] || 0;
         var barPct = maxS > 0 ? (cnt / maxS * 100) : 0;
-        var color = cfg.statusColors[st] || COLORS.nodeDefault;
+        var color = safeColor(cfg.statusColors[st], COLORS.nodeDefault);
         h += '<div class="stat-row"><span class="stat-label" style="color:' + color + '">' + st + '</span>';
         h += '<span class="stat-count">' + cnt + '</span>';
         h += '<div class="stat-bar"><div class="stat-bar-fill" style="width:' + barPct + '%;background:' + color + '"></div></div></div>';
@@ -148,7 +180,7 @@ function renderSidebar() {
     h += '<h3>Categories</h3>';
     cfg.categoryOrder.forEach(function(ck) {
         var cs = s.categories[ck] || {total: 0, engaged: 0};
-        var color = cfg.categoryColors[ck] || COLORS.textSecondary;
+        var color = safeColor(cfg.categoryColors[ck], COLORS.textSecondary);
         var engPct = cs.total > 0 ? (cs.engaged / cs.total * 100) : 0;
         h += '<div class="stat-row"><span class="cat-dot" style="background:' + color + ';display:inline-block;margin-right:4px"></span>';
         h += '<span class="stat-label">' + ck + '</span>';
@@ -174,18 +206,41 @@ function renderSidebar() {
         });
     }
 
-    h += '<div id="review-queue-container"></div>';
+    h += '</div></div>';
+
+    var subcatStats = {};
+    DATA.nodes.forEach(function(n) {
+        var cat = n.data.category, sub = n.data.subcategory;
+        if (!subcatStats[cat]) subcatStats[cat] = {};
+        if (!subcatStats[cat][sub]) subcatStats[cat][sub] = {total: 0, engaged: 0};
+        subcatStats[cat][sub].total++;
+        if (['exposed','conceptual','applied','proficient','mastered'].indexOf(n.data.status) >= 0)
+            subcatStats[cat][sub].engaged++;
+    });
+
+    h += '<div class="sidebar-group open" data-group="filters">';
+    h += '<div class="sidebar-group-header"><span class="group-chevron">&#9656;</span><span>Filters</span></div>';
+    h += '<div class="sidebar-group-body">';
 
     h += '<h3>Filter Categories</h3>';
     h += '<div class="filter-links"><a id="cat-all">All</a><a id="cat-none">None</a></div>';
     cfg.categoryOrder.forEach(function(ck) {
-        var color = cfg.categoryColors[ck] || COLORS.textSecondary;
+        var color = safeColor(cfg.categoryColors[ck], COLORS.textSecondary);
         var cs = s.categories[ck] || {total: 0, engaged: 0};
         h += '<div class="cat-row">';
         h += '<input type="checkbox" class="cat-check" value="' + esc(ck) + '" checked>';
         h += '<span class="cat-dot" style="background:' + color + '"></span>';
         h += '<span class="cat-label" tabindex="0" data-cat="' + esc(ck) + '">' + esc(ck) + ' <span style="opacity:0.5">(' + cs.engaged + '/' + cs.total + ')</span></span>';
         h += '</div>';
+        if (subcatStats[ck]) {
+            Object.keys(subcatStats[ck]).forEach(function(sub) {
+                var ss = subcatStats[ck][sub];
+                h += '<div class="subcat-row">';
+                h += '<input type="checkbox" class="subcat-check" data-category="' + esc(ck) + '" value="' + esc(sub) + '" checked>';
+                h += '<span class="subcat-label" data-subcat="' + esc(sub) + '" data-cat="' + esc(ck) + '">' + esc(sub) + ' (' + ss.engaged + '/' + ss.total + ')</span>';
+                h += '</div>';
+            });
+        }
     });
 
     h += '<h3>Status</h3>';
@@ -204,6 +259,12 @@ function renderSidebar() {
     });
     h += '</div>';
 
+    h += '</div></div>';
+
+    h += '<div class="sidebar-group" data-group="tools">';
+    h += '<div class="sidebar-group-header"><span class="group-chevron">&#9656;</span><span>Tools</span></div>';
+    h += '<div class="sidebar-group-body">';
+
     h += '<h3>Actions</h3>';
     h += '<button class="action-btn" id="btn-fit">Fit All</button>';
     h += '<button class="action-btn" id="btn-suggested">Show Suggested</button>';
@@ -213,7 +274,7 @@ function renderSidebar() {
 
     h += '<h3>Legend</h3>';
     cfg.statusOrder.forEach(function(st) {
-        var c = cfg.statusColors[st] || COLORS.nodeDefault;
+        var c = safeColor(cfg.statusColors[st], COLORS.nodeDefault);
         h += '<div class="legend-row"><span class="legend-swatch" style="background:' + c + '"></span>' + esc(st) + '</div>';
     });
     h += '<div style="margin-top:6px">';
@@ -227,11 +288,33 @@ function renderSidebar() {
         h += '<div class="legend-row"><span class="legend-shape">' + item[1] + '</span>difficulty ' + item[0] + '</div>';
     });
     h += '</div>';
+    h += '<div style="margin-top:6px">';
+    h += '<div class="legend-row"><span class="legend-swatch" style="border:2px double var(--kb-text-secondary);background:transparent"></span>has guide</div>';
+    h += '<div class="legend-row"><span class="legend-swatch" style="border:2px solid #4fc3f7;background:transparent"></span>has sandbox</div>';
+    h += '</div>';
+
+    h += '</div></div>';
 
     el.innerHTML = h;
 }
 
 renderSidebar();
+
+document.querySelectorAll('.sidebar-group-header').forEach(function(hdr) {
+    hdr.addEventListener('click', function() {
+        hdr.parentElement.classList.toggle('open');
+    });
+});
+
+var headerTitle = document.getElementById('header-title');
+var headerStats = document.getElementById('header-stats');
+if (headerTitle) {
+    headerTitle.textContent = (DATA.config.kbName) || 'Knowledge Base';
+}
+if (headerStats) {
+    var pct = DATA.stats.total > 0 ? Math.round(DATA.stats.engaged / DATA.stats.total * 100) : 0;
+    headerStats.textContent = DATA.stats.engaged + '/' + DATA.stats.total + ' engaged (' + pct + '%)';
+}
 
 // --- Graph initialization ---
 
@@ -255,6 +338,29 @@ var styleArr = [
         'color': COLORS.textPrimary, 'width': 'data(size)', 'height': 'data(size)',
         'background-color': COLORS.nodeDefault, 'border-width': 2, 'border-color': COLORS.textSecondary,
         'text-outline-color': COLORS.bgPrimary, 'text-outline-width': 1
+    }},
+    {selector: 'node[?hasGuide]', style: {
+        'border-style': 'double'
+    }},
+    {selector: 'node[?hasSandbox]', style: {
+        'border-color': '#4fc3f7'
+    }},
+    {selector: ':parent', style: {
+        'background-opacity': 0.05,
+        'border-width': 1,
+        'border-opacity': 0.3,
+        'shape': 'roundrectangle',
+        'padding': 25,
+        'text-valign': 'top',
+        'text-halign': 'center',
+        'font-size': 13,
+        'font-weight': 600,
+        'color': COLORS.textSecondary,
+        'text-margin-y': -8,
+        'text-transform': 'uppercase',
+        'label': 'data(name)',
+        'background-color': 'data(groupColor)',
+        'border-color': 'data(groupColor)'
     }},
     {selector: '.stale-aging', style: {
         'underlay-color': '#ff9800', 'underlay-opacity': 0.12, 'underlay-padding': 4
@@ -333,6 +439,10 @@ var styleArr = [
     {selector: 'edge.path-edge', style: {
         'line-color': COLORS.ancestorGold, 'target-arrow-color': COLORS.ancestorGold,
         'width': 2.5, 'opacity': 1, 'z-index': 15
+    }},
+    {selector: 'node[?isGroup]', style: {
+        'opacity': 1,
+        'events': 'no'
     }}
 ];
 
@@ -458,10 +568,59 @@ function hideDetailPanel() {
     document.getElementById('detail-panel').classList.remove('open');
 }
 
+function makeCollapsible(html) {
+    var tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    var out = '';
+    var inSection = false;
+
+    for (var i = 0; i < tmp.childNodes.length; i++) {
+        var node = tmp.childNodes[i];
+        if (node.nodeType === 1 && node.tagName === 'H2') {
+            if (inSection) out += '</div></div>';
+            out += '<div class="guide-section open">';
+            out += '<div class="guide-section-header"><span class="guide-section-chevron">&#9656;</span>' + node.innerHTML + '</div>';
+            out += '<div class="guide-section-body">';
+            inSection = true;
+        } else {
+            if (node.nodeType === 1) {
+                out += node.outerHTML;
+            } else if (node.nodeType === 3 && node.textContent.trim()) {
+                out += node.textContent;
+            }
+        }
+    }
+    if (inSection) out += '</div></div>';
+    return out;
+}
+
+function attachCollapsibleListeners(container) {
+    container.querySelectorAll('.guide-section-header').forEach(function(hdr) {
+        hdr.addEventListener('click', function() {
+            hdr.parentElement.classList.toggle('open');
+        });
+    });
+}
+
 function showDetailPanel(d) {
     document.getElementById('detail-panel').classList.add('open');
+    var closeBtn = document.getElementById('detail-close');
+    if (closeBtn) closeBtn.style.zIndex = '2';
     var c = document.getElementById('detail-content');
-    var h = '<h2 style="font-size:16px;margin-bottom:12px;margin-top:24px">' + esc(d.name) + '</h2>';
+    var hasGuide = !!d.guideContent;
+    var hasSandbox = !!d.sandboxContent;
+
+    var h = '';
+
+    h += '<div class="detail-tabs">';
+    h += '<button class="detail-tab active" data-tab="details">Details</button>';
+    h += '<button class="detail-tab ' + (hasGuide ? 'has-content' : 'no-content') + '" data-tab="guide">Guide</button>';
+    h += '<button class="detail-tab ' + (hasSandbox ? 'has-content' : 'no-content') + '" data-tab="sandbox">Sandbox</button>';
+    h += '</div>';
+
+    h += '<div id="tab-details" class="tab-panel active">';
+
+    h += '<h2 style="font-size:16px;margin-bottom:12px;margin-top:24px">' + esc(d.name) + '</h2>';
 
     var node = cy.getElementById(d.id);
     var readiness = node.length ? checkPrereqsMet(node) : {met: 0, total: 0, unmetList: []};
@@ -545,7 +704,15 @@ function showDetailPanel(d) {
     if (res && typeof res === 'object' && Object.keys(res).length > 0) {
         h += '<div class="detail-section"><h4>Resources</h4><div class="section-body">';
         Object.keys(res).forEach(function(key) {
-            h += '<div class="resource-entry"><span class="resource-type">' + esc(key) + ':</span> <span>' + esc(res[key]) + '</span></div>';
+            var val = res[key];
+            var isUrl = /^https?:\/\//.test(val);
+            h += '<div class="resource-entry"><span class="resource-type">' + esc(key) + ':</span> ';
+            if (isUrl) {
+                h += '<a href="' + esc(val) + '" target="_blank" rel="noopener" class="resource-link">' + esc(val) + '</a>';
+            } else {
+                h += '<span>' + esc(val) + '</span>';
+            }
+            h += '</div>';
         });
         h += '</div></div>';
     }
@@ -564,7 +731,92 @@ function showDetailPanel(d) {
 
     h += '<div class="detail-section"><h4>Connectivity</h4><div class="section-body"><p>' + d.connections + ' connections</p></div></div>';
 
+    h += '</div>';
+
+    h += '<div id="tab-guide" class="tab-panel">';
+    if (hasGuide && typeof marked !== 'undefined') {
+        h += '<div class="guide-content"><button class="guide-expand-btn" data-target="guide" title="View fullscreen">&#x26F6;</button>'
+            + makeCollapsible(marked.parse(d.guideContent)) + '</div>';
+    } else if (hasGuide) {
+        h += '<div class="guide-content"><pre>' + esc(d.guideContent) + '</pre></div>';
+    } else {
+        h += '<div class="empty-tab"><p>No guide available for this topic.</p>';
+        h += '<p style="font-size:12px;opacity:0.5;margin-top:8px">Guides are generated during study sessions via <code>resume path</code>.</p></div>';
+    }
+    h += '</div>';
+
+    h += '<div id="tab-sandbox" class="tab-panel">';
+    if (hasSandbox && typeof marked !== 'undefined') {
+        h += '<div class="guide-content"><button class="guide-expand-btn" data-target="sandbox" title="View fullscreen">&#x26F6;</button>';
+        if (d.sandboxSlug) {
+            h += '<a class="sandbox-download-btn" href="sandboxes/'
+                + encodeURIComponent(d.sandboxSlug) + '.tar.gz" download>'
+                + '&#x2B07; Download Challenge</a>';
+        }
+        h += makeCollapsible(marked.parse(d.sandboxContent)) + '</div>';
+    } else if (hasSandbox) {
+        h += '<div class="guide-content">';
+        if (d.sandboxSlug) {
+            h += '<a class="sandbox-download-btn" href="sandboxes/'
+                + encodeURIComponent(d.sandboxSlug) + '.tar.gz" download>'
+                + '&#x2B07; Download Challenge</a>';
+        }
+        h += '<pre>' + esc(d.sandboxContent) + '</pre></div>';
+    } else {
+        h += '<div class="empty-tab"><p>No sandbox project available for this topic.</p>';
+        h += '<p style="font-size:12px;opacity:0.5;margin-top:8px">Sandbox challenges are generated during project-mode study sessions.</p></div>';
+    }
+    h += '</div>';
+
     c.innerHTML = h;
+
+    var guideEl = c.querySelector('#tab-guide .guide-content');
+    if (guideEl) attachCollapsibleListeners(guideEl);
+    var sandboxEl = c.querySelector('#tab-sandbox .guide-content');
+    if (sandboxEl) attachCollapsibleListeners(sandboxEl);
+
+    c.querySelectorAll('.guide-expand-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var existing = document.querySelector('.guide-fullscreen');
+            if (existing) existing.remove();
+
+            var sourceContent = btn.parentElement.cloneNode(true);
+            var nestedBtn = sourceContent.querySelector('.guide-expand-btn');
+            if (nestedBtn) nestedBtn.remove();
+
+            var overlay = document.createElement('div');
+            overlay.className = 'guide-fullscreen';
+
+            var tabLabel = btn.dataset.target.charAt(0).toUpperCase() + btn.dataset.target.slice(1);
+            overlay.innerHTML = '<div class="guide-fullscreen-header">'
+                + '<span class="guide-fullscreen-title">' + esc(d.name) + ' — ' + tabLabel + '</span>'
+                + '<button class="guide-fullscreen-close">&times;</button>'
+                + '</div>'
+                + '<div class="guide-fullscreen-body guide-content"></div>';
+
+            var body = overlay.querySelector('.guide-fullscreen-body');
+            body.innerHTML = sourceContent.innerHTML;
+            attachCollapsibleListeners(body);
+
+            document.body.appendChild(overlay);
+
+            overlay.querySelector('.guide-fullscreen-close').addEventListener('click', function() {
+                overlay.remove();
+            });
+            overlay.addEventListener('click', function(e) {
+                if (e.target === overlay) overlay.remove();
+            });
+        });
+    });
+
+    c.querySelectorAll('.detail-tab').forEach(function(tab) {
+        tab.addEventListener('click', function() {
+            c.querySelectorAll('.detail-tab').forEach(function(t) { t.classList.remove('active'); });
+            c.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
+            tab.classList.add('active');
+            document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+        });
+    });
 
     c.querySelectorAll('.prereq-link').forEach(function(el) {
         el.addEventListener('click', function() {
@@ -608,7 +860,9 @@ function showDetailPanel(d) {
 }
 
 cy.on('tap', 'node', function(evt) {
+    tooltip.style.display = 'none';
     var node = evt.target;
+    if (node.data('isGroup')) return;
     clearSelection();
     selectedNodeId = node.id();
     node.addClass('highlighted');
@@ -636,7 +890,11 @@ cy.on('tap', function(evt) {
 });
 
 document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') clearSelection();
+    if (e.key === 'Escape') {
+        var fs = document.querySelector('.guide-fullscreen');
+        if (fs) { fs.remove(); return; }
+        clearSelection();
+    }
     if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
         var si = document.getElementById('search-input');
@@ -760,6 +1018,10 @@ function updateFilterBar() {
 function applyFilters() {
     var activeCats = new Set();
     catChecks.forEach(function(c) { if (c.checked) activeCats.add(c.value); });
+    var activeSubcats = new Set();
+    document.querySelectorAll('.subcat-check').forEach(function(c) {
+        if (c.checked) activeSubcats.add(c.dataset.category + '/' + c.value);
+    });
     var activeStatuses = new Set();
     statusBtns.forEach(function(b) { if (b.classList.contains('active')) activeStatuses.add(b.dataset.status); });
     var activePrios = new Set();
@@ -768,7 +1030,10 @@ function applyFilters() {
     cy.batch(function() {
         cy.nodes().forEach(function(node) {
             var d = node.data();
-            var vis = activeCats.has(d.category) && activeStatuses.has(d.status) && activePrios.has(d.priority);
+            if (d.isGroup) return;
+            var vis = activeCats.has(d.category) &&
+                      activeSubcats.has(d.category + '/' + d.subcategory) &&
+                      activeStatuses.has(d.status) && activePrios.has(d.priority);
             node.style('display', vis ? 'element' : 'none');
         });
         cy.edges().forEach(function(edge) {
@@ -780,6 +1045,17 @@ function applyFilters() {
                 edge.style('display', (srcVis && tgtVis) ? 'element' : 'none');
             }
         });
+        if (groupingMode === 'category') {
+            DATA.config.categoryOrder.forEach(function(cat) {
+                var group = cy.getElementById('group-' + cat);
+                if (group.length) {
+                    var anyChildVisible = group.children().some(function(c) {
+                        return c.style('display') !== 'none';
+                    });
+                    group.style('display', anyChildVisible ? 'element' : 'none');
+                }
+            });
+        }
     });
 
     if (selectedNodeId) {
@@ -787,7 +1063,7 @@ function applyFilters() {
         if (sel.style('display') === 'none') clearSelection();
     }
 
-    var visCount = cy.nodes().filter(function(n) { return n.style('display') !== 'none'; }).length;
+    var visCount = cy.nodes().filter(function(n) { return n.style('display') !== 'none' && !n.data('isGroup'); }).length;
     document.getElementById('empty-state').style.display = visCount === 0 ? 'flex' : 'none';
 
     if (searchInput && searchInput.value.trim()) runSearch();
@@ -796,7 +1072,14 @@ function applyFilters() {
     renderStudyQueue();
 }
 
-catChecks.forEach(function(c) { c.addEventListener('change', applyFilters); });
+catChecks.forEach(function(c) {
+    c.addEventListener('change', function() {
+        document.querySelectorAll('.subcat-check[data-category="' + c.value + '"]').forEach(function(sc) {
+            sc.checked = c.checked;
+        });
+        applyFilters();
+    });
+});
 statusBtns.forEach(function(b) {
     b.addEventListener('click', function() { b.classList.toggle('active'); applyFilters(); });
 });
@@ -806,10 +1089,12 @@ prioBtns.forEach(function(b) {
 
 document.getElementById('cat-all').addEventListener('click', function() {
     catChecks.forEach(function(c) { c.checked = true; });
+    document.querySelectorAll('.subcat-check').forEach(function(c) { c.checked = true; });
     applyFilters();
 });
 document.getElementById('cat-none').addEventListener('click', function() {
     catChecks.forEach(function(c) { c.checked = false; });
+    document.querySelectorAll('.subcat-check').forEach(function(c) { c.checked = false; });
     applyFilters();
 });
 
@@ -823,10 +1108,31 @@ document.querySelectorAll('.cat-label').forEach(function(lbl) {
     });
 });
 
+document.querySelectorAll('.subcat-check').forEach(function(sc) {
+    sc.addEventListener('change', function() {
+        var cat = sc.dataset.category;
+        var anyChecked = false;
+        document.querySelectorAll('.subcat-check[data-category="' + cat + '"]').forEach(function(s) {
+            if (s.checked) anyChecked = true;
+        });
+        catChecks.forEach(function(c) {
+            if (c.value === cat) c.checked = anyChecked;
+        });
+        applyFilters();
+    });
+});
+
+document.querySelectorAll('.view-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        setGroupingMode(btn.dataset.view);
+    });
+});
+
 // --- Reset filters ---
 
 function resetFilters() {
     catChecks.forEach(function(c) { c.checked = true; });
+    document.querySelectorAll('.subcat-check').forEach(function(c) { c.checked = true; });
     statusBtns.forEach(function(b) { b.classList.add('active'); });
     prioBtns.forEach(function(b) { b.classList.add('active'); });
     applyFilters();
@@ -834,6 +1140,55 @@ function resetFilters() {
 
 var resetBtn = document.getElementById('reset-filters-btn');
 if (resetBtn) resetBtn.addEventListener('click', resetFilters);
+
+// --- Grouping ---
+
+function enableCategoryGrouping() {
+    cy.startBatch();
+    DATA.config.categoryOrder.forEach(function(cat) {
+        if (!cy.getElementById('group-' + cat).length) {
+            cy.add({
+                group: 'nodes',
+                data: {
+                    id: 'group-' + cat,
+                    name: cat,
+                    isGroup: true,
+                    groupColor: DATA.config.categoryColors[cat] || COLORS.textSecondary
+                }
+            });
+        }
+    });
+    cy.nodes().forEach(function(n) {
+        if (!n.data('isGroup')) {
+            n.move({ parent: 'group-' + n.data('category') });
+        }
+    });
+    cy.endBatch();
+    cy.layout(Object.assign({}, dagreLayout, { animate: true, animationDuration: 400 })).run();
+}
+
+function disableCategoryGrouping() {
+    cy.startBatch();
+    cy.nodes().forEach(function(n) {
+        if (!n.data('isGroup')) {
+            n.move({ parent: null });
+        }
+    });
+    cy.nodes('[?isGroup]').remove();
+    cy.endBatch();
+    cy.layout(Object.assign({}, dagreLayout, { animate: true, animationDuration: 400 })).run();
+}
+
+function setGroupingMode(mode) {
+    if (mode === groupingMode) return;
+    clearSelection();
+    groupingMode = mode;
+    if (mode === 'category') enableCategoryGrouping();
+    else disableCategoryGrouping();
+    document.querySelectorAll('.view-btn').forEach(function(b) {
+        b.classList.toggle('active', b.dataset.view === mode);
+    });
+}
 
 // --- Actions ---
 
@@ -1003,7 +1358,7 @@ function renderStudyQueue() {
         h += '<div style="font-size:12px;opacity:0.5;padding:4px 0">All caught up!</div>';
     } else {
         queue.forEach(function(item) {
-            var statusColor = DATA.config.statusColors[item.status] || COLORS.nodeDefault;
+            var statusColor = safeColor(DATA.config.statusColors[item.status], COLORS.nodeDefault);
             h += '<div class="study-queue-item" data-node="' + esc(item.nodeId) + '">';
             h += '<span class="queue-status-dot" style="background:' + statusColor + '"></span>';
             h += '<span class="queue-name">' + esc(item.name) + '</span>';
@@ -1120,7 +1475,7 @@ function renderPathPanel(sortedIds, targetId) {
         var node = cy.getElementById(id);
         var d = node.data();
         var modeInfo = getRecommendedMode(d.status, true);
-        var statusColor = DATA.config.statusColors[d.status] || COLORS.nodeDefault;
+        var statusColor = safeColor(DATA.config.statusColors[d.status], COLORS.nodeDefault);
         if (node.style('display') === 'none') someFiltered = true;
         h += '<div class="path-step-item" data-node="' + esc(id) + '">';
         h += '<span class="path-step-num">' + (idx + 1) + '.</span>';
@@ -1132,7 +1487,7 @@ function renderPathPanel(sortedIds, targetId) {
 
     var targetNode = cy.getElementById(targetId);
     var targetData = targetNode.data();
-    var targetColor = DATA.config.statusColors[targetData.status] || COLORS.nodeDefault;
+    var targetColor = safeColor(DATA.config.statusColors[targetData.status], COLORS.nodeDefault);
     h += '<div style="margin-top:6px;padding-top:6px;border-top:1px solid ' + COLORS.borderPrimary + ';font-size:12px">';
     h += '<span class="queue-status-dot" style="background:' + targetColor + '"></span>';
     h += '<strong>' + esc(targetData.name) + '</strong> (target)';
@@ -1221,9 +1576,9 @@ window.__TEST__ = {
     },
     resetFilters: function() { resetFilters(); },
     cy: cy,
-    getNodeCount: function() { return cy.nodes().length; },
+    getNodeCount: function() { return cy.nodes().filter(function(n) { return !n.data('isGroup'); }).length; },
     getEdgeCount: function() { return cy.edges().length; },
-    getVisibleNodes: function() { return cy.nodes().filter(function(n) { return n.style('display') !== 'none'; }); },
+    getVisibleNodes: function() { return cy.nodes().filter(function(n) { return n.style('display') !== 'none' && !n.data('isGroup'); }); },
     getVisibleEdges: function() { return cy.edges().filter(function(e) { return e.style('display') !== 'none'; }); },
     getNodeById: function(id) { return cy.getElementById(id); },
     getNodeByName: function(name) { return cy.getElementById(nameToId[name]); },
@@ -1257,6 +1612,9 @@ window.__TEST__ = {
     toggleCategory: function(name, checked) {
         catChecks.forEach(function(c) {
             if (c.value === name) c.checked = checked;
+        });
+        document.querySelectorAll('.subcat-check[data-category="' + name + '"]').forEach(function(sc) {
+            sc.checked = checked;
         });
         applyFilters();
     },
@@ -1305,7 +1663,33 @@ window.__TEST__ = {
     },
     setCurrentTime: function(isoString) { currentTimeOverride = isoString; },
     applyStalenessClasses: function() { applyStalenessClasses(); },
-    renderReviewQueue: function() { renderReviewQueue(); }
+    renderReviewQueue: function() { renderReviewQueue(); },
+    getGroupingMode: function() { return groupingMode; },
+    setGroupingMode: function(mode) { setGroupingMode(mode); },
+    getCompoundNodes: function() {
+        return cy.nodes('[?isGroup]').map(function(n) { return n.data('name'); });
+    },
+    toggleSubcategory: function(cat, sub, checked) {
+        document.querySelectorAll('.subcat-check').forEach(function(c) {
+            if (c.dataset.category === cat && c.value === sub) c.checked = checked;
+        });
+        var anyChecked = false;
+        document.querySelectorAll('.subcat-check[data-category="' + cat + '"]').forEach(function(s) {
+            if (s.checked) anyChecked = true;
+        });
+        catChecks.forEach(function(c) {
+            if (c.value === cat) c.checked = anyChecked;
+        });
+        applyFilters();
+    },
+    getActiveDetailTab: function() {
+        var active = document.querySelector('.detail-tab.active');
+        return active ? active.dataset.tab : null;
+    },
+    setDetailTab: function(tab) {
+        var btn = document.querySelector('.detail-tab[data-tab="' + tab + '"]');
+        if (btn) btn.click();
+    }
 };
 
 })();
