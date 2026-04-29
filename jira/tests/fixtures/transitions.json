@@ -1,0 +1,9 @@
+{
+  "transitions": [
+    {"id": "11", "name": "To Do", "to": {"name": "To Do", "id": "10000"}},
+    {"id": "21", "name": "In Progress", "to": {"name": "In Progress", "id": "3"}},
+    {"id": "31", "name": "In Review", "to": {"name": "In Review", "id": "10001"}},
+    {"id": "41", "name": "Done", "to": {"name": "Done", "id": "10002"}},
+    {"id": "51", "name": "Blocked", "to": {"name": "Blocked", "id": "10003"}}
+  ]
+}

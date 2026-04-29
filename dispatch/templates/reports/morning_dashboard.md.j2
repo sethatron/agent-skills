@@ -1,0 +1,307 @@
+---
+date: {{ date }}
+type: morning_dashboard
+generated_at: {{ now_local }}
+oneline: "{{ oneline_summary }}"
+counts:
+  personal_non_draft: {{ counts.personal_non_draft }}
+  personal_drafts: {{ counts.personal_drafts }}
+  team_non_draft: {{ counts.team_non_draft }}
+  team_drafts: {{ counts.team_drafts }}
+  request_changes: {{ counts.request_changes }}
+  comment: {{ counts.comment }}
+  approve: {{ counts.approve }}
+  critical: {{ counts.critical }}
+  major: {{ counts.major }}
+  failed_pipelines: {{ counts.failed_pipelines }}
+  conflicts: {{ counts.conflicts }}
+  active_tasks: {{ counts.active_tasks }}
+  mentions: {{ counts.mention_count }}
+  unreplied_mentions: {{ counts.unreplied_mentions }}
+  idle_tasks: {{ counts.idle_tasks }}
+notebook_freshness:
+  ok: {{ notebook_freshness.ok }}
+  oldest_cited_date: {{ notebook_freshness.oldest_date or 'null' }}
+  oldest_days: {{ notebook_freshness.oldest_days or 'null' }}
+---
+
+> **TL;DR** — `{{ oneline_summary }}`
+
+# 🎯 Morning Dispatch — {{ date }} ({{ weekday }}) · {{ now_local }}
+
+{% set top_priority = tasks_p1 | selectattr('status', 'equalto', 'IN_PROGRESS') | list | first %}
+{% if top_priority %}
+> **Top priority today:** [`{{ top_priority.task_id }}`]({{ top_priority.jira_url }}) {{ top_priority.title }}
+{% else %}
+> **Top priority today:** _(no IN_PROGRESS P1 task — review PENDING queue)_
+{% endif %}
+
+{% if notebook_freshness.warnings %}
+> ⚠️ **Notebook freshness:** {{ notebook_freshness.warnings | join(' ') }}
+{% endif %}
+
+## 🚦 Status at a Glance
+
+| Indicator | Count | Detail |
+|---|---|---|
+| 🔴 **Critical MR findings** | {{ counts.critical }} | {% if critical_findings %}{% for cf in critical_findings %}[{{ cf.mr.repo }}!{{ cf.mr.mr_iid }}]({{ cf.mr.mr_url }}){{ ", " if not loop.last }}{% endfor %}{% else %}—{% endif %} |
+| 🟠 **Major MR findings** | {{ counts.major }} | Spread across {{ major_findings | map(attribute='mr.mr_iid') | unique | list | length }} MR(s) |
+| 🔺 **Failed pipelines** | {{ counts.failed_pipelines }} | {% for m in failed_pipelines %}[!{{ m.mr_iid }}]({{ m.pipeline_url or m.mr_url }}){{ ", " if not loop.last }}{% endfor %}{% if not failed_pipelines %}—{% endif %} |
+| 🔄 **MRs with conflicts** | {{ counts.conflicts }} | {% for m in conflicts %}[!{{ m.mr_iid }}]({{ m.mr_url }}){{ ", " if not loop.last }}{% endfor %}{% if not conflicts %}—{% endif %} |
+| 📝 **Open review queue (team)** | {{ counts.team_non_draft }} | {{ counts.request_changes }} request-changes · {{ counts.comment }} comment · {{ counts.approve }} approve{% if counts.unreviewed %} · {{ counts.unreviewed }} unreviewed{% endif %} |
+| 👤 **Personal MRs** | {{ counts.personal_non_draft + counts.personal_drafts }} | {{ counts.personal_non_draft }} open · {{ counts.personal_drafts }} drafts |
+| 🗂️ **Active dispatch tasks** | {{ counts.active_tasks }} | {{ tasks_p1 | length }} P1 · {{ tasks_p2 | length }} P2 · {{ tasks_p3_plus | length }} P3+ |
+| 📨 **Jira mentions (7d)** | {{ counts.mention_count }} | {{ counts.unreplied_mentions }} unreplied > {{ sla.thresholds.mention_stale_hours }}h |
+| ⏳ **Idle IN_PROGRESS tasks** | {{ counts.idle_tasks }} | > {{ sla.thresholds.task_idle_days }}d since started |
+
+## 🧭 Recommended Action Queue (by ROI)
+
+| # | Action | Ticket | Why now |
+|---|---|---|---|
+{% set ns = namespace(n=0) %}
+{% for m in sla.unreplied_mentions %}
+{% set ns.n = ns.n + 1 %}
+| {{ ns.n }} | Reply to **{{ m.comment_author }}** ({{ m.hours_old }}h ago) | [{{ m.issue_key }}]({{ m.comment_url }}) | External stakeholder waiting |
+{% endfor %}
+{% for t in tasks_p1 if t.status == 'IN_PROGRESS' %}
+{% set ns.n = ns.n + 1 %}
+| {{ ns.n }} | Advance **{{ t.title }}** | [{{ t.task_id }}]({{ t.jira_url }}) | P1 in-progress{% if t.age_days is not none %} · {{ t.age_days }}d old{% endif %} |
+{% endfor %}
+{% for cf in critical_findings %}
+{% set ns.n = ns.n + 1 %}
+| {{ ns.n }} | Resolve CRITICAL in [`{{ cf.finding.file }}{% if cf.finding.line %}:{{ cf.finding.line }}{% endif %}`]({{ cf.finding.file_url }}) | [{{ cf.mr.repo }}!{{ cf.mr.mr_iid }}]({{ cf.mr.mr_url }}) | Blocks merge; supply-chain / security risk |
+{% endfor %}
+{% for t in tasks_p1 if t.status == 'PENDING' %}
+{% set ns.n = ns.n + 1 %}
+| {{ ns.n }} | Start **{{ t.title }}** | [{{ t.task_id }}]({{ t.jira_url }}) | P1 pending |
+{% endfor %}
+{% if ns.n == 0 %}
+| 1 | _(queue empty — check mentions + briefing)_ | — | — |
+{% endif %}
+
+## 📋 Active Dispatch Tasks
+
+| Priority | Task | Status | Age | Title |
+|---|---|---|---|---|
+{% for t in tasks %}
+| P{{ t.priority or '?' }} | [{{ t.task_id }}]({{ t.jira_url }}) | {{ t.status }} | {% if t.age_days is not none %}{{ t.age_days }}d{% else %}—{% endif %} | {{ t.title }} |
+{% endfor %}
+{% if not tasks %}
+| — | _(no active tasks)_ | — | — | — |
+{% endif %}
+
+## 👤 Personal MR Queue
+
+| MR | Title | Branch → Target | State | Pipeline | Jira | Approvals |
+|---|---|---|---|---|---|---|
+{% for m in personal_mrs %}
+| {{ m.mr_ref }} | {{ m.title }} | `{{ m.source_branch }}` → {{ m.target_branch }} | {% if m.is_draft %}🟣 Draft{% else %}🟢 Open{% endif %} | {{ m.pipeline_cell }} | {{ m.jira_cell }} | {{ m.approvals_given }}/{{ m.approvals_required }} |
+{% endfor %}
+{% if not personal_mrs %}
+| — | _(no personal MRs)_ | — | — | — | — | — |
+{% endif %}
+
+## 👥 Team MR Queue — Triage
+
+> {{ counts.team_non_draft }} non-draft reviewed · {{ counts.team_drafts }} drafts skipped · Index: [`{{ paths.team_index }}`]({{ paths.team_index }})
+
+### 🔴 REQUEST_CHANGES ({{ counts.request_changes }})
+
+{% if team_by_verdict.request_changes %}
+| MR | Repo | Author | Findings | Pipeline | Approvals | Conflicts | Jira |
+|---|---|---|---|---|---|---|---|
+{% for m in team_by_verdict.request_changes %}
+| {{ m.mr_ref }} | {{ m.repo }} | {{ m.author }} | {{ m.findings_abbrev }} | {{ m.pipeline_cell }} | {{ m.approvals_given }}/{{ m.approvals_required }} | {{ m.conflicts_cell }} | {{ m.jira_cell }} |
+{% endfor %}
+{% else %}
+_None._
+{% endif %}
+
+### 💬 COMMENT ({{ counts.comment }})
+
+{% if team_by_verdict.comment %}
+| MR | Repo | Author | Findings | Pipeline | Approvals | Jira |
+|---|---|---|---|---|---|---|
+{% for m in team_by_verdict.comment %}
+| {{ m.mr_ref }} | {{ m.repo }} | {{ m.author }} | {{ m.findings_abbrev }} | {{ m.pipeline_cell }} | {{ m.approvals_given }}/{{ m.approvals_required }} | {{ m.jira_cell }} |
+{% endfor %}
+{% else %}
+_None._
+{% endif %}
+
+### ✅ APPROVE ({{ counts.approve }})
+
+{% if team_by_verdict.approve %}
+| MR | Repo | Author | Title | Jira |
+|---|---|---|---|---|
+{% for m in team_by_verdict.approve %}
+| {{ m.mr_ref }} | {{ m.repo }} | {{ m.author }} | {{ m.title }} | {{ m.jira_cell }} |
+{% endfor %}
+{% else %}
+_None._
+{% endif %}
+
+{% if team_by_verdict.unreviewed %}
+### ⚠️ UNREVIEWED ({{ counts.unreviewed }})
+
+| MR | Repo | Author | Title | Jira |
+|---|---|---|---|---|
+{% for m in team_by_verdict.unreviewed %}
+| {{ m.mr_ref }} | {{ m.repo }} | {{ m.author }} | {{ m.title }} | {{ m.jira_cell }} |
+{% endfor %}
+{% endif %}
+
+## 🔴 Critical & Major Findings (detail)
+
+{% if critical_findings or major_findings %}
+{% for cf in critical_findings %}
+### 🔴 CRITICAL — [{{ cf.mr.repo }}!{{ cf.mr.mr_iid }} · `{{ cf.finding.file }}{% if cf.finding.line %}:{{ cf.finding.line }}{% endif %}`]({{ cf.finding.file_url }})
+
+{{ cf.finding.description }}
+
+**Open:** [diff view]({{ cf.mr.mr_url }}/diffs) · [file at branch]({{ cf.finding.file_url }}){% if cf.mr.jira_key %} · [{{ cf.mr.jira_key }}]({{ cf.mr.jira_url }}){% endif %}
+
+
+{% if cf.finding.suggestion %}
+**Suggested change:**
+
+
+```diff
+{{ cf.finding.suggestion }}
+```
+
+
+{% endif %}
+
+{% endfor %}
+{% for mf in major_findings %}
+### 🟠 MAJOR — [{{ mf.mr.repo }}!{{ mf.mr.mr_iid }} · `{{ mf.finding.file }}{% if mf.finding.line %}:{{ mf.finding.line }}{% endif %}`]({{ mf.finding.file_url }}){% if mf.mr.jira_key %} ([{{ mf.mr.jira_key }}]({{ mf.mr.jira_url }})){% endif %}
+
+
+{{ mf.finding.description }}
+
+**Open:** [diff view]({{ mf.mr.mr_url }}/diffs) · [file at branch]({{ mf.finding.file_url }})
+
+
+{% endfor %}
+{% else %}
+_No critical or major findings today._
+{% endif %}
+
+## 📨 Jira Escalations (7d)
+
+{% if mentions %}
+| Date | Ticket | Status | From | Comment | Link |
+|---|---|---|---|---|---|
+{% for m in mentions %}
+| {{ m.comment_date }} | [{{ m.issue_key }}]({{ m.issue_url }}) — {{ m.issue_summary[:40] }} | {{ m.issue_status }} | {{ m.comment_author }} | {{ m.comment_excerpt[:100] | replace('|', '\\|') }} | [💬 open comment]({{ m.comment_url }}) |
+{% endfor %}
+
+> Source: [`{{ paths.mentions_json }}`]({{ paths.mentions_json }}) · Markdown: [`{{ paths.mentions }}`]({{ paths.mentions }})
+{% elif mentions_md %}
+> Structured mentions JSON not found; falling back to markdown export:
+
+{{ mentions_md }}
+
+> Source: [`{{ paths.mentions }}`]({{ paths.mentions }})
+{% else %}
+_No mentions export found at `{{ paths.mentions }}`. Run `/jira mentions --days 7` or the dispatch `jira_mentions` step._
+{% endif %}
+
+## 🗺️ Per-Ticket Rollup
+
+{% if ticket_rollup %}
+| Ticket | Title | Dispatch | MRs | Findings (C/M/m/s) | Latest Mention |
+|---|---|---|---|---|---|
+{% for r in ticket_rollup %}
+| [{{ r.jira_key }}]({{ r.jira_url }}) | {{ r.title[:60] }} | {% if r.dispatch_status %}P{{ r.dispatch_priority or '?' }} · {{ r.dispatch_status }}{% if r.dispatch_age_days is not none %} · {{ r.dispatch_age_days }}d{% endif %}{% else %}—{% endif %} | {% if r.mrs %}{% for m in r.mrs %}[!{{ m.mr_iid }}]({{ m.mr_url }}){{ ", " if not loop.last }}{% endfor %}{% else %}—{% endif %} | {{ r.finding_counts.critical }}/{{ r.finding_counts.major }}/{{ r.finding_counts.minor }}/{{ r.finding_counts.suggestion }} | {% if r.latest_mention_date %}[{{ r.latest_mention_date }} · {{ r.latest_mention_author }}]({{ r.latest_mention_url }}){% else %}—{% endif %} |
+{% endfor %}
+{% else %}
+_No tickets to roll up (no tasks, MRs, or mentions referenced a Jira ticket)._
+{% endif %}
+
+## ⏱️ SLA Watchlist
+
+{% if sla.unreplied_mentions or sla.idle_tasks or sla.stale_pending %}
+{% if sla.unreplied_mentions %}
+### Unreplied @mentions (> {{ sla.thresholds.mention_stale_hours }}h)
+
+| Age | Ticket | From | Comment | Link |
+|---|---|---|---|---|
+{% for m in sla.unreplied_mentions %}
+| {{ m.hours_old }}h | [{{ m.issue_key }}]({{ m.issue_url }}) | {{ m.comment_author }} | {{ m.comment_excerpt[:80] | replace('|', '\\|') }} | [💬 open]({{ m.comment_url }}) |
+{% endfor %}
+{% endif %}
+
+{% if sla.idle_tasks %}
+### Idle IN_PROGRESS tasks (> {{ sla.thresholds.task_idle_days }}d since started)
+
+| Task | P | Age | Title |
+|---|---|---|---|
+{% for t in sla.idle_tasks %}
+| [{{ t.task_id }}]({{ t.jira_url }}) | P{{ t.priority or '?' }} | {{ t.age_days }}d | {{ t.title }} |
+{% endfor %}
+{% endif %}
+
+{% if sla.stale_pending %}
+### P1/P2 PENDING tasks older than {{ sla.thresholds.task_idle_days }}d
+
+| Task | P | Age | Title |
+|---|---|---|---|
+{% for t in sla.stale_pending %}
+| [{{ t.task_id }}]({{ t.jira_url }}) | P{{ t.priority or '?' }} | {{ t.age_days }}d | {{ t.title }} |
+{% endfor %}
+{% endif %}
+{% else %}
+_All SLAs green._
+{% endif %}
+
+## 🔗 Sequencing & Cross-Ticket Risks
+
+{% if sequencing_section %}
+{{ sequencing_section }}
+{% else %}
+{% if briefing_text %}
+_Notebook briefing did not emit a dedicated sequencing section. Full briefing: [`{{ paths.briefing }}`]({{ paths.briefing }})._
+{% else %}
+_No notebook briefing for today. Run `/dispatch-notebook generate`._
+{% endif %}
+{% endif %}
+
+## 📝 Since Yesterday
+
+{% if knowledge_recent %}
+{% for k in knowledge_recent %}
+- **{{ k.category }}** · `{{ k.key }}` → {{ k.value }}{% if k.ticket %} ([{{ k.ticket }}](https://abacusinsights.atlassian.net/browse/{{ k.ticket }})){% endif %}
+{% endfor %}
+
+{% else %}
+_No new knowledge entries recorded in the last 24h._
+
+{% endif %}
+## 📦 Artifacts
+
+| Artifact | Path |
+|---|---|
+| This dashboard | [`{{ paths.dashboard_self }}`]({{ paths.dashboard_self }}) |
+| One-line summary (Slack) | [`{{ paths.oneline_txt }}`]({{ paths.oneline_txt }}) |
+| Personal review index | [`{{ paths.personal_index }}`]({{ paths.personal_index }}) |
+| Team review index | [`{{ paths.team_index }}`]({{ paths.team_index }}) |
+| Notebook briefing | [`{{ paths.briefing }}`]({{ paths.briefing }}) |
+| Jira mentions (md) | [`{{ paths.mentions }}`]({{ paths.mentions }}) |
+| Jira mentions (json) | [`{{ paths.mentions_json }}`]({{ paths.mentions_json }}) |
+{% if paths.jira_export %}
+| Jira watched/assigned export | [`{{ paths.jira_export }}`]({{ paths.jira_export }}) |
+{% endif %}
+
+## ⚙️ System Health
+
+- Dispatch DB: {{ counts.active_tasks }} active tasks
+- Review freshness: today's scan at `{{ paths.team_index | replace('README.md', '') }}`
+- Briefing freshness: {% if briefing_text %}present for {{ date }}{% if notebook_freshness.oldest_date %} (oldest cited source: {{ notebook_freshness.oldest_date }} · {{ notebook_freshness.oldest_days }}d){% endif %}{% else %}missing for {{ date }} — run `/dispatch-notebook generate`{% endif %}
+
+- SLA thresholds: task-idle {{ sla.thresholds.task_idle_days }}d · mention-stale {{ sla.thresholds.mention_stale_hours }}h
+
+---
+
+_Generated by `dispatch/scripts/morning_dashboard.py` · format version 1.1_

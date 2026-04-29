@@ -1,0 +1,543 @@
+{
+  "id": 469795543,
+  "iid": 1552,
+  "project_id": 40551480,
+  "title": "DSP-8006: Add 0057 IGs to Nevada Dev/Stg",
+  "description": "## Description\nAs the title says.\n\n## MR Checklist\n\n- [x] Is there a Jira ticket in the title of this MR?\n- [ ] Are the summary notes in the Jira ticket filled in with a sentence describing the change to non-technical users?\n- [ ] Has the `breaking` label been applied, if this is a breaking change?\n- [ ] Has the `new-feature` label been added, if this change adds a new feature?\n\nRelated to DSP-8006",
+  "state": "opened",
+  "created_at": "2026-04-01T20:37:52.833Z",
+  "updated_at": "2026-04-02T17:18:04.370Z",
+  "merged_by": null,
+  "merge_user": null,
+  "merged_at": null,
+  "closed_by": null,
+  "closed_at": null,
+  "target_branch": "qa",
+  "source_branch": "DSP-8006",
+  "user_notes_count": 6,
+  "upvotes": 0,
+  "downvotes": 0,
+  "author": {
+    "id": 5938765,
+    "username": "srosenfeld",
+    "public_email": "",
+    "name": "Steve Rosenfeld",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/25c818116c8ce2c185043ca59ff2a1e141a9f8211eeb4dd1248b9dc41b734527?s=80&d=identicon",
+    "web_url": "https://gitlab.com/srosenfeld"
+  },
+  "assignees": [],
+  "assignee": null,
+  "reviewers": [],
+  "source_project_id": 40551480,
+  "target_project_id": 40551480,
+  "labels": [],
+  "draft": false,
+  "imported": false,
+  "imported_from": "none",
+  "work_in_progress": false,
+  "milestone": null,
+  "merge_when_pipeline_succeeds": false,
+  "merge_status": "checking",
+  "detailed_merge_status": "checking",
+  "merge_after": null,
+  "sha": "3fbf9f065842ba2662af6cdc435eb08616953d74",
+  "merge_commit_sha": null,
+  "squash_commit_sha": null,
+  "discussion_locked": null,
+  "should_remove_source_branch": null,
+  "force_remove_source_branch": true,
+  "prepared_at": "2026-04-01T20:37:58.297Z",
+  "reference": "!1552",
+  "references": {
+    "short": "!1552",
+    "relative": "!1552",
+    "full": "abacusinsights/abacus-v2/next-gen-platform/ng-deployment-config-files!1552"
+  },
+  "web_url": "https://gitlab.com/abacusinsights/abacus-v2/next-gen-platform/ng-deployment-config-files/-/merge_requests/1552",
+  "time_stats": {
+    "time_estimate": 0,
+    "total_time_spent": 0,
+    "human_time_estimate": null,
+    "human_total_time_spent": null
+  },
+  "squash": false,
+  "squash_on_merge": false,
+  "task_completion_status": {
+    "count": 4,
+    "completed_count": 1
+  },
+  "has_conflicts": false,
+  "blocking_discussions_resolved": true,
+  "approvals_before_merge": null,
+  "subscribed": false,
+  "changes_count": "1",
+  "latest_build_started_at": "2026-04-01T20:37:58.675Z",
+  "latest_build_finished_at": "2026-04-01T20:38:23.912Z",
+  "first_deployed_to_production_at": null,
+  "pipeline": {
+    "id": 2424455101,
+    "iid": 12794,
+    "project_id": 40551480,
+    "sha": "3fbf9f065842ba2662af6cdc435eb08616953d74",
+    "ref": "refs/merge-requests/1552/head",
+    "status": "success",
+    "source": "merge_request_event",
+    "created_at": "2026-04-01T20:37:55.802Z",
+    "updated_at": "2026-04-01T20:38:23.926Z",
+    "web_url": "https://gitlab.com/abacusinsights/abacus-v2/next-gen-platform/ng-deployment-config-files/-/pipelines/2424455101"
+  },
+  "head_pipeline": {
+    "id": 2424455101,
+    "iid": 12794,
+    "project_id": 40551480,
+    "sha": "3fbf9f065842ba2662af6cdc435eb08616953d74",
+    "ref": "refs/merge-requests/1552/head",
+    "status": "success",
+    "source": "merge_request_event",
+    "created_at": "2026-04-01T20:37:55.802Z",
+    "updated_at": "2026-04-01T20:38:23.926Z",
+    "web_url": "https://gitlab.com/abacusinsights/abacus-v2/next-gen-platform/ng-deployment-config-files/-/pipelines/2424455101",
+    "before_sha": "0000000000000000000000000000000000000000",
+    "tag": false,
+    "yaml_errors": null,
+    "user": {
+      "id": 5938765,
+      "username": "srosenfeld",
+      "public_email": "",
+      "name": "Steve Rosenfeld",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/25c818116c8ce2c185043ca59ff2a1e141a9f8211eeb4dd1248b9dc41b734527?s=80&d=identicon",
+      "web_url": "https://gitlab.com/srosenfeld"
+    },
+    "started_at": "2026-04-01T20:37:58.675Z",
+    "finished_at": "2026-04-01T20:38:23.912Z",
+    "committed_at": null,
+    "duration": 25,
+    "queued_duration": 2,
+    "coverage": null,
+    "detailed_status": {
+      "icon": "status_warning",
+      "text": "Warning",
+      "label": "passed with warnings",
+      "group": "success-with-warnings",
+      "tooltip": "passed with warnings",
+      "has_details": true,
+      "details_path": "/abacusinsights/abacus-v2/next-gen-platform/ng-deployment-config-files/-/pipelines/2424455101",
+      "illustration": null,
+      "favicon": "/assets/ci_favicons/favicon_status_success-8451333011eee8ce9f2ab25dc487fe24a8758c694827a582f17f42b0a90446a2.png"
+    },
+    "archived": false
+  },
+  "diff_refs": {
+    "base_sha": "de8327d4aeb0a39c565666f960c1be0295d5d363",
+    "head_sha": "3fbf9f065842ba2662af6cdc435eb08616953d74",
+    "start_sha": "de8327d4aeb0a39c565666f960c1be0295d5d363"
+  },
+  "merge_error": null,
+  "first_contribution": false,
+  "user": {
+    "can_merge": true
+  },
+  "diffs": [
+    {
+      "diff": "@@ -10,7 +10,7 @@ arkansas_onyx_igs: &arkansas_onyx_igs\n   - \"ProviderDirectory_9115\"\n   - \"Clinical_9115\"\n \n-wisconsin_onyx_igs: &wisconsin_onyx_igs\n+onyx_igs_with_0057: &onyx_igs_with_0057\n   - \"Claims_9115\"\n   - \"OpenFormulary_9115\"\n   - \"ProviderDirectory_9115\"\n@@ -492,12 +492,12 @@ variables:\n       co-dev: *onyx_igs\n       co-stg: *onyx_igs\n       co-prd: *onyx_igs\n-      nv-dev: *onyx_igs\n-      nv-stg: *onyx_igs\n+      nv-dev: *onyx_igs_with_0057\n+      nv-stg: *onyx_igs_with_0057\n       nv-prd: *onyx_igs\n-      wi-dev: *wisconsin_onyx_igs\n-      wi-stg: *wisconsin_onyx_igs\n-      wi-prd: *wisconsin_onyx_igs\n+      wi-dev: *onyx_igs_with_0057\n+      wi-stg: *onyx_igs_with_0057\n+      wi-prd: *onyx_igs_with_0057\n       ks-dev: *onyx_igs\n       ks-stg: *onyx_igs\n       ks-prd: *onyx_igs\n@@ -629,12 +629,12 @@ variables:\n       co-dev: *onyx_igs\n       co-stg: *onyx_igs\n       co-prd: *onyx_igs\n-      nv-dev: *onyx_igs\n-      nv-stg: *onyx_igs\n+      nv-dev: *onyx_igs_with_0057\n+      nv-stg: *onyx_igs_with_0057\n       nv-prd: *onyx_igs\n-      wi-dev: *wisconsin_onyx_igs\n-      wi-stg: *wisconsin_onyx_igs\n-      wi-prd: *wisconsin_onyx_igs\n+      wi-dev: *onyx_igs_with_0057\n+      wi-stg: *onyx_igs_with_0057\n+      wi-prd: *onyx_igs_with_0057\n       ks-dev: *onyx_igs\n       ks-stg: *onyx_igs\n       ks-prd: *onyx_igs\n",
+      "collapsed": false,
+      "too_large": false,
+      "new_path": "tenant-specific-overrides/gw02/gw02-config.yaml",
+      "old_path": "tenant-specific-overrides/gw02/gw02-config.yaml",
+      "a_mode": "100644",
+      "b_mode": "100644",
+      "new_file": false,
+      "renamed_file": false,
+      "deleted_file": false,
+      "generated_file": false
+    }
+  ],
+  "discussions": [
+    {
+      "id": "ee23fda5fae5c858284d101a557d2890009076dd",
+      "individual_note": false,
+      "resolvable": true,
+      "resolved": false,
+      "notes": [
+        {
+          "id": 3217450060,
+          "type": "DiffNote",
+          "body": "Hm why are we using this naming convention? The title also says `with_0057` but I see `_9115` values under it.",
+          "author": {
+            "id": 25756645,
+            "username": "inderjit.bassi",
+            "public_email": null,
+            "name": "Inderjit Bassi",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://secure.gravatar.com/avatar/82965ba9db48a279a6b1dad30a61c3bc2bf24c6b6d7114716b620e714a4c5ea4?s=80&d=identicon",
+            "web_url": "https://gitlab.com/inderjit.bassi"
+          },
+          "created_at": "2026-04-02T14:53:32.193Z",
+          "updated_at": "2026-04-02T14:53:32.193Z",
+          "system": false,
+          "noteable_id": 469795543,
+          "noteable_type": "MergeRequest",
+          "project_id": 40551480,
+          "commit_id": null,
+          "position": {
+            "base_sha": "de8327d4aeb0a39c565666f960c1be0295d5d363",
+            "start_sha": "de8327d4aeb0a39c565666f960c1be0295d5d363",
+            "head_sha": "3fbf9f065842ba2662af6cdc435eb08616953d74",
+            "old_path": "tenant-specific-overrides/gw02/gw02-config.yaml",
+            "new_path": "tenant-specific-overrides/gw02/gw02-config.yaml",
+            "position_type": "text",
+            "old_line": null,
+            "new_line": 13,
+            "line_range": {
+              "start": {
+                "line_code": "8fbb0c78b5a023b0bfcf1e8fa8e1029915c5fb91_14_13",
+                "type": "new",
+                "old_line": null,
+                "new_line": 13
+              },
+              "end": {
+                "line_code": "8fbb0c78b5a023b0bfcf1e8fa8e1029915c5fb91_14_13",
+                "type": "new",
+                "old_line": null,
+                "new_line": 13
+              }
+            }
+          },
+          "resolvable": true,
+          "resolved": false,
+          "resolved_by": null,
+          "resolved_at": null,
+          "suggestions": [],
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 1552,
+          "commands_changes": {}
+        },
+        {
+          "id": 3217576167,
+          "type": "DiffNote",
+          "body": "Apparently the way they're rolling these out is with both 9115 and 0057 enabled. So I was distinguishing that some states/workspaces have just 9115 and use `onyx_igs`, some have both 9115 and 0057 and use `onyx_igs_with_0057`. But I hear you that it's not the crispest naming, I'm open to suggestions on a better approach.",
+          "author": {
+            "id": 5938765,
+            "username": "srosenfeld",
+            "public_email": "",
+            "name": "Steve Rosenfeld",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://secure.gravatar.com/avatar/25c818116c8ce2c185043ca59ff2a1e141a9f8211eeb4dd1248b9dc41b734527?s=80&d=identicon",
+            "web_url": "https://gitlab.com/srosenfeld"
+          },
+          "created_at": "2026-04-02T15:26:14.836Z",
+          "updated_at": "2026-04-02T15:26:14.836Z",
+          "system": false,
+          "noteable_id": 469795543,
+          "noteable_type": "MergeRequest",
+          "project_id": 40551480,
+          "commit_id": null,
+          "position": {
+            "base_sha": "de8327d4aeb0a39c565666f960c1be0295d5d363",
+            "start_sha": "de8327d4aeb0a39c565666f960c1be0295d5d363",
+            "head_sha": "3fbf9f065842ba2662af6cdc435eb08616953d74",
+            "old_path": "tenant-specific-overrides/gw02/gw02-config.yaml",
+            "new_path": "tenant-specific-overrides/gw02/gw02-config.yaml",
+            "position_type": "text",
+            "old_line": null,
+            "new_line": 13,
+            "line_range": {
+              "start": {
+                "line_code": "8fbb0c78b5a023b0bfcf1e8fa8e1029915c5fb91_14_13",
+                "type": "new",
+                "old_line": null,
+                "new_line": 13
+              },
+              "end": {
+                "line_code": "8fbb0c78b5a023b0bfcf1e8fa8e1029915c5fb91_14_13",
+                "type": "new",
+                "old_line": null,
+                "new_line": 13
+              }
+            }
+          },
+          "resolvable": true,
+          "resolved": false,
+          "resolved_by": null,
+          "resolved_at": null,
+          "suggestions": [],
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 1552,
+          "commands_changes": {}
+        },
+        {
+          "id": 3217629761,
+          "type": "DiffNote",
+          "body": "Looks like Cambia handles this just be adding the mixed cases directly\n\n```\n\n  nextgen.databricks.onyx:\n    enabled_igs:\n      offshore:\n        - \"Claims_9115\"\n        - \"Clinical_9115\"\n        - \"OpenFormulary_9115\"\n        - \"Claims_0057\"\n        - \"Clinical_0057\"\n        - \"OpenFormulary_0057\"\n      dev:\n        - \"Claims_9115\"\n        - \"Clinical_9115\"\n        - \"OpenFormulary_9115\"\n      stg:\n        - \"Claims_9115\"\n        - \"Clinical_9115\"\n        - \"OpenFormulary_9115\"\n        - \"Claims_0057\"\n        - \"Clinical_0057\"\n        - \"OpenFormulary_0057\"\n```",
+          "author": {
+            "id": 25756645,
+            "username": "inderjit.bassi",
+            "public_email": null,
+            "name": "Inderjit Bassi",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://secure.gravatar.com/avatar/82965ba9db48a279a6b1dad30a61c3bc2bf24c6b6d7114716b620e714a4c5ea4?s=80&d=identicon",
+            "web_url": "https://gitlab.com/inderjit.bassi"
+          },
+          "created_at": "2026-04-02T15:43:33.303Z",
+          "updated_at": "2026-04-02T15:43:33.303Z",
+          "system": false,
+          "noteable_id": 469795543,
+          "noteable_type": "MergeRequest",
+          "project_id": 40551480,
+          "commit_id": null,
+          "position": {
+            "base_sha": "de8327d4aeb0a39c565666f960c1be0295d5d363",
+            "start_sha": "de8327d4aeb0a39c565666f960c1be0295d5d363",
+            "head_sha": "3fbf9f065842ba2662af6cdc435eb08616953d74",
+            "old_path": "tenant-specific-overrides/gw02/gw02-config.yaml",
+            "new_path": "tenant-specific-overrides/gw02/gw02-config.yaml",
+            "position_type": "text",
+            "old_line": null,
+            "new_line": 13,
+            "line_range": {
+              "start": {
+                "line_code": "8fbb0c78b5a023b0bfcf1e8fa8e1029915c5fb91_14_13",
+                "type": "new",
+                "old_line": null,
+                "new_line": 13
+              },
+              "end": {
+                "line_code": "8fbb0c78b5a023b0bfcf1e8fa8e1029915c5fb91_14_13",
+                "type": "new",
+                "old_line": null,
+                "new_line": 13
+              }
+            }
+          },
+          "resolvable": true,
+          "resolved": false,
+          "resolved_by": null,
+          "resolved_at": null,
+          "suggestions": [],
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 1552,
+          "commands_changes": {}
+        },
+        {
+          "id": 3217630865,
+          "type": "DiffNote",
+          "body": "The `gw`'s are the weird ones that use this convention:\n\n```\nonyx_igs_in: &onyx_igs_in\n  - \"Claims_9115\"\n  - \"OpenFormulary_9115\"\n  - \"ProviderDirectory_9115\"\n  - \"Claims_0057\"\n  - \"OpenFormulary_0057\"\n  - \"ProviderDirectory_0057\"\n```",
+          "author": {
+            "id": 25756645,
+            "username": "inderjit.bassi",
+            "public_email": null,
+            "name": "Inderjit Bassi",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://secure.gravatar.com/avatar/82965ba9db48a279a6b1dad30a61c3bc2bf24c6b6d7114716b620e714a4c5ea4?s=80&d=identicon",
+            "web_url": "https://gitlab.com/inderjit.bassi"
+          },
+          "created_at": "2026-04-02T15:43:55.863Z",
+          "updated_at": "2026-04-02T15:43:55.863Z",
+          "system": false,
+          "noteable_id": 469795543,
+          "noteable_type": "MergeRequest",
+          "project_id": 40551480,
+          "commit_id": null,
+          "position": {
+            "base_sha": "de8327d4aeb0a39c565666f960c1be0295d5d363",
+            "start_sha": "de8327d4aeb0a39c565666f960c1be0295d5d363",
+            "head_sha": "3fbf9f065842ba2662af6cdc435eb08616953d74",
+            "old_path": "tenant-specific-overrides/gw02/gw02-config.yaml",
+            "new_path": "tenant-specific-overrides/gw02/gw02-config.yaml",
+            "position_type": "text",
+            "old_line": null,
+            "new_line": 13,
+            "line_range": {
+              "start": {
+                "line_code": "8fbb0c78b5a023b0bfcf1e8fa8e1029915c5fb91_14_13",
+                "type": "new",
+                "old_line": null,
+                "new_line": 13
+              },
+              "end": {
+                "line_code": "8fbb0c78b5a023b0bfcf1e8fa8e1029915c5fb91_14_13",
+                "type": "new",
+                "old_line": null,
+                "new_line": 13
+              }
+            }
+          },
+          "resolvable": true,
+          "resolved": false,
+          "resolved_by": null,
+          "resolved_at": null,
+          "suggestions": [],
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 1552,
+          "commands_changes": {}
+        },
+        {
+          "id": 3217637776,
+          "type": "DiffNote",
+          "body": "If we stick with `gw` being the weird ones here I think splitting {+`onyx_igs_with_0057`  to be:+}\n\n`nevada_onyx_igs`\n\n`wisconsin_onyx_igs` \n\nAt least keeps the weirdness of `gw` in line with itself",
+          "author": {
+            "id": 25756645,
+            "username": "inderjit.bassi",
+            "public_email": null,
+            "name": "Inderjit Bassi",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://secure.gravatar.com/avatar/82965ba9db48a279a6b1dad30a61c3bc2bf24c6b6d7114716b620e714a4c5ea4?s=80&d=identicon",
+            "web_url": "https://gitlab.com/inderjit.bassi"
+          },
+          "created_at": "2026-04-02T15:46:05.554Z",
+          "updated_at": "2026-04-02T15:46:05.554Z",
+          "system": false,
+          "noteable_id": 469795543,
+          "noteable_type": "MergeRequest",
+          "project_id": 40551480,
+          "commit_id": null,
+          "position": {
+            "base_sha": "de8327d4aeb0a39c565666f960c1be0295d5d363",
+            "start_sha": "de8327d4aeb0a39c565666f960c1be0295d5d363",
+            "head_sha": "3fbf9f065842ba2662af6cdc435eb08616953d74",
+            "old_path": "tenant-specific-overrides/gw02/gw02-config.yaml",
+            "new_path": "tenant-specific-overrides/gw02/gw02-config.yaml",
+            "position_type": "text",
+            "old_line": null,
+            "new_line": 13,
+            "line_range": {
+              "start": {
+                "line_code": "8fbb0c78b5a023b0bfcf1e8fa8e1029915c5fb91_14_13",
+                "type": "new",
+                "old_line": null,
+                "new_line": 13
+              },
+              "end": {
+                "line_code": "8fbb0c78b5a023b0bfcf1e8fa8e1029915c5fb91_14_13",
+                "type": "new",
+                "old_line": null,
+                "new_line": 13
+              }
+            }
+          },
+          "resolvable": true,
+          "resolved": false,
+          "resolved_by": null,
+          "resolved_at": null,
+          "suggestions": [],
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 1552,
+          "commands_changes": {}
+        },
+        {
+          "id": 3217889392,
+          "type": "DiffNote",
+          "body": "The only \"conventions\" in these files are ones we define, we can move things around to whatever makes the most sense.\n\nLike I said, Gainwell is going to roll these out in this manner workspace by workspace - see [DSP-8007](https://abacusinsights.atlassian.net/browse/DSP-8007), [DSP-8008](https://abacusinsights.atlassian.net/browse/DSP-8008), [DSP-8009](https://abacusinsights.atlassian.net/browse/DSP-8009), [DSP-8010](https://abacusinsights.atlassian.net/browse/DSP-8010) filed just today. Given that, and especially given that two of Nevada's workspaces here are moving to 9115+0057 and one of them is staying at just 9115, I thought it made sense to group the IGs into the two groups that will be repeated in whatever combination. If you think that's too confusing, I suppose we can get rid of the anchor tags altogether and be explicit about it, that just felt like ~500 extra lines of redundant code for no reason.",
+          "author": {
+            "id": 5938765,
+            "username": "srosenfeld",
+            "public_email": "",
+            "name": "Steve Rosenfeld",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://secure.gravatar.com/avatar/25c818116c8ce2c185043ca59ff2a1e141a9f8211eeb4dd1248b9dc41b734527?s=80&d=identicon",
+            "web_url": "https://gitlab.com/srosenfeld"
+          },
+          "created_at": "2026-04-02T17:18:04.318Z",
+          "updated_at": "2026-04-02T17:18:04.318Z",
+          "system": false,
+          "noteable_id": 469795543,
+          "noteable_type": "MergeRequest",
+          "project_id": 40551480,
+          "commit_id": null,
+          "position": {
+            "base_sha": "de8327d4aeb0a39c565666f960c1be0295d5d363",
+            "start_sha": "de8327d4aeb0a39c565666f960c1be0295d5d363",
+            "head_sha": "3fbf9f065842ba2662af6cdc435eb08616953d74",
+            "old_path": "tenant-specific-overrides/gw02/gw02-config.yaml",
+            "new_path": "tenant-specific-overrides/gw02/gw02-config.yaml",
+            "position_type": "text",
+            "old_line": null,
+            "new_line": 13,
+            "line_range": {
+              "start": {
+                "line_code": "8fbb0c78b5a023b0bfcf1e8fa8e1029915c5fb91_14_13",
+                "type": "new",
+                "old_line": null,
+                "new_line": 13
+              },
+              "end": {
+                "line_code": "8fbb0c78b5a023b0bfcf1e8fa8e1029915c5fb91_14_13",
+                "type": "new",
+                "old_line": null,
+                "new_line": 13
+              }
+            }
+          },
+          "resolvable": true,
+          "resolved": false,
+          "resolved_by": null,
+          "resolved_at": null,
+          "suggestions": [],
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 1552,
+          "commands_changes": {}
+        }
+      ]
+    }
+  ],
+  "approvals": {
+    "id": 469795543,
+    "iid": 1552,
+    "project_id": 40551480,
+    "title": "DSP-8006: Add 0057 IGs to Nevada Dev/Stg",
+    "description": "## Description\nAs the title says.\n\n## MR Checklist\n\n- [x] Is there a Jira ticket in the title of this MR?\n- [ ] Are the summary notes in the Jira ticket filled in with a sentence describing the change to non-technical users?\n- [ ] Has the `breaking` label been applied, if this is a breaking change?\n- [ ] Has the `new-feature` label been added, if this change adds a new feature?\n\nRelated to DSP-8006",
+    "state": "opened",
+    "created_at": "2026-04-01T20:37:52.833Z",
+    "updated_at": "2026-04-02T17:18:04.370Z",
+    "merge_status": "can_be_merged",
+    "approved": false,
+    "approvals_required": 1,
+    "approvals_left": 1,
+    "require_password_to_approve": false,
+    "approved_by": [],
+    "suggested_approvers": [],
+    "approvers": [],
+    "approver_groups": [],
+    "user_has_approved": false,
+    "user_can_approve": true,
+    "approval_rules_left": [
+      {
+        "id": 4754897,
+        "name": "All Members",
+        "rule_type": "any_approver"
+      }
+    ],
+    "has_approval_rules": true,
+    "merge_request_approvers_available": true,
+    "multiple_approval_rules_available": true,
+    "invalid_approvers_rules": []
+  }
+}

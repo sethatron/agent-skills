@@ -1,0 +1,71 @@
+artifact:
+  name: review.md
+  type: markdown
+  path_pattern: "~/.zsh/review/{YYYY}/{MM}/{DD}/{branch}/review.md"
+  producer: gitlab-mr-review
+  consumers:
+    - dispatch
+required_fields:
+  - skill_name
+  - skill_version
+  - produced_at
+  - artifact_path
+  - status
+  - mr_id
+  - mr_iid
+  - mr_url
+  - project
+  - title
+  - author
+  - source_branch
+  - target_branch
+  - state
+  - pipeline_status
+  - has_conflicts
+  - review_timestamp
+  - review_path
+custom_fields:
+  - pipeline_url
+  - approved_by
+  - linked_issues
+  - previous_review_path
+  - approvals_required
+  - approvals_given
+  - verdict_critical
+  - verdict_major
+  - verdict_minor
+  - verdict_suggestion
+  - jira_key
+  - jira_url
+frontmatter:
+    schema_version: "1.0"
+    required_fields:
+      - mr_id
+      - mr_iid
+      - mr_url
+      - project
+      - title
+      - author
+      - source_branch
+      - target_branch
+      - state
+      - pipeline_status
+      - has_conflicts
+      - approvals_required
+      - approvals_given
+      - verdict_critical
+      - verdict_major
+      - verdict_minor
+      - verdict_suggestion
+      - review_timestamp
+      - review_path
+      - skill_version
+    optional_fields:
+      - pipeline_url
+      - approved_by
+      - linked_issues
+      - previous_review_path
+      - jira_key
+      - jira_url
+    immutable: true
+    extensible: true

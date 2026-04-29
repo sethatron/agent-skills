@@ -1,0 +1,632 @@
+{
+  "id": 457941660,
+  "iid": 359,
+  "project_id": 50566606,
+  "title": "[DSP-7085] Re-enable DEV_TENANTS deployments for Onyx projects",
+  "description": "## Description\n\n_Re-enable DEV_TENANTS deploys for onyx_\n\n## MR Checklist\n\n- [ ] Is there a Jira ticket in the title of this MR?\n- [ ] Are the summary notes in the Jira ticket filled in with a sentence describing the change to non-technical users?\n- [ ] Has the `breaking` label been applied, if this is a breaking change?\n- [ ] Has the `new-feature` label been added, if this change adds a new feature?\n\nCloses DSP-7085",
+  "state": "opened",
+  "created_at": "2026-02-21T01:08:23.210Z",
+  "updated_at": "2026-02-23T21:56:52.576Z",
+  "merged_by": null,
+  "merge_user": null,
+  "merged_at": null,
+  "closed_by": null,
+  "closed_at": null,
+  "target_branch": "qa",
+  "source_branch": "DSP-7085",
+  "user_notes_count": 0,
+  "upvotes": 0,
+  "downvotes": 0,
+  "author": {
+    "id": 3708312,
+    "username": "zettatron",
+    "public_email": "",
+    "name": "Seth Allen",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/3708312/avatar.png",
+    "web_url": "https://gitlab.com/zettatron"
+  },
+  "assignees": [
+    {
+      "id": 3708312,
+      "username": "zettatron",
+      "public_email": "",
+      "name": "Seth Allen",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/3708312/avatar.png",
+      "web_url": "https://gitlab.com/zettatron"
+    }
+  ],
+  "assignee": {
+    "id": 3708312,
+    "username": "zettatron",
+    "public_email": "",
+    "name": "Seth Allen",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/3708312/avatar.png",
+    "web_url": "https://gitlab.com/zettatron"
+  },
+  "reviewers": [],
+  "source_project_id": 50566606,
+  "target_project_id": 50566606,
+  "labels": [],
+  "draft": false,
+  "imported": false,
+  "imported_from": "none",
+  "work_in_progress": false,
+  "milestone": null,
+  "merge_when_pipeline_succeeds": false,
+  "merge_status": "can_be_merged",
+  "detailed_merge_status": "mergeable",
+  "merge_after": null,
+  "sha": "3cf6f35ee698ae19035694195313d123918f617f",
+  "merge_commit_sha": null,
+  "squash_commit_sha": null,
+  "discussion_locked": null,
+  "should_remove_source_branch": null,
+  "force_remove_source_branch": true,
+  "prepared_at": "2026-02-21T01:08:25.719Z",
+  "reference": "!359",
+  "references": {
+    "short": "!359",
+    "relative": "!359",
+    "full": "abacusinsights/abacus-v2/next-gen-platform/onyx-helmsman!359"
+  },
+  "web_url": "https://gitlab.com/abacusinsights/abacus-v2/next-gen-platform/onyx-helmsman/-/merge_requests/359",
+  "time_stats": {
+    "time_estimate": 0,
+    "total_time_spent": 0,
+    "human_time_estimate": null,
+    "human_total_time_spent": null
+  },
+  "squash": false,
+  "squash_on_merge": false,
+  "task_completion_status": {
+    "count": 4,
+    "completed_count": 0
+  },
+  "has_conflicts": false,
+  "blocking_discussions_resolved": true,
+  "approvals_before_merge": null,
+  "subscribed": true,
+  "changes_count": "1",
+  "latest_build_started_at": "2026-02-23T21:57:05.452Z",
+  "latest_build_finished_at": "2026-02-23T22:02:36.743Z",
+  "first_deployed_to_production_at": null,
+  "pipeline": {
+    "id": 2344883039,
+    "iid": 3834,
+    "project_id": 50566606,
+    "sha": "3cf6f35ee698ae19035694195313d123918f617f",
+    "ref": "DSP-7085",
+    "status": "success",
+    "source": "web",
+    "created_at": "2026-02-23T21:57:03.265Z",
+    "updated_at": "2026-02-23T22:02:36.766Z",
+    "web_url": "https://gitlab.com/abacusinsights/abacus-v2/next-gen-platform/onyx-helmsman/-/pipelines/2344883039"
+  },
+  "head_pipeline": {
+    "id": 2344883039,
+    "iid": 3834,
+    "project_id": 50566606,
+    "sha": "3cf6f35ee698ae19035694195313d123918f617f",
+    "ref": "DSP-7085",
+    "status": "success",
+    "source": "web",
+    "created_at": "2026-02-23T21:57:03.265Z",
+    "updated_at": "2026-02-23T22:02:36.766Z",
+    "web_url": "https://gitlab.com/abacusinsights/abacus-v2/next-gen-platform/onyx-helmsman/-/pipelines/2344883039",
+    "before_sha": "0000000000000000000000000000000000000000",
+    "tag": false,
+    "yaml_errors": null,
+    "user": {
+      "id": 3708312,
+      "username": "zettatron",
+      "public_email": "",
+      "name": "Seth Allen",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/3708312/avatar.png",
+      "web_url": "https://gitlab.com/zettatron"
+    },
+    "started_at": "2026-02-23T21:57:05.452Z",
+    "finished_at": "2026-02-23T22:02:36.743Z",
+    "committed_at": null,
+    "duration": 303,
+    "queued_duration": 2,
+    "coverage": null,
+    "detailed_status": {
+      "icon": "status_warning",
+      "text": "Warning",
+      "label": "passed with warnings",
+      "group": "success-with-warnings",
+      "tooltip": "passed with warnings",
+      "has_details": true,
+      "details_path": "/abacusinsights/abacus-v2/next-gen-platform/onyx-helmsman/-/pipelines/2344883039",
+      "illustration": null,
+      "favicon": "/assets/ci_favicons/favicon_status_success-8451333011eee8ce9f2ab25dc487fe24a8758c694827a582f17f42b0a90446a2.png"
+    },
+    "archived": false
+  },
+  "diff_refs": {
+    "base_sha": "4f3d5e7a29b8169e599210906113bdb22f8c7955",
+    "head_sha": "3cf6f35ee698ae19035694195313d123918f617f",
+    "start_sha": "6349b31764e11f172424ce992c9632317a11e607"
+  },
+  "merge_error": null,
+  "first_contribution": false,
+  "user": {
+    "can_merge": true
+  },
+  "diffs": [
+    {
+      "diff": "@@ -16,10 +16,10 @@ include:\n   - project: 'abacusinsights/lunatic-dove/kitchen-souschef'\n     file: '/gitlab_templates/helm/cache.yml'\n     ref: *_SOUSCHEF_VERSION\n-#  - project: 'abacusinsights/lunatic-dove/kitchen-souschef'\n-#    file: '/gitlab_templates/base/airflow-deploy.yml'\n-#    ref: *_SOUSCHEF_VERSION\n+  - project: 'abacusinsights/lunatic-dove/kitchen-souschef'\n+    file: '/gitlab_templates/base/airflow-deploy.yml'\n+    ref: *_SOUSCHEF_VERSION\n \n-# generate-deploy-pipeline:\n-#   variables:\n-#     DEPLOY_CONFIG_REFERENCE_BRANCH: \"qa\"\n+generate-deploy-pipeline:\n+  variables:\n+    DEPLOY_CONFIG_REFERENCE_BRANCH: \"qa\"\n",
+      "collapsed": false,
+      "too_large": false,
+      "new_path": ".gitlab-ci.yml",
+      "old_path": ".gitlab-ci.yml",
+      "a_mode": "100644",
+      "b_mode": "100644",
+      "new_file": false,
+      "renamed_file": false,
+      "deleted_file": false,
+      "generated_file": false
+    }
+  ],
+  "discussions": [
+    {
+      "id": "73a50ce6ccf0836a9a77dd92450d8a59163c5e32",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3102679599,
+          "type": null,
+          "body": "assigned to @zettatron",
+          "author": {
+            "id": 3708312,
+            "username": "zettatron",
+            "public_email": "",
+            "name": "Seth Allen",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/3708312/avatar.png",
+            "web_url": "https://gitlab.com/zettatron"
+          },
+          "created_at": "2026-02-21T01:08:23.452Z",
+          "updated_at": "2026-02-21T01:08:23.468Z",
+          "system": true,
+          "noteable_id": 457941660,
+          "noteable_type": "MergeRequest",
+          "project_id": 50566606,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 359,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "59c6c2a9734f315eb26c84d742dbaefc1ec03c89",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3102682076,
+          "type": null,
+          "body": "added 1 commit\n\n<ul><li>3cf6f35e - Use master souschef branch</li></ul>\n\n[Compare with previous version](/abacusinsights/abacus-v2/next-gen-platform/onyx-helmsman/-/merge_requests/359/diffs?diff_id=1675950100&start_sha=0742c49e7471d3d441810271e88ce1358cd6bd51)",
+          "author": {
+            "id": 3708312,
+            "username": "zettatron",
+            "public_email": "",
+            "name": "Seth Allen",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/3708312/avatar.png",
+            "web_url": "https://gitlab.com/zettatron"
+          },
+          "created_at": "2026-02-21T01:10:27.879Z",
+          "updated_at": "2026-02-21T01:10:27.883Z",
+          "system": true,
+          "noteable_id": 457941660,
+          "noteable_type": "MergeRequest",
+          "project_id": 50566606,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 359,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "a530ca550abe4b0fbf44635e3e8c3940e480fe30",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3102683358,
+          "type": null,
+          "body": "enabled an automatic merge when all merge checks for 3cf6f35ee698ae19035694195313d123918f617f pass",
+          "author": {
+            "id": 3708312,
+            "username": "zettatron",
+            "public_email": "",
+            "name": "Seth Allen",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/3708312/avatar.png",
+            "web_url": "https://gitlab.com/zettatron"
+          },
+          "created_at": "2026-02-21T01:12:42.269Z",
+          "updated_at": "2026-02-21T01:12:42.272Z",
+          "system": true,
+          "noteable_id": 457941660,
+          "noteable_type": "MergeRequest",
+          "project_id": 50566606,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 359,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "2c22f1a7dd33d5fc873a46be72a1088eccd92f6e",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3105405474,
+          "type": null,
+          "body": "approved this merge request",
+          "author": {
+            "id": 5622501,
+            "username": "luisanevers",
+            "public_email": "",
+            "name": "Luisa Nevers",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/5622501/avatar.png",
+            "web_url": "https://gitlab.com/luisanevers"
+          },
+          "created_at": "2026-02-23T13:22:43.479Z",
+          "updated_at": "2026-02-23T13:22:44.430Z",
+          "system": true,
+          "noteable_id": 457941660,
+          "noteable_type": "MergeRequest",
+          "project_id": 50566606,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 359,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "1009b4aeda279232cdeaec185229fd8a3bdf057e",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3106555757,
+          "type": null,
+          "body": "marked this merge request as **ready**",
+          "author": {
+            "id": 3708312,
+            "username": "zettatron",
+            "public_email": "",
+            "name": "Seth Allen",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/3708312/avatar.png",
+            "web_url": "https://gitlab.com/zettatron"
+          },
+          "created_at": "2026-02-23T19:05:21.492Z",
+          "updated_at": "2026-02-23T19:05:21.496Z",
+          "system": true,
+          "noteable_id": 457941660,
+          "noteable_type": "MergeRequest",
+          "project_id": 50566606,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 359,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "870b1e1251e6a9f76f3935948c21591eec7a4b30",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3106897456,
+          "type": null,
+          "body": "canceled the automatic merge",
+          "author": {
+            "id": 3708312,
+            "username": "zettatron",
+            "public_email": "",
+            "name": "Seth Allen",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/3708312/avatar.png",
+            "web_url": "https://gitlab.com/zettatron"
+          },
+          "created_at": "2026-02-23T21:56:52.548Z",
+          "updated_at": "2026-02-23T21:56:52.553Z",
+          "system": true,
+          "noteable_id": 457941660,
+          "noteable_type": "MergeRequest",
+          "project_id": 50566606,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 359,
+          "commands_changes": {}
+        }
+      ]
+    }
+  ],
+  "approvals": {
+    "id": 457941660,
+    "iid": 359,
+    "project_id": 50566606,
+    "title": "[DSP-7085] Re-enable DEV_TENANTS deployments for Onyx projects",
+    "description": "## Description\n\n_Re-enable DEV_TENANTS deploys for onyx_\n\n## MR Checklist\n\n- [ ] Is there a Jira ticket in the title of this MR?\n- [ ] Are the summary notes in the Jira ticket filled in with a sentence describing the change to non-technical users?\n- [ ] Has the `breaking` label been applied, if this is a breaking change?\n- [ ] Has the `new-feature` label been added, if this change adds a new feature?\n\nCloses DSP-7085",
+    "state": "opened",
+    "created_at": "2026-02-21T01:08:23.210Z",
+    "updated_at": "2026-02-23T21:56:52.576Z",
+    "merge_status": "can_be_merged",
+    "approved": true,
+    "approvals_required": 1,
+    "approvals_left": 0,
+    "require_password_to_approve": false,
+    "approved_by": [
+      {
+        "user": {
+          "id": 5622501,
+          "username": "luisanevers",
+          "public_email": "",
+          "name": "Luisa Nevers",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/5622501/avatar.png",
+          "web_url": "https://gitlab.com/luisanevers"
+        },
+        "approved_at": "2026-02-23T13:19:43.467Z"
+      }
+    ],
+    "suggested_approvers": [
+      {
+        "id": 5057824,
+        "username": "dave.loose",
+        "public_email": "",
+        "name": "Dave Loose",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/cb4c555252eca549f19cab89458eb8e6050426b3bb5a6a182d31f50f901f54be?s=80&d=identicon",
+        "web_url": "https://gitlab.com/dave.loose"
+      },
+      {
+        "id": 5938765,
+        "username": "srosenfeld",
+        "public_email": "",
+        "name": "Steve Rosenfeld",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/25c818116c8ce2c185043ca59ff2a1e141a9f8211eeb4dd1248b9dc41b734527?s=80&d=identicon",
+        "web_url": "https://gitlab.com/srosenfeld"
+      },
+      {
+        "id": 6248994,
+        "username": "alex_ai",
+        "public_email": "",
+        "name": "Alex Deng",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/6248994/avatar.png",
+        "web_url": "https://gitlab.com/alex_ai"
+      },
+      {
+        "id": 6729997,
+        "username": "matt_donaghey",
+        "public_email": "",
+        "name": "Matt Donaghey",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/c6cbcc03abbcff4ddd6a3b9848e2f56667ba177a287c5718a95cee4ed5b78cd5?s=80&d=identicon",
+        "web_url": "https://gitlab.com/matt_donaghey"
+      },
+      {
+        "id": 12925483,
+        "username": "pbhattarai",
+        "public_email": null,
+        "name": "Pradip Bhattarai",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/793771c2cbb3bc1674001c2e2842797ae2eb1d59f42f66d3baf196a93a9d51b6?s=80&d=identicon",
+        "web_url": "https://gitlab.com/pbhattarai"
+      },
+      {
+        "id": 13137916,
+        "username": "adhungana",
+        "public_email": null,
+        "name": "Aashish Dhungana",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/b036e34ee891ad0f99fc81249bfcfe724f64eb80055bfd62d4443b54c70c2fa0?s=80&d=identicon",
+        "web_url": "https://gitlab.com/adhungana"
+      },
+      {
+        "id": 14469776,
+        "username": "larry.king",
+        "public_email": "",
+        "name": "Larry King",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/14469776/avatar.png",
+        "web_url": "https://gitlab.com/larry.king"
+      },
+      {
+        "id": 15119047,
+        "username": "sumit_13",
+        "public_email": null,
+        "name": "Sumit Luitel",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/2001f885b245c0918a5b0cf1325057712d6fab3bb3477d1b42a816d5d045fa14?s=80&d=identicon",
+        "web_url": "https://gitlab.com/sumit_13"
+      },
+      {
+        "id": 18558367,
+        "username": "wei.wu1",
+        "public_email": null,
+        "name": "Wei Wu",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/73277a31f429129be140bac1e2b78c7085d2397b5233d03c670029c3a812eb9e?s=80&d=identicon",
+        "web_url": "https://gitlab.com/wei.wu1"
+      },
+      {
+        "id": 20761640,
+        "username": "mahendra-gautam",
+        "public_email": null,
+        "name": "Mahendra Gautam",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/058676a8c658492092816411b22515e6ec9ce614b21d75e493198a9fe3f42a1c?s=80&d=identicon",
+        "web_url": "https://gitlab.com/mahendra-gautam"
+      },
+      {
+        "id": 25756645,
+        "username": "inderjit.bassi",
+        "public_email": null,
+        "name": "Inderjit Bassi",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/82965ba9db48a279a6b1dad30a61c3bc2bf24c6b6d7114716b620e714a4c5ea4?s=80&d=identicon",
+        "web_url": "https://gitlab.com/inderjit.bassi"
+      },
+      {
+        "id": 27540410,
+        "username": "Rivlin.pereira",
+        "public_email": null,
+        "name": "Rivlin Pereira",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/e60c1edac688cb16a84f813ca373e584d8de9ecf21e2d356666008bd45719184?s=80&d=identicon",
+        "web_url": "https://gitlab.com/Rivlin.pereira"
+      },
+      {
+        "id": 29117917,
+        "username": "abdul.rahman.mohammad",
+        "public_email": null,
+        "name": "Abdul Rahman Mohammad",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/05ea1844e395b6313bcce2a543af85f8bc4681b7a35f57718269c8edec458d4f?s=80&d=identicon",
+        "web_url": "https://gitlab.com/abdul.rahman.mohammad"
+      },
+      {
+        "id": 30716559,
+        "username": "blaine.elliott",
+        "public_email": "",
+        "name": "Blaine Elliott",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/30716559/avatar.png",
+        "web_url": "https://gitlab.com/blaine.elliott"
+      },
+      {
+        "id": 30753158,
+        "username": "andrew.huddleston1",
+        "public_email": "",
+        "name": "Andrew Huddleston",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/30753158/avatar.png",
+        "web_url": "https://gitlab.com/andrew.huddleston1"
+      },
+      {
+        "id": 32024399,
+        "username": "gordon.marx",
+        "public_email": "",
+        "name": "Gordon Marx",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/32024399/avatar.png",
+        "web_url": "https://gitlab.com/gordon.marx"
+      },
+      {
+        "id": 34702854,
+        "username": "eric.shtivelberg",
+        "public_email": "",
+        "name": "Shtiv",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+        "web_url": "https://gitlab.com/eric.shtivelberg"
+      },
+      {
+        "id": 4971219,
+        "username": "overfl0wd",
+        "public_email": "",
+        "name": "dana taylor",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/4971219/avatar.png",
+        "web_url": "https://gitlab.com/overfl0wd"
+      },
+      {
+        "id": 5631801,
+        "username": "aitom",
+        "public_email": "",
+        "name": "Tom",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/5631801/avatar.png",
+        "web_url": "https://gitlab.com/aitom"
+      },
+      {
+        "id": 12171540,
+        "username": "bhuffman-sec",
+        "public_email": "",
+        "name": "Brad Huffman",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/12171540/avatar.png",
+        "web_url": "https://gitlab.com/bhuffman-sec"
+      }
+    ],
+    "approvers": [],
+    "approver_groups": [],
+    "user_has_approved": false,
+    "user_can_approve": false,
+    "approval_rules_left": [],
+    "has_approval_rules": true,
+    "merge_request_approvers_available": true,
+    "multiple_approval_rules_available": true,
+    "invalid_approvers_rules": []
+  }
+}

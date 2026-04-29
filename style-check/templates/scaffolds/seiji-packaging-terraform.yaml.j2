@@ -1,0 +1,20 @@
+shared-executor-config: &shared-executor-config
+  executor:
+    image: "473376902650.dkr.ecr.us-east-1.amazonaws.com/seiji-orchestrator"
+    tag: "latest-terraform1.1.7-py3.10"
+
+deployable_packages:
+  {{ coordinate }}:
+    <<: *shared-executor-config
+    descriptors:
+      config: "terraform/layers/{{ subsystem }}/{{ operation }}/deploy/luna-config-spec.yaml"
+      dependencies: "terraform/layers/{{ subsystem }}/{{ operation }}/deploy/luna-dependencies.yaml"
+    hooks:
+      create: "terraform/layers/{{ subsystem }}/{{ operation }}/deploy/create.sh"
+      destroy: "terraform/layers/{{ subsystem }}/{{ operation }}/deploy/destroy.sh"
+      migrate: "terraform/layers/{{ subsystem }}/{{ operation }}/deploy/migrations"
+    files:
+      include:
+        - "terraform/layers/{{ subsystem }}/{{ operation }}/*.tf"
+        - "scripts/terraform/*"
+        - ".terraform-version"

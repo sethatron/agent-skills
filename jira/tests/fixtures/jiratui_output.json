@@ -1,0 +1,20 @@
+[
+  {
+    "key": "PLAT-1234",
+    "summary": "Implement retry logic for data pipeline ingestion",
+    "status": "In Progress",
+    "assignee": "Seth Allen",
+    "priority": "High",
+    "type": "Story",
+    "updated": "2026-03-30T14:22:00.000+0000"
+  },
+  {
+    "key": "PLAT-1230",
+    "summary": "Update Terraform provider to v5.x",
+    "status": "To Do",
+    "assignee": "Seth Allen",
+    "priority": "Medium",
+    "type": "Task",
+    "updated": "2026-03-28T10:00:00.000+0000"
+  }
+]

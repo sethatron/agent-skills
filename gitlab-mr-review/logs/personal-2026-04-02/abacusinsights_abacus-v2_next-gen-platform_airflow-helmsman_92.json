@@ -1,0 +1,400 @@
+{
+  "id": 470129119,
+  "iid": 92,
+  "project_id": 46011246,
+  "title": "[DSP-7955 1/2] Implement cycle detection/resolution",
+  "description": "The following MR implements cycle detection via a Depth-First Search, recursively traversing the dependency graph until it detects that the next node would add a dependency that is already in the `IN_STACK` list, meaning that the DAG is no longer acyclic. When this occurs, a Slack/CLI notification is posted:\n\n![image.png](/uploads/ccfec439b8f1fa4dfd163de809d3e82a/image.png){width=900 height=147}\n\nThis MR also implements an optional parameter, `fix_dag_cycle`, which is used when a cycle already exists in dynamo. In this case, even if the luna-dependencies.yaml has been updated, dynamodb can't be updated until seiji deploys. If Airflow can't deploy due to the cycle, there's no way to fix it in dynamo; thus: `fix_dag_cycle` allows Airflow to temporarily pop the cycled dependencies off of the DAG\n\nCloses DSP-7955",
+  "state": "opened",
+  "created_at": "2026-04-02T19:05:11.006Z",
+  "updated_at": "2026-04-02T19:09:51.939Z",
+  "merged_by": null,
+  "merge_user": {
+    "id": 3708312,
+    "username": "zettatron",
+    "public_email": "",
+    "name": "Seth Allen",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/3708312/avatar.png",
+    "web_url": "https://gitlab.com/zettatron"
+  },
+  "merged_at": null,
+  "closed_by": null,
+  "closed_at": null,
+  "target_branch": "master",
+  "source_branch": "DSP-7955",
+  "user_notes_count": 0,
+  "upvotes": 0,
+  "downvotes": 0,
+  "author": {
+    "id": 3708312,
+    "username": "zettatron",
+    "public_email": "",
+    "name": "Seth Allen",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/3708312/avatar.png",
+    "web_url": "https://gitlab.com/zettatron"
+  },
+  "assignees": [
+    {
+      "id": 3708312,
+      "username": "zettatron",
+      "public_email": "",
+      "name": "Seth Allen",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/3708312/avatar.png",
+      "web_url": "https://gitlab.com/zettatron"
+    }
+  ],
+  "assignee": {
+    "id": 3708312,
+    "username": "zettatron",
+    "public_email": "",
+    "name": "Seth Allen",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/3708312/avatar.png",
+    "web_url": "https://gitlab.com/zettatron"
+  },
+  "reviewers": [],
+  "source_project_id": 46011246,
+  "target_project_id": 46011246,
+  "labels": [],
+  "draft": false,
+  "imported": false,
+  "imported_from": "none",
+  "work_in_progress": false,
+  "milestone": null,
+  "merge_when_pipeline_succeeds": true,
+  "merge_status": "can_be_merged",
+  "detailed_merge_status": "not_approved",
+  "merge_after": null,
+  "sha": "f0e173ec0ae1d9dd21503e9f6a409f7918843ad9",
+  "merge_commit_sha": null,
+  "squash_commit_sha": null,
+  "discussion_locked": null,
+  "should_remove_source_branch": true,
+  "force_remove_source_branch": true,
+  "prepared_at": "2026-04-02T19:05:16.204Z",
+  "reference": "!92",
+  "references": {
+    "short": "!92",
+    "relative": "!92",
+    "full": "abacusinsights/abacus-v2/next-gen-platform/airflow-helmsman!92"
+  },
+  "web_url": "https://gitlab.com/abacusinsights/abacus-v2/next-gen-platform/airflow-helmsman/-/merge_requests/92",
+  "time_stats": {
+    "time_estimate": 0,
+    "total_time_spent": 0,
+    "human_time_estimate": null,
+    "human_total_time_spent": null
+  },
+  "squash": false,
+  "squash_on_merge": false,
+  "task_completion_status": {
+    "count": 0,
+    "completed_count": 0
+  },
+  "has_conflicts": false,
+  "blocking_discussions_resolved": true,
+  "approvals_before_merge": null,
+  "subscribed": true,
+  "changes_count": "2",
+  "latest_build_started_at": null,
+  "latest_build_finished_at": null,
+  "first_deployed_to_production_at": null,
+  "pipeline": null,
+  "head_pipeline": {
+    "id": 2426687085,
+    "iid": 2075,
+    "project_id": 46011246,
+    "sha": "f0e173ec0ae1d9dd21503e9f6a409f7918843ad9",
+    "ref": "DSP-7955",
+    "status": "success",
+    "source": "push",
+    "created_at": "2026-04-02T18:10:45.255Z",
+    "updated_at": "2026-04-02T18:12:24.160Z",
+    "web_url": "https://gitlab.com/abacusinsights/abacus-v2/next-gen-platform/airflow-helmsman/-/pipelines/2426687085",
+    "before_sha": "0000000000000000000000000000000000000000",
+    "tag": false,
+    "yaml_errors": null,
+    "user": {
+      "id": 3708312,
+      "username": "zettatron",
+      "public_email": "",
+      "name": "Seth Allen",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/3708312/avatar.png",
+      "web_url": "https://gitlab.com/zettatron"
+    },
+    "started_at": "2026-04-02T18:10:48.147Z",
+    "finished_at": "2026-04-02T18:12:24.148Z",
+    "committed_at": null,
+    "duration": 88,
+    "queued_duration": 2,
+    "coverage": null,
+    "detailed_status": {
+      "icon": "status_warning",
+      "text": "Warning",
+      "label": "passed with warnings",
+      "group": "success-with-warnings",
+      "tooltip": "passed with warnings",
+      "has_details": true,
+      "details_path": "/abacusinsights/abacus-v2/next-gen-platform/airflow-helmsman/-/pipelines/2426687085",
+      "illustration": null,
+      "favicon": "/assets/ci_favicons/favicon_status_success-8451333011eee8ce9f2ab25dc487fe24a8758c694827a582f17f42b0a90446a2.png"
+    },
+    "archived": false
+  },
+  "diff_refs": {
+    "base_sha": "ab2276246715359bf1d2729e530503c3a2efa64f",
+    "head_sha": "f0e173ec0ae1d9dd21503e9f6a409f7918843ad9",
+    "start_sha": "ab2276246715359bf1d2729e530503c3a2efa64f"
+  },
+  "merge_error": null,
+  "first_contribution": false,
+  "user": {
+    "can_merge": true
+  },
+  "diffs": [
+    {
+      "diff": "@@ -396,6 +396,30 @@ class AirflowDeployTrigger:\n \n         dag_id = f\"{label}-{message_content['event_uuid'][-6:]}-{message_content['principal']}\"\n         dag_file, adt_event_file = self._generate_dag(message_content, dag_id)\n+\n+        cycle_error = self._preflight_cycle_check(dag_id)\n+        if cycle_error:\n+            self.logger.error(f\"Dependency cycle detected for {dag_id}: {cycle_error}\")\n+            if self._str_to_bool(\n+              self._get_ssm_parameter(f'/{self.label}/config/airflow_cd/slack_enabled')):\n+                webhook = self._get_ssm_parameter(f'/{self.label}/config/airflow_cd/slack_webhook')\n+                cycle_lines = self._parse_cycle_details(cycle_error)\n+                if cycle_lines:\n+                    formatted = \"\\n\".join(f\"\u2022 {c}\" for c in cycle_lines)\n+                    message = (\n+                        f\":x: *{self.label}*: DAG failed to register: dependency cycle detected\"\n+                        f\"\\n\\n:recycle: *Detected cycles:*\\n{formatted}\"\n+                    )\n+                else:\n+                    message = (\n+                        f\":x: *{self.label}*: DAG failed to register \u2014 dependency cycle detected\"\n+                        f\"\\n\\n:recycle: `{cycle_error}`\"\n+                    )\n+                self._send_notification(msg=message, webhook=webhook)\n+            self._update_dynamodb_event_status(message_content['event_uuid'], 'DAG_CYCLE', details=cycle_error)\n+            self._delete_message_and_cleanup(receipt_handle, message_id, dag_file, adt_event_file)\n+            return\n+\n         self._run_airflow_cli_command(\"airflow dags reserialize\", return_output=True)\n \n         # Trigger the DAG\n@@ -420,7 +444,38 @@ class AirflowDeployTrigger:\n                 break\n \n         if dag_retries >= dag_retry_max:\n-            self.logger.error(f\"DAG {dag_id} failed to trigger after {dag_retry_max} retries.\")\n+            import_error = self._get_dag_import_error(dag_id)\n+            self.logger.error(f\"DAG {dag_id} failed to trigger after {dag_retry_max} retries.\"\n+                              f\"{f' Import error: {import_error}' if import_error else ''}\")\n+\n+            if self._str_to_bool(\n+              self._get_ssm_parameter(f'/{self.label}/config/airflow_cd/slack_enabled')):\n+                webhook = self._get_ssm_parameter(f'/{self.label}/config/airflow_cd/slack_webhook')\n+                if import_error and 'cycle' in import_error.lower():\n+                    cycle_lines = self._parse_cycle_details(import_error)\n+                    if cycle_lines:\n+                        formatted = \"\\n\".join(f\"\u2022 {c}\" for c in cycle_lines)\n+                        message = (\n+                            f\":x: *{self.label}*: DAG failed to register \u2014 dependency cycle detected\"\n+                            f\"\\n\\n:recycle: *Detected cycles:*\\n{formatted}\"\n+                            f\"\\n\\n:wrench: Fix the `luna-dependencies.yaml` in the packages above to remove the circular reference.\"\n+                        )\n+                    else:\n+                        message = (\n+                            f\":x: *{self.label}*: DAG failed to register \u2014 dependency cycle detected\"\n+                            f\"\\n\\n:recycle: `{import_error}`\"\n+                            f\"\\n\\n:wrench: Fix the `luna-dependencies.yaml` in the packages above to remove the circular reference.\"\n+                        )\n+                else:\n+                    reason = f\"\\n\\nImport error: `{import_error}`\" if import_error else \"\"\n+                    message = (\n+                        f\":x: *{self.label}*: DAG `{dag_id}` failed to register after {dag_retry_max} attempts\"\n+                        f\"{reason}\"\n+                    )\n+                self._send_notification(msg=message, webhook=webhook)\n+\n+            self._update_dynamodb_event_status(message_content['event_uuid'], 'FAILED')\n+            self._delete_message_and_cleanup(receipt_handle, message_id, dag_file, adt_event_file)\n             return\n \n         dag_run_id = response.json().get('dag_run_id')\n@@ -584,6 +639,46 @@ class AirflowDeployTrigger:\n \n         return task_failures\n \n+    def _preflight_cycle_check(self, dag_id):\n+        try:\n+            output = self._run_airflow_cli_command(\n+                f\"python /opt/airflow/dags/{dag_id}.py 2>&1\",\n+                return_output=True\n+            )\n+            if output and 'cycle' in output.lower():\n+                for line in reversed(output.strip().split('\\n')):\n+                    if 'Cycles:' in line:\n+                        return line.strip().lstrip('Exception: ').strip()\n+        except Exception as e:\n+            self.logger.warning(f\"Pre-flight cycle check error: {e}\")\n+        return None\n+\n+    def _parse_cycle_details(self, import_error):\n+        match = re.search(r'Cycles:\\s*\\[(.+?)\\]', import_error)\n+        if not match:\n+            return None\n+        raw = match.group(1)\n+        cycles = [c.strip() for c in raw.split(';') if c.strip()]\n+        return [f\"`{c}`\" for c in cycles]\n+\n+    def _get_dag_import_error(self, dag_id):\n+        dag_filename = f\"/opt/airflow/dags/{dag_id}.py\"\n+        for attempt in range(3):\n+            try:\n+                url = f\"{self.airflow_webserver_url}/api/v1/importErrors\"\n+                response = requests.get(url, auth=self.auth_header)\n+                if response.status_code == 200:\n+                    for error in response.json().get('import_errors', []):\n+                        if error.get('filename') == dag_filename:\n+                            stack_trace = error.get('stack_trace', '')\n+                            lines = [l for l in stack_trace.strip().split('\\n') if l.strip()]\n+                            return lines[-1] if lines else stack_trace\n+            except Exception as e:\n+                self.logger.warning(f\"Failed to check DAG import errors: {e}\")\n+            if attempt < 2:\n+                time.sleep(5)\n+        return None\n+\n     def _get_manifest_for_tag(self, event_uuid):\n         if self.region == \"us-east-1\":\n             bucket_name = \"abacus-artifacts-kitchen\"\n@@ -632,15 +727,18 @@ class AirflowDeployTrigger:\n \n         return None  # Should be unreachable, but included for clarity\n \n-    def _update_dynamodb_event_status(self, event_uuid, status):\n+    def _update_dynamodb_event_status(self, event_uuid, status, details=None):\n+        item = {\n+            'event_uuid': {'S': event_uuid},\n+            'status': {'S': status},\n+            'timestamp': {'S': datetime.now(timezone.utc).isoformat()},\n+        }\n+        if details:\n+            item['details'] = {'S': details}\n         try:\n             self.dynamodb_client.put_item(\n                 TableName=f\"{self.label}-adt-event-state\",\n-                Item={\n-                    'event_uuid': {'S': event_uuid},\n-                    'status': {'S': status},\n-                    'timestamp': {'S': datetime.now(timezone.utc).isoformat()},\n-                },\n+                Item=item,\n             )\n             self.logger.info(f\"Updated DynamoDB with status {status} for event {event_uuid}\")\n \n",
+      "collapsed": false,
+      "too_large": false,
+      "new_path": "local-charts/airflow-deploy-trigger/files/adt.py",
+      "old_path": "local-charts/airflow-deploy-trigger/files/adt.py",
+      "a_mode": "100755",
+      "b_mode": "100755",
+      "new_file": false,
+      "renamed_file": false,
+      "deleted_file": false,
+      "generated_file": false
+    },
+    {
+      "diff": "@@ -303,6 +303,84 @@ def get_secret_from_secrets_manager(secret_arn):\n     return response['SecretString']\n \n \n+def detect_dependency_cycles(tasks, components_split):\n+    task_index = {task.task_id: idx for idx, task in enumerate(tasks)}\n+\n+    adj = [[] for _ in range(len(tasks))]\n+    for idx, task in enumerate(tasks):\n+        for downstream in task.downstream_list:\n+            ds_idx = task_index.get(downstream.task_id)\n+            if ds_idx is not None:\n+                adj[idx].append(ds_idx)\n+\n+    UNVISITED, IN_STACK, DONE = 0, 1, 2\n+    state = [UNVISITED] * len(tasks)\n+    cycles = []\n+\n+    for start in range(len(tasks)):\n+        if state[start] != UNVISITED:\n+            continue\n+        stack = [(start, iter(adj[start]))]\n+        state[start] = IN_STACK\n+        path = [start]\n+\n+        while stack:\n+            node, neighbors = stack[-1]\n+            try:\n+                nxt = next(neighbors)\n+                if state[nxt] == IN_STACK:\n+                    cycle_start_pos = path.index(nxt)\n+                    cycle = path[cycle_start_pos:] + [nxt]\n+                    cycles.append(\" -> \".join(components_split[i] for i in cycle))\n+                elif state[nxt] == UNVISITED:\n+                    state[nxt] = IN_STACK\n+                    stack.append((nxt, iter(adj[nxt])))\n+                    path.append(nxt)\n+            except StopIteration:\n+                state[node] = DONE\n+                stack.pop()\n+                path.pop()\n+\n+    return cycles\n+\n+\n+def break_edge_cycles(edges, num_nodes, components_split):\n+    adj = [[] for _ in range(num_nodes)]\n+    for upstream, downstream in edges:\n+        adj[upstream].append(downstream)\n+\n+    UNVISITED, IN_STACK, DONE = 0, 1, 2\n+    state = [UNVISITED] * num_nodes\n+    edges_to_remove = set()\n+\n+    for start in range(num_nodes):\n+        if state[start] != UNVISITED:\n+            continue\n+        stack = [(start, iter(adj[start]))]\n+        state[start] = IN_STACK\n+        path = [start]\n+\n+        while stack:\n+            node, neighbors = stack[-1]\n+            try:\n+                nxt = next(neighbors)\n+                if state[nxt] == IN_STACK:\n+                    edges_to_remove.add((node, nxt))\n+                    logging.warning(\n+                        f\"fix_dag_cycle: removed edge {components_split[node]} -> {components_split[nxt]}\"\n+                    )\n+                elif state[nxt] == UNVISITED:\n+                    state[nxt] = IN_STACK\n+                    stack.append((nxt, iter(adj[nxt])))\n+                    path.append(nxt)\n+            except StopIteration:\n+                state[node] = DONE\n+                stack.pop()\n+                path.pop()\n+\n+    return [(u, d) for u, d in edges if (u, d) not in edges_to_remove]\n+\n+\n def get_exclusions(label):\n     default_exclusions = set([exclusion.split(\":\")[0] for exclusion in CONFIG[\"exclusions\"]])\n     exclusions = default_exclusions.union(DAG_CONFIG[\"exclusions_json\"])\n@@ -456,6 +534,7 @@ with DAG(\n                 task_id='predeploy-terraform-provider-task-empty'\n             )\n \n+    planned_edges = []\n     for i, component in enumerate(components):\n         coordinate = component.split(\":\")[0]\n \n@@ -463,11 +542,11 @@ with DAG(\n             descendant_artifacts = dependency_service.get_descendant_artifacts(coordinate=coordinate)\n             for descendant in descendant_artifacts:\n                 descendant_name = descendant.coordinate.split(\":\")[0]\n-                if descendant_name not in exclusions and descendant_name in components_split:\n+                if descendant_name not in exclusions and descendant_name in components_split and descendant_name != coordinate:\n                     if OPERATION == 'destroy':\n-                        tasks[components_split.index(descendant_name)].set_downstream(tasks[i])\n+                        planned_edges.append((components_split.index(descendant_name), i))\n                     else:\n-                        tasks[i].set_downstream(tasks[components_split.index(descendant_name)])\n+                        planned_edges.append((i, components_split.index(descendant_name)))\n         elif OPERATION != 'destroy':\n             try:\n                 version = component.split(\":\")[1] if \":\" in component else CONFIG['component_version']\n@@ -478,6 +557,22 @@ with DAG(\n                 )\n                 for dep_coordinate in dependencies.keys():\n                     if dep_coordinate in components_split:\n-                        tasks[components_split.index(dep_coordinate)].set_downstream(tasks[i])\n+                        planned_edges.append((components_split.index(dep_coordinate), i))\n             except Exception as e:\n                 logging.warning(f'Failed to get dependencies for new component {coordinate}: {e}')\n+\n+    if CONFIG.get('fix_dag_cycle', False):\n+        planned_edges = break_edge_cycles(planned_edges, len(tasks), components_split)\n+\n+    for upstream_idx, downstream_idx in planned_edges:\n+        tasks[upstream_idx].set_downstream(tasks[downstream_idx])\n+\n+    dependency_cycles = detect_dependency_cycles(tasks, components_split)\n+    if dependency_cycles:\n+        for cycle in dependency_cycles:\n+            logging.error(f\"Dependency cycle: {cycle}\")\n+        raise Exception(\n+            f\"Dependency cycle detected in DAG \u2014 cannot register. \"\n+            f\"Cycles: [{'; '.join(dependency_cycles)}]. \"\n+            f\"Fix the luna-dependencies.yaml in the packages above.\"\n+        )\n",
+      "collapsed": false,
+      "too_large": false,
+      "new_path": "local-charts/airflow-deploy-trigger/files/dag-template.py",
+      "old_path": "local-charts/airflow-deploy-trigger/files/dag-template.py",
+      "a_mode": "100755",
+      "b_mode": "100755",
+      "new_file": false,
+      "renamed_file": false,
+      "deleted_file": false,
+      "generated_file": false
+    }
+  ],
+  "discussions": [
+    {
+      "id": "bc807bec9f5189ac66dd6577ba76aff79a0990d5",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3218199451,
+          "type": null,
+          "body": "assigned to @zettatron",
+          "author": {
+            "id": 3708312,
+            "username": "zettatron",
+            "public_email": "",
+            "name": "Seth Allen",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/3708312/avatar.png",
+            "web_url": "https://gitlab.com/zettatron"
+          },
+          "created_at": "2026-04-02T19:05:11.185Z",
+          "updated_at": "2026-04-02T19:05:11.189Z",
+          "system": true,
+          "noteable_id": 470129119,
+          "noteable_type": "MergeRequest",
+          "project_id": 46011246,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 92,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "f5b60d622f6f5f13a40060f732aca98501d3faac",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3218207659,
+          "type": null,
+          "body": "enabled an automatic merge when all merge checks for f0e173ec0ae1d9dd21503e9f6a409f7918843ad9 pass",
+          "author": {
+            "id": 3708312,
+            "username": "zettatron",
+            "public_email": "",
+            "name": "Seth Allen",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/3708312/avatar.png",
+            "web_url": "https://gitlab.com/zettatron"
+          },
+          "created_at": "2026-04-02T19:09:29.294Z",
+          "updated_at": "2026-04-02T19:09:29.297Z",
+          "system": true,
+          "noteable_id": 470129119,
+          "noteable_type": "MergeRequest",
+          "project_id": 46011246,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 92,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "257fef8fadae5eff1bdc136a3b49baa249a48c07",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3218208495,
+          "type": null,
+          "body": "changed the description",
+          "author": {
+            "id": 3708312,
+            "username": "zettatron",
+            "public_email": "",
+            "name": "Seth Allen",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/3708312/avatar.png",
+            "web_url": "https://gitlab.com/zettatron"
+          },
+          "created_at": "2026-04-02T19:09:52.023Z",
+          "updated_at": "2026-04-02T19:09:52.027Z",
+          "system": true,
+          "noteable_id": 470129119,
+          "noteable_type": "MergeRequest",
+          "project_id": 46011246,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 92,
+          "commands_changes": {}
+        }
+      ]
+    }
+  ],
+  "approvals": {
+    "id": 470129119,
+    "iid": 92,
+    "project_id": 46011246,
+    "title": "[DSP-7955 1/2] Implement cycle detection/resolution",
+    "description": "The following MR implements cycle detection via a Depth-First Search, recursively traversing the dependency graph until it detects that the next node would add a dependency that is already in the `IN_STACK` list, meaning that the DAG is no longer acyclic. When this occurs, a Slack/CLI notification is posted:\n\n![image.png](/uploads/ccfec439b8f1fa4dfd163de809d3e82a/image.png){width=900 height=147}\n\nThis MR also implements an optional parameter, `fix_dag_cycle`, which is used when a cycle already exists in dynamo. In this case, even if the luna-dependencies.yaml has been updated, dynamodb can't be updated until seiji deploys. If Airflow can't deploy due to the cycle, there's no way to fix it in dynamo; thus: `fix_dag_cycle` allows Airflow to temporarily pop the cycled dependencies off of the DAG\n\nCloses DSP-7955",
+    "state": "opened",
+    "created_at": "2026-04-02T19:05:11.006Z",
+    "updated_at": "2026-04-02T19:09:51.939Z",
+    "merge_status": "can_be_merged",
+    "approved": false,
+    "approvals_required": 1,
+    "approvals_left": 1,
+    "require_password_to_approve": false,
+    "approved_by": [],
+    "suggested_approvers": [
+      {
+        "id": 4971219,
+        "username": "overfl0wd",
+        "public_email": "",
+        "name": "dana taylor",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/4971219/avatar.png",
+        "web_url": "https://gitlab.com/overfl0wd"
+      },
+      {
+        "id": 5622501,
+        "username": "luisanevers",
+        "public_email": "",
+        "name": "Luisa Nevers",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/5622501/avatar.png",
+        "web_url": "https://gitlab.com/luisanevers"
+      },
+      {
+        "id": 5631801,
+        "username": "aitom",
+        "public_email": "",
+        "name": "Tom",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/5631801/avatar.png",
+        "web_url": "https://gitlab.com/aitom"
+      },
+      {
+        "id": 5938765,
+        "username": "srosenfeld",
+        "public_email": "",
+        "name": "Steve Rosenfeld",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/25c818116c8ce2c185043ca59ff2a1e141a9f8211eeb4dd1248b9dc41b734527?s=80&d=identicon",
+        "web_url": "https://gitlab.com/srosenfeld"
+      },
+      {
+        "id": 6729997,
+        "username": "matt_donaghey",
+        "public_email": "",
+        "name": "Matt Donaghey",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/c6cbcc03abbcff4ddd6a3b9848e2f56667ba177a287c5718a95cee4ed5b78cd5?s=80&d=identicon",
+        "web_url": "https://gitlab.com/matt_donaghey"
+      },
+      {
+        "id": 12171540,
+        "username": "bhuffman-sec",
+        "public_email": "",
+        "name": "Brad Huffman",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/12171540/avatar.png",
+        "web_url": "https://gitlab.com/bhuffman-sec"
+      },
+      {
+        "id": 14469776,
+        "username": "larry.king",
+        "public_email": "",
+        "name": "Larry King",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/14469776/avatar.png",
+        "web_url": "https://gitlab.com/larry.king"
+      }
+    ],
+    "approvers": [],
+    "approver_groups": [],
+    "user_has_approved": false,
+    "user_can_approve": false,
+    "approval_rules_left": [
+      {
+        "id": 14287158,
+        "name": "All Members",
+        "rule_type": "any_approver"
+      }
+    ],
+    "has_approval_rules": true,
+    "merge_request_approvers_available": true,
+    "multiple_approval_rules_available": true,
+    "invalid_approvers_rules": []
+  }
+}

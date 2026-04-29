@@ -1,0 +1,21 @@
+{
+  "id": 501236,
+  "iid": 44,
+  "title": "Update Terraform provider versions",
+  "description": "Bump AWS provider to 5.x and fix deprecation warnings.",
+  "state": "opened",
+  "draft": false,
+  "source_branch": "chore/tf-provider-bump",
+  "target_branch": "main",
+  "author": {"username": "mahendra-gautam", "name": "Mahendra Gautam"},
+  "has_conflicts": true,
+  "head_pipeline": {
+    "id": 99003,
+    "status": "passed",
+    "web_url": "https://gitlab.com/abacusinsights/abacus-v2/next-gen-platform/ng-infrastructure/-/pipelines/99003",
+    "duration": 600
+  },
+  "web_url": "https://gitlab.com/abacusinsights/abacus-v2/next-gen-platform/ng-infrastructure/-/merge_requests/44",
+  "created_at": "2026-03-29T11:00:00.000Z",
+  "updated_at": "2026-03-31T10:00:00.000Z"
+}

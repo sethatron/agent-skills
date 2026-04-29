@@ -1,0 +1,192 @@
+version: '1.0'
+last_updated: '2026-04-01'
+updated_by: initial_discovery
+discovered_at: '2026-04-01'
+drift_notes: No drift detected during initial contract discovery.
+contracts:
+  jira_caller:
+    description: Env var set by callers of the jira skill
+    variable_name: JIRA_CALLER
+    sentinel_operator: operator
+    known_callers:
+    - value: gitlab-mr-review
+      skill: gitlab-mr-review
+    - value: dispatch
+      skill: dispatch
+    behavior_when_set: FORCED_READ_ONLY_MODE
+    behavior_when_unset: standard_mode_with_deprecation_warning
+    error_response:
+      error: WRITE_BLOCKED_CROSS_SKILL
+      fields:
+      - error
+      - subcommand
+      - caller
+      - message
+    consumers:
+    - jira
+    producers:
+    - gitlab-mr-review
+    - dispatch
+    validation:
+      owner_file: SKILL.md
+      owner_pattern: JIRA_CALLER
+      caller_patterns:
+      - skill: dispatch
+        file: SKILL.md
+        pattern: JIRA_CALLER=dispatch
+      - skill: gitlab-mr-review
+        file: SKILL.md
+        pattern: JIRA_CALLER=gitlab-mr-review
+  review_md_frontmatter:
+    description: YAML frontmatter written by gitlab-mr-review, read by dispatch
+    schema_version: '1.0'
+    immutable_fields:
+    - mr_id
+    - mr_iid
+    - mr_url
+    - project
+    - title
+    - author
+    - source_branch
+    - target_branch
+    - state
+    - pipeline_status
+    - pipeline_url
+    - has_conflicts
+    - approvals_required
+    - approvals_given
+    - approved_by
+    - verdict_critical
+    - verdict_major
+    - verdict_minor
+    - verdict_suggestion
+    - linked_issues
+    - review_timestamp
+    - review_path
+    - previous_review_path
+    - skill_version
+    extensible: true
+    producer: gitlab-mr-review
+    consumers:
+    - dispatch
+    validation:
+      producer_file: scripts/review_writer.py
+      producer_symbol: FRONTMATTER_FIELDS
+      consumer_file: SKILL.md
+      consumer_pattern: frontmatter
+  artifact_paths:
+    description: Filesystem paths where sub-skill artifacts are written
+    review_md:
+      pattern: ~/.zsh/review/{YYYY}/{MM}/{DD}/{branch}/review.md
+      producer: gitlab-mr-review
+      consumer: dispatch
+      base_dir: ~/.zsh/review
+    jira_export:
+      pattern: ~/.zsh/jira/exports/jira_export_{timestamp}.{ext}
+      producer: jira
+      consumer: dispatch
+      base_dir: ~/.zsh/jira/exports
+    dispatch_state:
+      pattern: ~/.zsh/dispatch/
+      producer: dispatch
+      consumer: dispatch-manager
+      base_dir: ~/.zsh/dispatch
+  notebook_artifact:
+    description: Artifact frontmatter for dispatch-notebook update_log.yaml
+    schema_version: '1.0'
+    discovered_at: '2026-04-02'
+    drift_notes: No drift detected
+    required_fields:
+    - skill_name
+    - skill_version
+    - produced_at
+    - artifact_path
+    - status
+    custom_fields:
+    - update_id
+    - notebook_alias
+    - sources_added
+    - sources_deleted
+    - sources_unchanged
+    - sources_errored
+    - tier_summary
+    - duration_seconds
+    - queries_executed
+    - briefing_path
+    - errors
+    immutable_fields:
+    - skill_name
+    - skill_version
+    - produced_at
+    - artifact_path
+    - status
+    - update_id
+    - notebook_alias
+    extensible: true
+    producer: dispatch-notebook
+    consumers:
+    - dispatch
+  beads_board:
+    description: Beads board state exported via br sync --flush-only
+    schema_version: '1.0'
+    discovered_at: '2026-04-01'
+    drift_notes: No drift detected
+    required_fields:
+    - id
+    - title
+    - status
+    - priority
+    - type
+    custom_fields:
+    - labels
+    - parent
+    - external_ref
+    - created_at
+    - closed_at
+    - close_reason
+    immutable_fields:
+    - id
+    - created_at
+    extensible: true
+    producer: beads
+    consumers:
+    - dispatch
+    - dispatch-manager
+  harness_grades:
+    description: Quality grades per skill per component, produced by dispatch-harness
+    schema_version: '1.0'
+    discovered_at: '2026-04-01'
+    drift_notes: No drift detected
+    required_fields:
+    - generated_at
+    - generated_by
+    - skills
+    custom_fields:
+    - trend
+    - beads_issues
+    immutable_fields:
+    - generated_at
+    extensible: true
+    producer: dispatch-harness
+    consumers:
+    - dispatch
+    - dispatch-manager
+  harness_architecture:
+    description: Architecture dependency graph and constraint rules
+    schema_version: '1.0'
+    discovered_at: '2026-04-01'
+    drift_notes: No drift detected
+    required_fields:
+    - version
+    - maintained_by
+    - last_validated
+    - dependency_order
+    - rules
+    custom_fields: []
+    immutable_fields:
+    - version
+    extensible: true
+    producer: dispatch-harness
+    consumers:
+    - dispatch
+    - dispatch-manager

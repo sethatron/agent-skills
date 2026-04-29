@@ -1,0 +1,24 @@
+---
+name: "Bottleneck Context"
+description: "Queries triggered post-bottleneck_scan for CRITICAL and HIGH severity only"
+default_timeout: 180
+queries:
+  - id: bc_prior_resolution
+    name: "Prior Resolution"
+    question: "Has a bottleneck of type '<bottleneck_type>' appeared in previous sessions? What actions resolved it and how long did resolution take? Cite the sessions and Optimus reports where this was documented."
+    timeout_seconds: 180
+    cache_hours: 24
+    output_section: prior_resolution
+    runtime_substitutions:
+      - placeholder: "<bottleneck_type>"
+        source: "bottleneck.type"
+
+  - id: bc_prevention_pattern
+    name: "Prevention Pattern"
+    question: "Are there recommended preventive measures for '<bottleneck_type>' bottlenecks? List workflow changes, automation, or tooling suggested in the reports."
+    timeout_seconds: 180
+    cache_hours: 24
+    output_section: prevention_pattern
+    runtime_substitutions:
+      - placeholder: "<bottleneck_type>"
+        source: "bottleneck.type"

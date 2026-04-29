@@ -1,0 +1,25 @@
+---
+name: "Skill Creation"
+description: "Queries run by dispatch-manager before the new skill interview"
+default_timeout: 180
+queries:
+  - id: sc_dsi_failure_patterns
+    name: "DSI Failure Patterns"
+    question: "What DSI compliance failures appear most frequently in skill registration records? Which requirements are most commonly missed?"
+    timeout_seconds: 180
+    cache_hours: 20
+    output_section: dsi_failures
+
+  - id: sc_integration_pitfalls
+    name: "Integration Pitfalls"
+    question: "What integration contract issues have been documented in Optimus reports or resolved findings? What patterns should a new skill author avoid?"
+    timeout_seconds: 180
+    cache_hours: 20
+    output_section: integration_pitfalls
+
+  - id: sc_existing_patterns
+    name: "Existing Patterns"
+    question: "What recurring workflow patterns exist in the dispatch framework that a new skill should be aware of or could leverage?"
+    timeout_seconds: 180
+    cache_hours: 20
+    output_section: existing_patterns

@@ -1,0 +1,12 @@
+metadata:
+  description: {{ product }}-{{ subsystem }} workspace-scoped Helm Charts
+
+context: {{ subsystem }}
+
+helmRepos:
+  abacus: s3://abacus-artifacts-kitchen/helm
+
+namespaces:
+  {{ subsystem }}:
+
+apps: {}

@@ -1,0 +1,18 @@
+config:
+  _:
+    workspaces:
+      description: "A list of workspaces that will run in this environment."
+      required: true
+      tfvar: true
+      type: list
+  {{ coordinate }}:
+{%- for var in config_vars %}
+    {{ var }}:
+      description: "TODO: describe {{ var }}"
+      required: true
+      tfvar: true
+      type: str
+{%- endfor %}
+{%- if not config_vars %}
+    {}
+{%- endif %}

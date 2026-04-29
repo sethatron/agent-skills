@@ -1,0 +1,46 @@
+---
+week: {{ week_number }}
+start_date: {{ start_date }}
+end_date: {{ end_date }}
+type: weekly
+---
+
+# Weekly Dispatch Report — Week {{ week_number }} ({{ start_date }} to {{ end_date }})
+
+## Week Summary
+
+| Day | Tasks Closed | Bottlenecks | Steps Run |
+|-----|-------------|-------------|-----------|
+{% for day in daily_summaries %}
+| {{ day.date }} | {{ day.closed }} | {{ day.bottlenecks }} | {{ day.steps }} |
+{% endfor %}
+
+## Trend Analysis
+
+- Tasks per day: {{ tasks_per_day_avg }}
+- Bottlenecks per day: {{ bottlenecks_per_day_avg }}
+- Average step count: {{ steps_per_day_avg }}
+
+## Recurring Blockers
+
+{% for blocker in recurring_blockers %}
+- {{ blocker.type }}: {{ blocker.count }} occurrences — {{ blocker.pattern }}
+{% endfor %}
+
+## MR Review Throughput
+
+- Team MRs reviewed: {{ mrs_reviewed }}
+- Team MRs still open: {{ mrs_open }}
+- Review rate: {{ review_rate }}%
+
+## Jira Velocity
+
+- Tickets completed: {{ tickets_completed }}
+- Tickets opened: {{ tickets_opened }}
+- Net: {{ tickets_completed - tickets_opened }}
+
+{% if prior_week_delta %}
+## Week-over-Week Delta
+
+{{ prior_week_delta }}
+{% endif %}

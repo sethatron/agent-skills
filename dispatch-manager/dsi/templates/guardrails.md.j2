@@ -1,0 +1,10 @@
+┌{{ '─' * (width - 2) }}┐
+│{{ (' ' + skill_name|upper + ' GUARDRAILS').ljust(width - 2) }}│
+{% for section in sections %}
+│{{ ' ' * (width - 2) }}│
+│  {{ section.title|upper }}{{ ' ' * (width - 4 - section.title|length) }}│
+{% for item in section.items %}
+│    {{ ('- ' + item).ljust(width - 6) }}│
+{% endfor %}
+{% endfor %}
+└{{ '─' * (width - 2) }}┘

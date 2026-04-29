@@ -1,0 +1,40 @@
+{
+  "startAt": 0,
+  "maxResults": 20,
+  "total": 3,
+  "issues": [
+    {
+      "key": "PLAT-1234",
+      "fields": {
+        "summary": "Implement retry logic for data pipeline ingestion",
+        "status": {"name": "In Progress"},
+        "assignee": {"displayName": "Seth Allen"},
+        "priority": {"name": "High"},
+        "issuetype": {"name": "Story"},
+        "updated": "2026-03-30T14:22:00.000+0000"
+      }
+    },
+    {
+      "key": "PLAT-1230",
+      "fields": {
+        "summary": "Update Terraform provider to v5.x",
+        "status": {"name": "To Do"},
+        "assignee": {"displayName": "Seth Allen"},
+        "priority": {"name": "Medium"},
+        "issuetype": {"name": "Task"},
+        "updated": "2026-03-28T10:00:00.000+0000"
+      }
+    },
+    {
+      "key": "DSP-7729",
+      "fields": {
+        "summary": "Fix FHIR resource validation edge case",
+        "status": {"name": "In Review"},
+        "assignee": {"displayName": "Seth Allen"},
+        "priority": {"name": "Critical"},
+        "issuetype": {"name": "Bug"},
+        "updated": "2026-03-29T16:45:00.000+0000"
+      }
+    }
+  ]
+}

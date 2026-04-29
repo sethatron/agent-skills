@@ -1,0 +1,25 @@
+# {{ skill.name }} Quality Grades
+
+## Grade Scale
+
+| Grade | Meaning |
+|-------|---------|
+| A | Complete, documented, mechanically verified |
+| B | Complete, minimal or partial docs |
+| C | Partial implementation or missing docs/ files |
+| D | Stub with interface only |
+| F | Missing, broken, or errors on invocation |
+
+## Current Grades
+
+{% if skill.grades %}
+| Component | Grade | Notes |
+|-----------|-------|-------|
+{%- for g in skill.grades %}
+| {{ g.component }} | {{ g.grade }} | {{ g.notes }} |
+{%- endfor %}
+
+**Overall: {{ skill.overall_grade }}**
+{% else %}
+Grades not yet computed. Run `/dispatch-harness grade {{ skill.slug }}`.
+{% endif %}

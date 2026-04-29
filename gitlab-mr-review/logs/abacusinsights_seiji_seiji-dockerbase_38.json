@@ -1,0 +1,825 @@
+{
+  "id": 469737607,
+  "iid": 38,
+  "project_id": 24620634,
+  "title": "[DSP-7893] Modernize seiji-dockerbase for py3.11 + uv",
+  "description": "## Summary\n- upgrade base image to Ubuntu 24.04 and switch seiji-dockerbase to Python 3.11.11 with uv as the default Python runtime/installer path\n- align toolchain defaults (Terraform 1.3.2, Kubernetes 1.33.0, newer NVM) and modernize Docker apt keyring setup for 24.04\n- convert dockerbase CI variants to py3.11-only tags, including terraform1.3.2 and node16 variants consumed by orchestrator\n- apply Wiz-driven hardening to reduce Critical/High findings: remove legacy Node 15, move Node 20 to 20.20.0, upgrade global npm, prune helm plugin cache artifacts, and install Docker CLI without daemon/runtime binaries\n- add non-interactive apt cleanup plus final distro security refresh (`dist-upgrade`) and purge unneeded `wget`\n\n## Ticket\n- DSP-7893\n\n## Wiz Findings Follow-up\n- fixed in image where feasible without breaking required compatibility pins\n- remaining risk expected primarily from pinned runtime/tool versions (notably Terraform 1.3.2 and transitive embedded Go deps)\n- follow-up can include controlled version bumps for Terraform/Helm/Helmsman/plugins after compatibility validation\n\n## Test plan\n- [x] Run seiji-dockerbase pipeline on this branch and confirm all kaniko jobs publish expected py3.11 tags\n- [x] Re-run seiji-orchestrator image jobs (`build:kaniko`, `build:kaniko_311`, `build:kaniko_terraform1_py311`, `build:kaniko_airflow`)\n- [ ] Trigger fresh container scan on this branch and compare Critical/High counts against previous baseline",
+  "state": "opened",
+  "created_at": "2026-04-01T16:22:14.502Z",
+  "updated_at": "2026-04-01T18:24:50.375Z",
+  "merged_by": null,
+  "merge_user": null,
+  "merged_at": null,
+  "closed_by": null,
+  "closed_at": null,
+  "target_branch": "master",
+  "source_branch": "py311_upgrade_DSP-7893",
+  "user_notes_count": 2,
+  "upvotes": 0,
+  "downvotes": 0,
+  "author": {
+    "id": 34702854,
+    "username": "eric.shtivelberg",
+    "public_email": "",
+    "name": "Shtiv",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+    "web_url": "https://gitlab.com/eric.shtivelberg"
+  },
+  "assignees": [],
+  "assignee": null,
+  "reviewers": [],
+  "source_project_id": 24620634,
+  "target_project_id": 24620634,
+  "labels": [],
+  "draft": false,
+  "imported": false,
+  "imported_from": "none",
+  "work_in_progress": false,
+  "milestone": null,
+  "merge_when_pipeline_succeeds": false,
+  "merge_status": "can_be_merged",
+  "detailed_merge_status": "not_approved",
+  "merge_after": null,
+  "sha": "680c4be657b586a33eb34034c491246fd4b711a9",
+  "merge_commit_sha": null,
+  "squash_commit_sha": null,
+  "discussion_locked": null,
+  "should_remove_source_branch": null,
+  "force_remove_source_branch": true,
+  "prepared_at": "2026-04-01T16:22:19.101Z",
+  "reference": "!38",
+  "references": {
+    "short": "!38",
+    "relative": "!38",
+    "full": "abacusinsights/seiji/seiji-dockerbase!38"
+  },
+  "web_url": "https://gitlab.com/abacusinsights/seiji/seiji-dockerbase/-/merge_requests/38",
+  "time_stats": {
+    "time_estimate": 0,
+    "total_time_spent": 0,
+    "human_time_estimate": null,
+    "human_total_time_spent": null
+  },
+  "squash": false,
+  "squash_on_merge": false,
+  "task_completion_status": {
+    "count": 3,
+    "completed_count": 2
+  },
+  "has_conflicts": false,
+  "blocking_discussions_resolved": true,
+  "approvals_before_merge": null,
+  "subscribed": false,
+  "changes_count": "3",
+  "latest_build_started_at": "2026-04-01T18:24:36.765Z",
+  "latest_build_finished_at": "2026-04-01T18:33:34.734Z",
+  "first_deployed_to_production_at": null,
+  "pipeline": {
+    "id": 2424219465,
+    "iid": 901,
+    "project_id": 24620634,
+    "sha": "680c4be657b586a33eb34034c491246fd4b711a9",
+    "ref": "py311_upgrade_DSP-7893",
+    "status": "success",
+    "source": "push",
+    "created_at": "2026-04-01T18:24:34.137Z",
+    "updated_at": "2026-04-01T18:33:34.747Z",
+    "web_url": "https://gitlab.com/abacusinsights/seiji/seiji-dockerbase/-/pipelines/2424219465"
+  },
+  "head_pipeline": {
+    "id": 2424219465,
+    "iid": 901,
+    "project_id": 24620634,
+    "sha": "680c4be657b586a33eb34034c491246fd4b711a9",
+    "ref": "py311_upgrade_DSP-7893",
+    "status": "success",
+    "source": "push",
+    "created_at": "2026-04-01T18:24:34.137Z",
+    "updated_at": "2026-04-01T18:33:34.747Z",
+    "web_url": "https://gitlab.com/abacusinsights/seiji/seiji-dockerbase/-/pipelines/2424219465",
+    "before_sha": "a6f73396f1c1fe9b892484346e8d34db4e08ffa8",
+    "tag": false,
+    "yaml_errors": null,
+    "user": {
+      "id": 34702854,
+      "username": "eric.shtivelberg",
+      "public_email": "",
+      "name": "Shtiv",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+      "web_url": "https://gitlab.com/eric.shtivelberg"
+    },
+    "started_at": "2026-04-01T18:24:36.765Z",
+    "finished_at": "2026-04-01T18:33:34.734Z",
+    "committed_at": null,
+    "duration": 522,
+    "queued_duration": 2,
+    "coverage": null,
+    "detailed_status": {
+      "icon": "status_warning",
+      "text": "Warning",
+      "label": "passed with warnings",
+      "group": "success-with-warnings",
+      "tooltip": "passed with warnings",
+      "has_details": true,
+      "details_path": "/abacusinsights/seiji/seiji-dockerbase/-/pipelines/2424219465",
+      "illustration": null,
+      "favicon": "/assets/ci_favicons/favicon_status_success-8451333011eee8ce9f2ab25dc487fe24a8758c694827a582f17f42b0a90446a2.png"
+    },
+    "archived": false
+  },
+  "diff_refs": {
+    "base_sha": "5b06374fcc21410c0b1de4a5a58d46efa76f0674",
+    "head_sha": "680c4be657b586a33eb34034c491246fd4b711a9",
+    "start_sha": "5b06374fcc21410c0b1de4a5a58d46efa76f0674"
+  },
+  "merge_error": null,
+  "first_contribution": true,
+  "user": {
+    "can_merge": true
+  },
+  "diffs": [
+    {
+      "diff": "@@ -0,0 +1,3 @@\n+\n+# Cursor AI config (managed by dispatch-sync)\n+.cursor/\n",
+      "collapsed": false,
+      "too_large": false,
+      "new_path": ".gitignore",
+      "old_path": ".gitignore",
+      "a_mode": "0",
+      "b_mode": "100644",
+      "new_file": true,
+      "renamed_file": false,
+      "deleted_file": false,
+      "generated_file": false
+    },
+    {
+      "diff": "@@ -4,7 +4,7 @@\n # only way to pass a DRY value to this variable and the refs below\n variables:\n   SOUSCHEF_VERSION: &_SOUSCHEF_VERSION \"master\"\n-  SOUSCHEF_VARIANT: \"py3.10\"\n+  SOUSCHEF_VARIANT: \"py3.11\"\n \n include:\n   - project: \"abacusinsights/lunatic-dove/kitchen-souschef\"\n@@ -14,26 +14,20 @@ include:\n     file: \"/gitlab_templates/kaniko/build.yml\"\n     ref: *_SOUSCHEF_VERSION\n \n-build:kaniko_39:\n+build:kaniko_311:\n   extends: build:kaniko\n   variables:\n-    EXTRA_DOCKER_BUILD_ARGS: \"--build-arg python_version_arg=3.9.9 --build-arg poetry_version=2.1.1\"\n-    EXTRA_DOCKER_TAGS: seiji-dockerbase-py3.9\n+    EXTRA_DOCKER_BUILD_ARGS: \"--build-arg python_version_arg=3.11.11\"\n+    EXTRA_DOCKER_TAGS: seiji-dockerbase-py3.11\n \n-build:kaniko_310:\n+build:kaniko_terraform1_py311:\n   extends: build:kaniko\n   variables:\n-    EXTRA_DOCKER_BUILD_ARGS: \"--build-arg python_version_arg=3.10.6 --build-arg poetry_version=2.1.1\"\n-    EXTRA_DOCKER_TAGS: seiji-dockerbase-py3.10\n+    EXTRA_DOCKER_BUILD_ARGS: \"--build-arg python_version_arg=3.11.11 --build-arg terraform_version_arg=1.3.2\"\n+    EXTRA_DOCKER_TAGS: seiji-dockerbase-terraform1.3.2-py3.11\n \n-build:kaniko_terraform1_py310:\n+build:kaniko_node16_py311:\n   extends: build:kaniko\n   variables:\n-    EXTRA_DOCKER_BUILD_ARGS: \"--build-arg python_version_arg=3.10.6 --build-arg terraform_version_arg=1.1.7 --build-arg poetry_version=2.1.1\"\n-    EXTRA_DOCKER_TAGS: seiji-dockerbase-terraform1.1.7-py3.10\n-\n-build:kaniko_node16_py310:\n-  extends: build:kaniko\n-  variables:\n-    EXTRA_DOCKER_BUILD_ARGS: \"--build-arg python_version_arg=3.10.6 --build-arg node_version_arg=16.17.1 --build-arg poetry_version=2.1.1\"\n-    EXTRA_DOCKER_TAGS: seiji-dockerbase-node16-py3.10\n+    EXTRA_DOCKER_BUILD_ARGS: \"--build-arg python_version_arg=3.11.11 --build-arg node_version_15=16.17.1\"\n+    EXTRA_DOCKER_TAGS: seiji-dockerbase-node16-py3.11\n",
+      "collapsed": false,
+      "too_large": false,
+      "new_path": ".gitlab-ci.yml",
+      "old_path": ".gitlab-ci.yml",
+      "a_mode": "100644",
+      "b_mode": "100644",
+      "new_file": false,
+      "renamed_file": false,
+      "deleted_file": false,
+      "generated_file": false
+    },
+    {
+      "diff": "@@ -1,119 +1,107 @@\n-# 20.04 is an LTS release\n-FROM ubuntu:20.04\n+# Ubuntu LTS base for Seiji-related Docker builds\n+FROM ubuntu:24.04\n SHELL [\"/bin/bash\", \"-o\", \"pipefail\", \"-c\"]\n \n-ARG python_version_arg=3.10.6\n-ARG terraform_version_arg=\"0.13.7\"\n-ARG poetry_version=\"1.8.5\"\n-ARG node_version_15=\"15.13.0\"\n-ARG node_version_20=\"20.19.0\"\n+# Bump python_version_arg to the latest 3.11.x patch when rebuilding the image.\n+ARG python_version_arg=3.11.15\n+ARG terraform_version_arg=\"1.3.2\"\n+ARG nvm_version_arg=\"0.40.3\"\n+ARG node_version_20=\"20.20.0\"\n \n-\n-# Note: We are installing yq version 3 here, the syntax for commands registered with\n-# yq version 3 are not backwards compatible with the changes introduced in yq version 4\n+# mikefarah/yq v4 (not legacy yq v3)\n ENV TERRAFORM_VERSION=$terraform_version_arg \\\n-    NVM_VERSION=\"0.35.3\" \\\n-    KUBERNETES_VERSION=\"1.32.0\" \\\n+    NVM_VERSION=$nvm_version_arg \\\n+    KUBERNETES_VERSION=\"1.33.0\" \\\n     HELM_VERSION=\"3.18.5\" \\\n     HELM_DIFF_VERSION=\"3.13.0\" \\\n     HELM_S3_VERSION=\"0.13.0\" \\\n     HELMSMAN_VERSION=\"3.17.1\" \\\n     PYTHON_VERSION=$python_version_arg \\\n-    NODE_VERSION_15=$node_version_15 \\\n     NODE_VERSION_20=$node_version_20 \\\n     YQ_VERSION=\"v4.42.1\"\n \n # OS packages and updates\n RUN apt-get update -y && apt-get upgrade -y && \\\n     DEBIAN_FRONTEND=\"noninteractive\" apt-get install -y --no-install-recommends \\\n-    apt-transport-https \\\n-    automake \\\n-    build-essential \\\n     ca-certificates \\\n     curl \\\n     gettext-base \\\n     git \\\n-    gpg-agent \\\n     groff \\\n     jq \\\n     less \\\n-    libbz2-dev \\\n-    libffi-dev \\\n-    libpng-dev \\\n-    libreadline-dev \\\n-    libsqlite3-dev \\\n-    libssl-dev \\\n-    libtool \\\n     openssh-client \\\n-    make \\\n-    software-properties-common \\\n     unixodbc-dev \\\n     unzip \\\n     vim \\\n-    wget \\\n-    zlib1g-dev \\\n     zsh \\\n     zip \\\n-    && apt-get autoremove && apt-get autoclean && apt-get clean && rm -rf /var/lib/apt/lists/*\n+    && apt-get autoremove -y && apt-get autoclean && apt-get clean && rm -rf /var/lib/apt/lists/*\n \n-RUN wget https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64 -O /usr/bin/yq \\\n+RUN curl -fsSL \"https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64\" -o /usr/bin/yq \\\n     && chmod +x /usr/bin/yq\n \n-# pyenv (apt requirements above, see https://gist.github.com/jmvrbanac/8793985)\n-ENV PATH=\"/root/.pyenv/shims:/root/.pyenv/bin:/root/.pyenv/plugins:${PATH}\"\n-ENV PYENV_ROOT=\"/root/.pyenv\"\n-RUN git clone https://github.com/yyuu/pyenv.git /root/.pyenv && \\\n-    pyenv init - && \\\n-    pyenv install ${PYTHON_VERSION} && \\\n-    pyenv global ${PYTHON_VERSION} && \\\n-    pip install --upgrade pip\n+# uv is the default installer for Python tools and packages.\n+ENV UV_INSTALL_DIR=/usr/local/bin\n+RUN curl -LsSf https://astral.sh/uv/install.sh | sh\n \n-# poetry    \n-ENV PATH=\"/root/.local/bin:${PATH}\"\n-RUN pip install packaging\n-RUN curl -sSL https://install.python-poetry.org | python3 - --version ${poetry_version}\n+ENV PATH=\"/root/.local/bin:/usr/local/bin:${PATH}\"\n+RUN uv --version && \\\n+    uv python install --default ${PYTHON_VERSION} && \\\n+    python3 --version\n \n # terraform\n RUN cd /tmp && \\\n-    wget https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip && \\\n-    unzip terraform_${TERRAFORM_VERSION}_linux_amd64.zip && \\\n+    curl -fsSL \"https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip\" -o \"terraform_${TERRAFORM_VERSION}_linux_amd64.zip\" && \\\n+    unzip \"terraform_${TERRAFORM_VERSION}_linux_amd64.zip\" && \\\n     mv terraform /usr/local/bin/ && \\\n     cd - && rm -rf /tmp/*\n \n-# intall nvm and two node versions\n-RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v${NVM_VERSION}/install.sh | bash && \\\n+# install nvm and node 20\n+RUN curl -o- \"https://raw.githubusercontent.com/nvm-sh/nvm/v${NVM_VERSION}/install.sh\" | bash && \\\n     . /root/.nvm/nvm.sh && \\\n     nvm install ${NODE_VERSION_20} && \\\n-    nvm install ${NODE_VERSION_15} && \\\n-    nvm alias default ${NODE_VERSION_15}\n+    nvm alias default ${NODE_VERSION_20}\n \n-# set up environment variables for nvm and node versions, old version first\n-ENV NODE_PATH=\"/root/.nvm/versions/node/v${NODE_VERSION_15}/lib/node_modules\" \\\n-    PATH=\"/root/.nvm/versions/node/v${NODE_VERSION_15}/bin:${PATH}\"\n+# set up environment variables for nvm and node version\n+ENV NODE_PATH=\"/root/.nvm/versions/node/v${NODE_VERSION_20}/lib/node_modules\" \\\n+    PATH=\"/root/.nvm/versions/node/v${NODE_VERSION_20}/bin:${PATH}\"\n \n # yarn and yalc\n RUN npm install --global yarn && \\\n-    yarn global add yalc\n+    yarn global add yalc && \\\n+    npm install --global npm@latest && \\\n+    npm cache clean --force\n \n # kubectl, helm, and helmsman\n RUN cd /tmp && \\\n-    curl -LO https://dl.k8s.io/release/v${KUBERNETES_VERSION}/bin/linux/amd64/kubectl && \\\n+    curl -LO \"https://dl.k8s.io/release/v${KUBERNETES_VERSION}/bin/linux/amd64/kubectl\" && \\\n     mv kubectl /usr/local/bin && \\\n     chmod 755 /usr/local/bin/kubectl && \\\n-    wget https://get.helm.sh/helm-v${HELM_VERSION}-linux-amd64.tar.gz && \\\n-    tar -xvf helm-v${HELM_VERSION}-linux-amd64.tar.gz && \\\n+    curl -fsSL \"https://get.helm.sh/helm-v${HELM_VERSION}-linux-amd64.tar.gz\" -o \"helm-v${HELM_VERSION}-linux-amd64.tar.gz\" && \\\n+    tar -xvf \"helm-v${HELM_VERSION}-linux-amd64.tar.gz\" && \\\n     mv linux-amd64/helm /usr/local/bin && \\\n     mkdir /root/.helm && mkdir /root/.helm/plugins && \\\n     helm plugin install https://github.com/hypnoglow/helm-s3.git --version $HELM_S3_VERSION && \\\n     helm plugin install https://github.com/databus23/helm-diff --version $HELM_DIFF_VERSION && \\\n-    curl -L https://github.com/Praqma/helmsman/releases/download/v${HELMSMAN_VERSION}/helmsman_${HELMSMAN_VERSION}_linux_amd64.tar.gz | tar -C /usr/local/bin -zxv && \\\n+    curl -L \"https://github.com/Praqma/helmsman/releases/download/v${HELMSMAN_VERSION}/helmsman_${HELMSMAN_VERSION}_linux_amd64.tar.gz\" | tar -C /usr/local/bin -zxv && \\\n+    rm -rf /root/.cache/helm && \\\n     cd - && rm -rf /tmp/*\n \n-# docker\n-RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add - && \\\n-    add-apt-repository \"deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable\" && \\\n-    apt-get install -y --no-install-recommends docker-ce docker-ce-cli containerd.io && \\\n-    apt-get autoremove && apt-get autoclean && apt-get clean && rm -rf /var/lib/apt/lists/*\n+# docker cli (Ubuntu 24.04+ / apt-key deprecated; use keyring)\n+RUN install -m 0755 -d /etc/apt/keyrings && \\\n+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc && \\\n+    chmod a+r /etc/apt/keyrings/docker.asc && \\\n+    echo \"deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo \"${VERSION_CODENAME}\") stable\" > /etc/apt/sources.list.d/docker.list && \\\n+    apt-get update -y && \\\n+    DEBIAN_FRONTEND=\"noninteractive\" apt-get install -y --no-install-recommends docker-ce-cli && \\\n+    apt-get autoremove -y && apt-get autoclean && apt-get clean && rm -rf /var/lib/apt/lists/*\n+\n+# final security refresh and prune tools not needed in runtime image\n+RUN apt-get update -y && \\\n+    DEBIAN_FRONTEND=\"noninteractive\" apt-get dist-upgrade -y && \\\n+    DEBIAN_FRONTEND=\"noninteractive\" apt-get purge -y wget && \\\n+    apt-get autoremove -y && apt-get autoclean && apt-get clean && rm -rf /var/lib/apt/lists/*\n \n # aws cli\n RUN curl \"https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip\" -o \"awscliv2.zip\" && \\\n@@ -126,11 +114,11 @@ ENV PATH=\"/root/.cargo/bin:$PATH\"\n RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y\n \n # oh-my-zsh\n-RUN wget https://github.com/robbyrussell/oh-my-zsh/raw/master/tools/install.sh -O - | zsh && \\\n+RUN curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh | zsh && \\\n     echo && \\\n     echo \"###\" && \\\n     echo \"completed build with pinned tool versions:\" && \\\n-    echo $(env | grep _VERSION) && \\\n+    echo \"$(env | grep _VERSION)\" && \\\n     echo \"###\" && \\\n     echo && \\\n     echo \"fin\" && \\\n",
+      "collapsed": false,
+      "too_large": false,
+      "new_path": "Dockerfile",
+      "old_path": "Dockerfile",
+      "a_mode": "100644",
+      "b_mode": "100644",
+      "new_file": false,
+      "renamed_file": false,
+      "deleted_file": false,
+      "generated_file": false
+    }
+  ],
+  "discussions": [
+    {
+      "id": "30b644ae5083d7affd0c179179320eff78169897",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3214073622,
+          "type": null,
+          "body": "added 1 commit\n\n<ul><li>afdd4515 - [DSP-7893] Modernize dockerbase for py3.11 uv defaults</li></ul>\n\n[Compare with previous version](/abacusinsights/seiji/seiji-dockerbase/-/merge_requests/38/diffs?diff_id=1732077955&start_sha=01e54aaa921d6bc5f52473f7afd67d9dd8cc49e6)",
+          "author": {
+            "id": 34702854,
+            "username": "eric.shtivelberg",
+            "public_email": "",
+            "name": "Shtiv",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+            "web_url": "https://gitlab.com/eric.shtivelberg"
+          },
+          "created_at": "2026-04-01T16:31:16.700Z",
+          "updated_at": "2026-04-01T16:31:16.708Z",
+          "system": true,
+          "noteable_id": 469737607,
+          "noteable_type": "MergeRequest",
+          "project_id": 24620634,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 38,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "a51199be1731a61d08adb578b72939db7a7ac201",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3214073739,
+          "type": null,
+          "body": "<!-- policy_violation_comment -->\nSecurity policy violations have been resolved.",
+          "author": {
+            "id": 7849066,
+            "username": "GitLab-Security-Bot",
+            "public_email": "",
+            "name": "GitLab Security Bot",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/7849066/security-bot.png",
+            "web_url": "https://gitlab.com/GitLab-Security-Bot"
+          },
+          "created_at": "2026-04-01T16:31:20.085Z",
+          "updated_at": "2026-04-01T18:33:37.652Z",
+          "system": false,
+          "noteable_id": 469737607,
+          "noteable_type": "MergeRequest",
+          "project_id": 24620634,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 38,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "33b60861ed100fb2c089a967b8a90bff55a33dc9",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3214089324,
+          "type": null,
+          "body": "added 1 commit\n\n<ul><li>18af6cb1 - [DSP-7893] Modernize dockerbase for py3.11 uv defaults</li></ul>\n\n[Compare with previous version](/abacusinsights/seiji/seiji-dockerbase/-/merge_requests/38/diffs?diff_id=1732086878&start_sha=afdd4515451b74b954138c4e4b907726d57194cc)",
+          "author": {
+            "id": 34702854,
+            "username": "eric.shtivelberg",
+            "public_email": "",
+            "name": "Shtiv",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+            "web_url": "https://gitlab.com/eric.shtivelberg"
+          },
+          "created_at": "2026-04-01T16:37:08.446Z",
+          "updated_at": "2026-04-01T16:37:08.450Z",
+          "system": true,
+          "noteable_id": 469737607,
+          "noteable_type": "MergeRequest",
+          "project_id": 24620634,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 38,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "8767f1671b1dc19fd453fc5cc691f88ccb268a4c",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3214115751,
+          "type": null,
+          "body": "added 1 commit\n\n<ul><li>8cd86be5 - [DSP-7893] Modernize dockerbase for py3.11 uv defaults</li></ul>\n\n[Compare with previous version](/abacusinsights/seiji/seiji-dockerbase/-/merge_requests/38/diffs?diff_id=1732100033&start_sha=18af6cb1068cd816c0dccb3229afc669380a8282)",
+          "author": {
+            "id": 34702854,
+            "username": "eric.shtivelberg",
+            "public_email": "",
+            "name": "Shtiv",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+            "web_url": "https://gitlab.com/eric.shtivelberg"
+          },
+          "created_at": "2026-04-01T16:45:51.167Z",
+          "updated_at": "2026-04-01T16:45:51.172Z",
+          "system": true,
+          "noteable_id": 469737607,
+          "noteable_type": "MergeRequest",
+          "project_id": 24620634,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 38,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "bf2072008b680413320d500e8c2bd7275484f95f",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3214260934,
+          "type": null,
+          "body": "added 1 commit\n\n<ul><li>6e51cafd - [DSP-7893] Align scanning config and reduce image vuln surface</li></ul>\n\n[Compare with previous version](/abacusinsights/seiji/seiji-dockerbase/-/merge_requests/38/diffs?diff_id=1732165263&start_sha=8cd86be501027217c82f892eed8e24bc8239a1dd)",
+          "author": {
+            "id": 34702854,
+            "username": "eric.shtivelberg",
+            "public_email": "",
+            "name": "Shtiv",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+            "web_url": "https://gitlab.com/eric.shtivelberg"
+          },
+          "created_at": "2026-04-01T17:30:43.057Z",
+          "updated_at": "2026-04-01T17:30:43.062Z",
+          "system": true,
+          "noteable_id": 469737607,
+          "noteable_type": "MergeRequest",
+          "project_id": 24620634,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 38,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "b57a9ad708390fa6173913f3e2be89d0289b4d3e",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3214285063,
+          "type": null,
+          "body": "added 1 commit\n\n<ul><li>6be9cbac - [DSP-7893] Align scanning config and reduce image vuln surface</li></ul>\n\n[Compare with previous version](/abacusinsights/seiji/seiji-dockerbase/-/merge_requests/38/diffs?diff_id=1732177741&start_sha=6e51cafd41830d9563f4ef0983d7537a43dd0760)",
+          "author": {
+            "id": 34702854,
+            "username": "eric.shtivelberg",
+            "public_email": "",
+            "name": "Shtiv",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+            "web_url": "https://gitlab.com/eric.shtivelberg"
+          },
+          "created_at": "2026-04-01T17:39:05.718Z",
+          "updated_at": "2026-04-01T17:39:05.764Z",
+          "system": true,
+          "noteable_id": 469737607,
+          "noteable_type": "MergeRequest",
+          "project_id": 24620634,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 38,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "20f118ce8d3c7f4936db1243f58c25d804264dcf",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3214319706,
+          "type": null,
+          "body": "added 1 commit\n\n<ul><li>a6f73396 - [DSP-7893] Align scanning config and reduce image vuln surface</li></ul>\n\n[Compare with previous version](/abacusinsights/seiji/seiji-dockerbase/-/merge_requests/38/diffs?diff_id=1732196881&start_sha=6be9cbac477e19c0b69b9a6d3fdaf583ebce29e3)",
+          "author": {
+            "id": 34702854,
+            "username": "eric.shtivelberg",
+            "public_email": "",
+            "name": "Shtiv",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+            "web_url": "https://gitlab.com/eric.shtivelberg"
+          },
+          "created_at": "2026-04-01T17:53:12.206Z",
+          "updated_at": "2026-04-01T17:53:12.211Z",
+          "system": true,
+          "noteable_id": 469737607,
+          "noteable_type": "MergeRequest",
+          "project_id": 24620634,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 38,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "6b8417b3149e7bc010143a172a73cedfd9fafd64",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3214367510,
+          "type": null,
+          "body": "marked the checklist item **Re\\-run seiji\\-orchestrator image jobs \\(build:kaniko, build:kaniko\\_311, build:kaniko\\_terraform1\\_py311, build:kaniko\\_airflow\\)** as completed",
+          "author": {
+            "id": 34702854,
+            "username": "eric.shtivelberg",
+            "public_email": "",
+            "name": "Shtiv",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+            "web_url": "https://gitlab.com/eric.shtivelberg"
+          },
+          "created_at": "2026-04-01T18:10:52.408Z",
+          "updated_at": "2026-04-01T18:10:52.412Z",
+          "system": true,
+          "noteable_id": 469737607,
+          "noteable_type": "MergeRequest",
+          "project_id": 24620634,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 38,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "181fc361e1e21a7b28b39844847def44b72aa4cf",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3214367589,
+          "type": null,
+          "body": "marked the checklist item **Run seiji\\-dockerbase pipeline on this branch and confirm all kaniko jobs publish expected py3\\.11 tags** as completed",
+          "author": {
+            "id": 34702854,
+            "username": "eric.shtivelberg",
+            "public_email": "",
+            "name": "Shtiv",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+            "web_url": "https://gitlab.com/eric.shtivelberg"
+          },
+          "created_at": "2026-04-01T18:10:53.928Z",
+          "updated_at": "2026-04-01T18:10:53.933Z",
+          "system": true,
+          "noteable_id": 469737607,
+          "noteable_type": "MergeRequest",
+          "project_id": 24620634,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 38,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "1ccd9dab741015e8e3667e8d12936583b4674fcf",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3214367762,
+          "type": null,
+          "body": "marked the checklist item **Verify no missing\\-manifest errors for dockerbase tags and no Python version mismatch in airflow image build** as completed",
+          "author": {
+            "id": 34702854,
+            "username": "eric.shtivelberg",
+            "public_email": "",
+            "name": "Shtiv",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+            "web_url": "https://gitlab.com/eric.shtivelberg"
+          },
+          "created_at": "2026-04-01T18:10:57.940Z",
+          "updated_at": "2026-04-01T18:10:57.943Z",
+          "system": true,
+          "noteable_id": 469737607,
+          "noteable_type": "MergeRequest",
+          "project_id": 24620634,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 38,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "15355e59cdc2dba326430a6941f54faccf82cd5e",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3214368719,
+          "type": null,
+          "body": "verified that seiji-orchestrator is building green now with these images: https://gitlab.com/abacusinsights/seiji/seiji-orchestrator/-/pipelines/2424171354",
+          "author": {
+            "id": 34702854,
+            "username": "eric.shtivelberg",
+            "public_email": "",
+            "name": "Shtiv",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+            "web_url": "https://gitlab.com/eric.shtivelberg"
+          },
+          "created_at": "2026-04-01T18:11:20.968Z",
+          "updated_at": "2026-04-01T18:11:20.968Z",
+          "system": false,
+          "noteable_id": 469737607,
+          "noteable_type": "MergeRequest",
+          "project_id": 24620634,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 38,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "227355c3ca8c05333379dc26796fa6cfc7c49738",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3214407472,
+          "type": null,
+          "body": "added 1 commit\n\n<ul><li>680c4be6 - [DSP-7893] Reduce critical and high vuln surface in dockerbase</li></ul>\n\n[Compare with previous version](/abacusinsights/seiji/seiji-dockerbase/-/merge_requests/38/diffs?diff_id=1732238424&start_sha=a6f73396f1c1fe9b892484346e8d34db4e08ffa8)",
+          "author": {
+            "id": 34702854,
+            "username": "eric.shtivelberg",
+            "public_email": "",
+            "name": "Shtiv",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+            "web_url": "https://gitlab.com/eric.shtivelberg"
+          },
+          "created_at": "2026-04-01T18:24:32.293Z",
+          "updated_at": "2026-04-01T18:24:32.298Z",
+          "system": true,
+          "noteable_id": 469737607,
+          "noteable_type": "MergeRequest",
+          "project_id": 24620634,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 38,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "5d50a2b090249e80d0ab30aa5553030a5d6ae8ae",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3214408199,
+          "type": null,
+          "body": "changed the description",
+          "author": {
+            "id": 34702854,
+            "username": "eric.shtivelberg",
+            "public_email": "",
+            "name": "Shtiv",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+            "web_url": "https://gitlab.com/eric.shtivelberg"
+          },
+          "created_at": "2026-04-01T18:24:50.445Z",
+          "updated_at": "2026-04-01T18:24:50.449Z",
+          "system": true,
+          "noteable_id": 469737607,
+          "noteable_type": "MergeRequest",
+          "project_id": 24620634,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 38,
+          "commands_changes": {}
+        }
+      ]
+    }
+  ],
+  "approvals": {
+    "id": 469737607,
+    "iid": 38,
+    "project_id": 24620634,
+    "title": "[DSP-7893] Modernize seiji-dockerbase for py3.11 + uv",
+    "description": "## Summary\n- upgrade base image to Ubuntu 24.04 and switch seiji-dockerbase to Python 3.11.11 with uv as the default Python runtime/installer path\n- align toolchain defaults (Terraform 1.3.2, Kubernetes 1.33.0, newer NVM) and modernize Docker apt keyring setup for 24.04\n- convert dockerbase CI variants to py3.11-only tags, including terraform1.3.2 and node16 variants consumed by orchestrator\n- apply Wiz-driven hardening to reduce Critical/High findings: remove legacy Node 15, move Node 20 to 20.20.0, upgrade global npm, prune helm plugin cache artifacts, and install Docker CLI without daemon/runtime binaries\n- add non-interactive apt cleanup plus final distro security refresh (`dist-upgrade`) and purge unneeded `wget`\n\n## Ticket\n- DSP-7893\n\n## Wiz Findings Follow-up\n- fixed in image where feasible without breaking required compatibility pins\n- remaining risk expected primarily from pinned runtime/tool versions (notably Terraform 1.3.2 and transitive embedded Go deps)\n- follow-up can include controlled version bumps for Terraform/Helm/Helmsman/plugins after compatibility validation\n\n## Test plan\n- [x] Run seiji-dockerbase pipeline on this branch and confirm all kaniko jobs publish expected py3.11 tags\n- [x] Re-run seiji-orchestrator image jobs (`build:kaniko`, `build:kaniko_311`, `build:kaniko_terraform1_py311`, `build:kaniko_airflow`)\n- [ ] Trigger fresh container scan on this branch and compare Critical/High counts against previous baseline",
+    "state": "opened",
+    "created_at": "2026-04-01T16:22:14.502Z",
+    "updated_at": "2026-04-01T18:24:50.375Z",
+    "merge_status": "can_be_merged",
+    "approved": false,
+    "approvals_required": 1,
+    "approvals_left": 1,
+    "require_password_to_approve": false,
+    "approved_by": [],
+    "suggested_approvers": [
+      {
+        "id": 3708312,
+        "username": "zettatron",
+        "public_email": "",
+        "name": "Seth Allen",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/3708312/avatar.png",
+        "web_url": "https://gitlab.com/zettatron"
+      },
+      {
+        "id": 5938765,
+        "username": "srosenfeld",
+        "public_email": "",
+        "name": "Steve Rosenfeld",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/25c818116c8ce2c185043ca59ff2a1e141a9f8211eeb4dd1248b9dc41b734527?s=80&d=identicon",
+        "web_url": "https://gitlab.com/srosenfeld"
+      },
+      {
+        "id": 6248994,
+        "username": "alex_ai",
+        "public_email": "",
+        "name": "Alex Deng",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/6248994/avatar.png",
+        "web_url": "https://gitlab.com/alex_ai"
+      },
+      {
+        "id": 15119047,
+        "username": "sumit_13",
+        "public_email": null,
+        "name": "Sumit Luitel",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/2001f885b245c0918a5b0cf1325057712d6fab3bb3477d1b42a816d5d045fa14?s=80&d=identicon",
+        "web_url": "https://gitlab.com/sumit_13"
+      },
+      {
+        "id": 20761640,
+        "username": "mahendra-gautam",
+        "public_email": null,
+        "name": "Mahendra Gautam",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/058676a8c658492092816411b22515e6ec9ce614b21d75e493198a9fe3f42a1c?s=80&d=identicon",
+        "web_url": "https://gitlab.com/mahendra-gautam"
+      },
+      {
+        "id": 25756645,
+        "username": "inderjit.bassi",
+        "public_email": null,
+        "name": "Inderjit Bassi",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/82965ba9db48a279a6b1dad30a61c3bc2bf24c6b6d7114716b620e714a4c5ea4?s=80&d=identicon",
+        "web_url": "https://gitlab.com/inderjit.bassi"
+      },
+      {
+        "id": 27540410,
+        "username": "Rivlin.pereira",
+        "public_email": null,
+        "name": "Rivlin Pereira",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/e60c1edac688cb16a84f813ca373e584d8de9ecf21e2d356666008bd45719184?s=80&d=identicon",
+        "web_url": "https://gitlab.com/Rivlin.pereira"
+      },
+      {
+        "id": 30753158,
+        "username": "andrew.huddleston1",
+        "public_email": "",
+        "name": "Andrew Huddleston",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/30753158/avatar.png",
+        "web_url": "https://gitlab.com/andrew.huddleston1"
+      },
+      {
+        "id": 32024399,
+        "username": "gordon.marx",
+        "public_email": "",
+        "name": "Gordon Marx",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/32024399/avatar.png",
+        "web_url": "https://gitlab.com/gordon.marx"
+      },
+      {
+        "id": 4971219,
+        "username": "overfl0wd",
+        "public_email": "",
+        "name": "dana taylor",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/4971219/avatar.png",
+        "web_url": "https://gitlab.com/overfl0wd"
+      },
+      {
+        "id": 5622501,
+        "username": "luisanevers",
+        "public_email": "",
+        "name": "Luisa Nevers",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/5622501/avatar.png",
+        "web_url": "https://gitlab.com/luisanevers"
+      },
+      {
+        "id": 5631801,
+        "username": "aitom",
+        "public_email": "",
+        "name": "Tom",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/5631801/avatar.png",
+        "web_url": "https://gitlab.com/aitom"
+      },
+      {
+        "id": 6729997,
+        "username": "matt_donaghey",
+        "public_email": "",
+        "name": "Matt Donaghey",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/c6cbcc03abbcff4ddd6a3b9848e2f56667ba177a287c5718a95cee4ed5b78cd5?s=80&d=identicon",
+        "web_url": "https://gitlab.com/matt_donaghey"
+      },
+      {
+        "id": 12171540,
+        "username": "bhuffman-sec",
+        "public_email": "",
+        "name": "Brad Huffman",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/12171540/avatar.png",
+        "web_url": "https://gitlab.com/bhuffman-sec"
+      },
+      {
+        "id": 14469776,
+        "username": "larry.king",
+        "public_email": "",
+        "name": "Larry King",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/14469776/avatar.png",
+        "web_url": "https://gitlab.com/larry.king"
+      }
+    ],
+    "approvers": [],
+    "approver_groups": [],
+    "user_has_approved": false,
+    "user_can_approve": true,
+    "approval_rules_left": [
+      {
+        "id": 675172,
+        "name": "team-dispatch",
+        "rule_type": "regular"
+      }
+    ],
+    "has_approval_rules": true,
+    "merge_request_approvers_available": true,
+    "multiple_approval_rules_available": true,
+    "invalid_approvers_rules": []
+  }
+}

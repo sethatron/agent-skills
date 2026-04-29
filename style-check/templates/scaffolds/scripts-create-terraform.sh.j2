@@ -1,0 +1,17 @@
+#!/bin/bash
+
+set -euE -o pipefail
+
+source scripts/terraform/deploy_functions.sh
+
+cd $(dirname $(dirname ${BASH_SOURCE[0]}))
+
+init_terraform
+
+if echo $* | grep -e "--auto-approve"; then
+  echo "[INFO] Running Terraform with auto-approve"
+  terraform apply --auto-approve
+else
+  echo "[INFO] Running Terraform with manual approval required"
+  terraform apply
+fi

@@ -1,0 +1,12 @@
+# {{ skill.name }} Failure Modes
+
+{% for category in skill.failure_categories %}
+## {{ category.name }}
+
+| Failure | Detection | Recovery |
+|---------|-----------|----------|
+{%- for f in category.failures %}
+| {{ f.failure }} | {{ f.detection }} | {{ f.recovery }} |
+{%- endfor %}
+
+{% endfor %}

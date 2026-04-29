@@ -1,0 +1,41 @@
+# Task Log: {{ task_id }} — {{ title }}
+
+**Status**: {{ status }}
+**Priority**: P{{ priority }}
+**Started**: {{ started_at }}
+**Closed**: {{ closed_at or "In Progress" }}
+**Git Permission**: {{ "Granted" if git_permission else "Denied" }}
+
+## Timeline
+
+{% for event in timeline %}
+### {{ event.timestamp }}
+{{ event.description }}
+{% if event.artifact %}
+Artifact: {{ event.artifact }}
+{% endif %}
+{% endfor %}
+
+## Bash Commands
+
+{% for cmd in bash_commands %}
+`{{ cmd.command }}` (exit: {{ cmd.exit_code }}, {{ cmd.duration_ms }}ms)
+{% endfor %}
+
+## File Changes
+
+{% for change in file_changes %}
+- {{ change.operation }}: {{ change.path }}
+{% endfor %}
+
+## MR Reviews
+
+{% for mr in mr_links %}
+- {{ mr }}
+{% endfor %}
+
+{% if blocker %}
+## Blocker
+
+{{ blocker }}
+{% endif %}

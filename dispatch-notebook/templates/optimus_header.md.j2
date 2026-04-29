@@ -1,0 +1,18 @@
+---
+report_date: "{{ report_date }}"
+period: "{{ period }}"
+source_path: "{{ source_path }}"
+finding_counts:
+  total: {{ finding_counts.total }}
+  workflow_gap: {{ finding_counts.workflow_gap | default(0) }}
+  tooling: {{ finding_counts.tooling | default(0) }}
+  process: {{ finding_counts.process | default(0) }}
+  automation: {{ finding_counts.automation | default(0) }}
+---
+
+# Optimus Report — {{ report_date }} ({{ period }})
+
+**Findings:** {{ finding_counts.total }} total
+**Source:** {{ source_path }}
+
+---

@@ -1,0 +1,30 @@
+#!/bin/bash
+
+set -euE -o pipefail
+
+export AWS_RETRY_MODE=adaptive
+export AWS_MAX_ATTEMPTS=10
+
+source "$(dirname "${BASH_SOURCE[0]}")/deploy_functions.sh"
+
+airflow_deployment=${AIRFLOW_DEPLOYMENT:=0}
+desired_state_file_name="desired-state.yaml"
+
+update_kubeconfig
+
+export KUBECONFIG=/tmp/${LABEL}.kubeconfig
+export ACCOUNT_ID=$(aws sts get-caller-identity --query "Account" --output text)
+
+seiji config generate env --spec-path deploy/luna-config-spec.yaml
+source deploy/luna-config.env
+
+if [[ $airflow_deployment == "1" ]]; then
+    no_update="-no-update"
+    helm repo update abacus
+fi
+
+echo "[INFO] Running helmsman apply"
+run_helmsman_isolated {{ subsystem }} "_" \
+  --apply \
+  -f $desired_state_file_name \
+  ${no_update:-}

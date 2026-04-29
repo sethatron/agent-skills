@@ -1,0 +1,24 @@
+metadata:
+  description: {{ product }}-{{ subsystem }} Helm Charts
+
+context: {{ subsystem }}
+
+helmRepos:
+  abacus: s3://abacus-artifacts-kitchen/helm
+
+namespaces:
+  {{ subsystem }}:
+
+apps:
+  {{ subsystem }}-placeholder:
+    name: {{ subsystem }}-placeholder
+    group: {{ subsystem }}
+    description: "Placeholder app - replace with actual charts"
+    chart: local-charts/placeholder
+    version: "0.0.1"
+    namespace: {{ subsystem }}
+    enabled: true
+    wait: true
+    timeout: 600
+    valuesFiles:
+      - values/placeholder-values.yaml

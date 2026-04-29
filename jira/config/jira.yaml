@@ -1,0 +1,20 @@
+# Jira skill operator defaults
+# Credentials are sourced from jiratui config — never stored here.
+
+operator_username: ""                    # Jira username or email
+default_project: ""                      # PROJECT-KEY used when --project omitted
+default_board: ""                        # Board name for /jira sprint without --board
+my_issues_default_status:                # Filters for /jira my-issues
+  - "In Progress"
+  - "To Do"
+  - "In Review"
+export_default_path: "~/.zsh/jira/exports/"
+cache_ttl_minutes: 30                    # Issue and search cache TTL
+sprint_cache_ttl_minutes: 60             # Sprint data cache TTL
+max_results_per_query: 100               # Cap on search results returned
+
+# Mentions scanner
+mentions_cache_path: "~/.cache/jira/account_id.json"
+mentions_cache_ttl_hours: 24
+mentions_default_days: 7
+mentions_output_path: "~/.zsh/jira/exports/mentions_latest.md"

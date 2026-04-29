@@ -1,0 +1,1091 @@
+================================================================================
+SKILL SPECIFICATION: dispatch
+================================================================================
+
+Use /skill-creator to implement the dispatch skill. This document is the
+complete, authoritative specification. Follow every requirement exactly. Do
+not invent requirements not stated here. Do not omit stated constraints.
+
+Before implementing, internalize the following architectural reality:
+
+  ┌─────────────────────── ARCHITECTURAL CONSTRAINT ───────────────────────┐
+  │  A SKILL.md is a prompt loaded into Claude Code's context window. It is   │
+  │  synchronous, session-scoped, and stateless between sessions. It cannot   │
+  │  run autonomously, persist state across terminal sessions, or execute      │
+  │  background tasks on its own.                                              │
+  │                                                                            │
+  │  The /dispatch workflow is inherently:                                     │
+  │    • Long-running (spanning a full work day)                               │
+  │    • Stateful across sessions (state must survive terminal closes)         │
+  │    • Event-driven (Slack notifications on async triggers)                  │
+  │    • Partially autonomous (cron-driven morning boot, EOD rollup)           │
+  │                                                                            │
+  │  A pure SKILL.md cannot address these requirements. The skill MUST         │
+  │  scaffold a two-layer architecture:                                        │
+  │    Layer 1 — SKILL.md: orchestration brain, workflow DSL, agent roles      │
+  │    Layer 2 — Python scripts + state store: execution, persistence, hooks   │
+  │                                                                            │
+  │  The skill's first invocation must generate this full scaffolding. After   │
+  │  scaffold generation, all subsequent invocations operate against the       │
+  │  durable state layer — not just in-context memory.                         │
+  └────────────────────────────────────────────────────────────────────────────┘
+
+Apply current Claude Code best practices (Agent Teams via .claude/agents/,
+hooks via .claude/hooks/, claude -p subprocess invocation for background
+agents, SQLite for scalable state) wherever they improve on what is implied
+in the requirements.
+--------------------------------------------------------------------------------
+SECTION 1: SKILL IDENTITY & TRIGGER
+--------------------------------------------------------------------------------
+
+Skill name:    dispatch
+Skill path:    /Users/sethallen/agent-skills/dispatch/
+Symlink:       ~/.claude/skills/dispatch -> /Users/sethallen/agent-skills/dispatch/
+
+Trigger paths:
+  /dispatch                       — full morning workflow (default)
+  /dispatch status                — current day summary without running steps
+  /dispatch task start <jira-id>  — begin tracking a specific task
+  /dispatch task close <jira-id>  — mark task complete, trigger Optimus
+  /dispatch task defer <jira-id>  — carry task forward to next day
+  /dispatch step <step-name>      — run a single workflow step manually
+  /dispatch slack <message>       — send manual message to #dispatch channel
+  /dispatch optimus               — run Optimus agent on all tasks (force)
+  /dispatch review day            — generate daily summary report
+  /dispatch review week           — generate weekly summary report
+  /dispatch review month          — generate monthly summary report
+  /dispatch cron generate         — generate cron config for approval
+  /dispatch scaffold              — generate full directory and script structure
+  /dispatch config                — open workflow.yaml for editing
+
+Natural-language equivalents that must trigger this skill:
+  "start my day"
+  "what do I need to work on today?"
+  "what's blocking me?"
+  "what am I forgetting?"
+  "run my morning standup"
+  "close out <jira-id>"
+  "start working on <jira-id>"
+  "how was my week?"
+  "send a dispatch update"
+  "run the optimizer"
+
+--------------------------------------------------------------------------------
+SECTION 2: ARCHITECTURE OVERVIEW
+--------------------------------------------------------------------------------
+
+2.1 Two-Layer Architecture
+
+  LAYER 1 — SKILL.md (orchestration brain):
+    - Defines the workflow DSL and step registry
+    - Defines agent roles (Dispatch Coordinator, Optimus)
+    - Defines sub-skill invocation contracts (/mr-review, /jira)
+    - Defines the Slack notification schema
+    - Defines Optimus triggers and reporting format
+
+  LAYER 2 — Scripts and state (durable execution):
+    - scripts/dispatch_runner.py   — main entrypoint, reads workflow.yaml,
+                                     drives the step execution loop
+    - scripts/state_store.py       — SQLite-backed task and session state
+    - scripts/slack_notifier.py    — Slack MCP wrapper with message templates
+    - scripts/optimus_runner.py    — spawns Optimus as a claude -p subprocess
+    - scripts/log_writer.py        — structured log and artifact writer
+    - scripts/cron_manager.py      — generates and manages cron job configs
+    - scripts/bottleneck_detector.py — evaluates bottleneck conditions
+    - scripts/check_env.py         — pre-validation (run first, always)
+
+2.2 State Store Design
+
+  The skill uses SQLite (not YAML/JSON) as the primary state store for
+  scalability, queryability, and concurrent-safe writes:
+
+    ~/.zsh/dispatch/dispatch.db
+
+  Schema tables:
+    tasks          — one row per task, with lifecycle state machine fields
+    sessions       — one row per Claude Code session (opened/closed/compacted)
+    step_log       — one row per workflow step execution with outcome
+    bash_log       — one row per bash command executed during a session
+    notifications  — one row per Slack message sent (dedup, audit)
+    optimus_runs   — one row per Optimus agent invocation with output path
+    bottlenecks    — one row per detected bottleneck, with resolution timestamp
+
+  Human-readable artifacts are written to the filesystem (see Section 5).
+  SQLite is the source of truth; filesystem artifacts are derived outputs.
+
+2.3 Claude Code Agent Team Integration
+
+  Optimus is implemented as a Claude Code agent (NOT an inline prompt):
+
+    .claude/agents/optimus.md
+
+  Optimus runs in its own context window, with no visibility into the dispatch
+  session's context. It is invoked via:
+
+    claude -p "$(cat ~/.zsh/dispatch/optimus_brief.md)" \
+           --model claude-opus-4-6 \
+           --allowedTools "Read,Bash(cat *),Bash(find *),Write" \
+           --print > ~/.zsh/dispatch/{date}/optimus_report.md
+
+  The optimus_brief.md is generated by dispatch_runner.py and contains:
+  - Paths to all task logs for the period being reviewed
+  - The current workflow.yaml
+  - The current state of dispatch.db (exported as JSON summary)
+  - The Optimus agent role definition
+  - Explicit output format instructions
+
+2.4 Hooks Integration
+
+  Claude Code hooks (defined in .claude/hooks/) intercept tool calls and
+  automatically log activity to dispatch.db without requiring explicit
+  skill invocation at each step.
+
+  Required hooks:
+    PostToolUse/Bash   — log every bash command (command, cwd, exit_code,
+                          duration_ms, timestamp) to bash_log table
+    PostToolUse/Write  — log every file write (path, operation, timestamp)
+    PostToolUse/Edit   — log every file edit (path, diff_lines, timestamp)
+    PreToolUse/Bash    — check git guardrails (block add/commit/push unless
+                          task has git_permission: true in state store)
+
+  Hook scripts live in:
+    .claude/hooks/post_bash.py
+    .claude/hooks/post_write.py
+    .claude/hooks/post_edit.py
+    .claude/hooks/pre_bash_guard.py
+
+  Hooks are generated by /dispatch scaffold and must be installed to
+  .claude/hooks/ in the operator's home directory.
+
+2.5 Session Continuity
+
+  When a new Claude Code session begins and the dispatch skill is invoked:
+
+  1. check_env.py validates the environment.
+  2. state_store.py checks for an open session from today. If found:
+       "Resuming session from <timestamp>. Last step: <step>. Status: <summary>"
+  3. If the previous session was interrupted mid-step, the skill resumes from
+     the last completed checkpoint, not from the beginning of the workflow.
+  4. Each workflow step writes a checkpoint to the session table before and
+     after execution. Mid-step interruption leaves the step in INTERRUPTED
+     state, which triggers a resume prompt on next invocation.
+
+--------------------------------------------------------------------------------
+SECTION 3: WORKFLOW DEFINITION (workflow.yaml)
+--------------------------------------------------------------------------------
+
+The operator's daily workflow is defined in a declarative YAML file:
+
+  ~/.zsh/dispatch/workflow.yaml
+
+This file is the single source of truth for what steps run, in what order,
+with what parameters. The SKILL.md does not hardcode workflow steps; it reads
+them from this file on every invocation. This is the mechanism that makes the
+skill extensible without modifying the SKILL.md itself.
+
+3.1 workflow.yaml Schema
+
+  ---
+  version: "1.0"
+  operator:
+    gitlab_username: "@zettatron"
+    jira_username: "<operator-jira-email>"
+    slack_channel: "#dispatch"
+    slack_channel_id: "C0AQC48GL1G"
+    timezone: "America/Phoenix"
+
+  defaults:
+    git_permission: false          # git add/commit/push blocked by default
+    require_human_gate: true       # pause for operator confirmation at gates
+    slack_notify_on: [step_complete, blocker_detected, bottleneck_detected,
+                      task_closed, session_start, session_end, optimus_complete]
+
+  steps:
+    - id: mr_review_personal
+      name: "Personal MR Review"
+      skill: /mr-review
+      args: "personal"
+      description: "Review open MRs authored by operator"
+      on_blocker: notify_slack
+      timeout_minutes: 30
+      tags: [gitlab, review, morning]
+      enabled: true
+
+    - id: mr_review_team
+      name: "Team MR Review"
+      skill: /mr-review
+      args: "team"
+      description: "Review open MRs from team members"
+      on_blocker: notify_slack
+      timeout_minutes: 60
+      tags: [gitlab, review, morning]
+      enabled: true
+
+    - id: jira_mentions
+      name: "Jira Mentions Check"
+      skill: /jira
+      args: "search assignee = currentUser() OR mentions = currentUser()"
+      description: "Find Jira issues where operator is mentioned or assigned"
+      on_new_mention: notify_slack
+      timeout_minutes: 10
+      tags: [jira, morning]
+      enabled: true
+
+    - id: bottleneck_scan
+      name: "Bottleneck Detection"
+      runner: scripts/bottleneck_detector.py
+      description: "Identify cases where operator is blocking team progress"
+      on_bottleneck_found: notify_slack
+      timeout_minutes: 5
+      tags: [analysis, morning]
+      enabled: true
+
+  human_gates:
+    - after: mr_review_personal
+      message: "Personal MR review complete. Ready to proceed to team review?"
+    - after: jira_mentions
+      message: "Jira check complete. Proceed with task prioritization?"
+
+  schedule:
+    morning_boot:
+      cron: "0 8 * * 1-5"           # 8am weekdays
+      command: "dispatch_runner.py --mode=morning"
+      approval_required: true
+    eod_summary:
+      cron: "0 17 * * 1-5"          # 5pm weekdays
+      command: "dispatch_runner.py --mode=eod"
+      approval_required: true
+    optimus_nightly:
+      cron: "0 22 * * 1-5"          # 10pm weekdays
+      command: "optimus_runner.py --period=day"
+      approval_required: true
+
+3.2 Workflow DSL Constraints
+
+  - Steps with skill: invoke sub-skills by generating a structured handoff
+    prompt and reading the resulting artifact (review.md, jira export, etc.)
+    into the session log.
+  - Steps with runner: invoke a Python script directly.
+  - All steps must be idempotent. Re-running a step on the same day must
+    detect a completed checkpoint and skip (not re-execute).
+  - Steps may define on_* event handlers that map to slack notifications,
+    human gate pauses, or Optimus triggers.
+  - Adding a new step requires only adding an entry to workflow.yaml.
+    No SKILL.md modification is required.
+
+3.3 Git Permission Gate
+
+  The workflow.yaml git_permission default is false. For any task where the
+  operator explicitly grants git push/commit permission, they must run:
+
+    /dispatch task git-allow <jira-id>
+
+  This sets git_permission: true in the task record in dispatch.db. The
+  pre_bash_guard.py hook checks this flag before allowing any git add,
+  git commit, or git push command to execute. Attempting these commands
+  without permission produces:
+
+    BLOCKED: git add/commit/push requires explicit permission for task <id>.
+    Grant with: /dispatch task git-allow <jira-id>
+
+--------------------------------------------------------------------------------
+SECTION 4: TASK STATE MACHINE
+--------------------------------------------------------------------------------
+
+Every unit of work tracked by dispatch is a Task. Tasks have an explicit
+lifecycle:
+
+  PENDING → IN_PROGRESS → [BLOCKED] → IN_REVIEW → COMPLETE
+                        → DEFERRED (carry to next day)
+                        → ABANDONED
+
+4.1 Task Record Schema (dispatch.db tasks table)
+
+  task_id:           string (Jira issue key, e.g., PLAT-1234)
+  title:             string
+  description:       string (populated from Jira via /jira skill)
+  status:            enum (PENDING, IN_PROGRESS, BLOCKED, IN_REVIEW,
+                           COMPLETE, DEFERRED, ABANDONED)
+  jira_status:       string (raw Jira status, synced from API)
+  created_date:      ISO 8601 date (when task was first seen)
+  started_at:        ISO 8601 timestamp (when operator began work)
+  closed_at:         ISO 8601 timestamp
+  deferred_to:       ISO 8601 date (for DEFERRED tasks)
+  git_permission:    boolean (default false)
+  priority:          integer (1-4, operator-assigned or derived from Jira)
+  tags:              string[] (jira labels, gitlab labels, manual)
+  blocker:           string (description of current blocker, if any)
+  mr_links:          string[] (GitLab MR URLs associated with this task)
+  related_tasks:     string[] (other task IDs)
+  log_dir:           string (filesystem path to this task's artifact directory)
+  optimus_reviewed:  boolean
+  session_ids:       string[] (Claude Code session IDs that touched this task)
+
+4.2 State Transitions
+
+  PENDING → IN_PROGRESS:   /dispatch task start <jira-id>
+  IN_PROGRESS → BLOCKED:   /dispatch task block <jira-id> --reason "<text>"
+  BLOCKED → IN_PROGRESS:   /dispatch task unblock <jira-id>
+  IN_PROGRESS → IN_REVIEW: /dispatch task submit <jira-id>
+                            (triggers mr_review_personal step)
+  IN_REVIEW → COMPLETE:    /dispatch task close <jira-id>
+  any → DEFERRED:          /dispatch task defer <jira-id>
+                            (writes carry-forward entry to next day's task.yaml)
+  any → ABANDONED:          /dispatch task abandon <jira-id> --reason "<text>"
+
+  All transitions are logged to step_log with timestamp, previous_status, and
+  new_status. All transitions send a Slack notification unless suppressed with
+  --quiet.
+
+4.3 Multi-Day Task Carry-Forward
+
+  Tasks in DEFERRED or IN_PROGRESS state at EOD are automatically written to
+  the next business day's carry_forward.yaml:
+
+    ~/.zsh/dispatch/{YYYY}/{MM}/{DD+1}/carry_forward.yaml
+
+  The morning boot reads carry_forward.yaml and recreates those tasks in
+  the new day's context with status preserved. A Slack message is sent at
+  morning boot summarizing carried-over tasks:
+    "Carried forward from yesterday: PLAT-123 (In Progress), PLAT-456 (Blocked)"
+
+--------------------------------------------------------------------------------
+SECTION 5: DAILY DIRECTORY STRUCTURE
+--------------------------------------------------------------------------------
+
+  ~/.zsh/dispatch/
+  ├── dispatch.db                 — primary SQLite state store
+  ├── workflow.yaml               — operator workflow definition
+  ├── cron/
+  │   ├── dispatch.crontab        — generated cron config (operator approves)
+  │   └── cron_install.sh         — installs/updates crontab safely
+  ├── {YYYY}/
+  │   └── {MM}/
+  │       └── {DD}/
+  │           ├── session.yaml    — human-readable session summary (derived)
+  │           ├── task.yaml       — all tasks active this day (human-readable)
+  │           ├── carry_forward.yaml — tasks carried to next day
+  │           ├── bottlenecks.yaml   — bottlenecks detected this day
+  │           ├── optimus_brief.md   — input context for Optimus agent
+  │           ├── optimus_report.md  — output from Optimus agent
+  │           ├── weekly_report.md   — generated on Fridays
+  │           ├── monthly_report.md  — generated on last business day
+  │           ├── slack_log.yaml     — all Slack messages sent this day
+  │           └── tasks/
+  │               └── {jira-id}/
+  │                   ├── task_log.md        — full narrative task log
+  │                   ├── bash_commands.log  — all bash commands (from hooks)
+  │                   ├── file_changes.log   — all file edits (from hooks)
+  │                   ├── mr_review/         — symlinks to review.md artifacts
+  │                   └── implementation_plan.md  — operator-authored or derived
+
+5.1 session.yaml Schema
+
+  ---
+  date: YYYY-MM-DD
+  session_id: <uuid>
+  started_at: <ISO 8601>
+  ended_at: <ISO 8601 or null if ongoing>
+  operator: "@zettatron"
+  steps_completed: [<step-id>, ...]
+  steps_skipped: [<step-id>, ...]
+  steps_failed: [<step-id>, ...]
+  tasks_started: [<jira-id>, ...]
+  tasks_closed: [<jira-id>, ...]
+  tasks_deferred: [<jira-id>, ...]
+  bottlenecks_detected: <integer>
+  slack_messages_sent: <integer>
+  bash_commands_executed: <integer>
+  optimus_run: <boolean>
+  context_window_compactions: <integer>
+  notes: <string>
+
+5.2 task.yaml Schema (per day, all tasks)
+
+  ---
+  date: YYYY-MM-DD
+  tasks:
+    - task_id: PLAT-1234
+      title: "..."
+      status: IN_PROGRESS
+      priority: 2
+      started_at: <ISO 8601>
+      blocker: null
+      mr_links: []
+      log_dir: ~/.zsh/dispatch/2026/04/01/tasks/PLAT-1234/
+      git_permission: false
+      time_in_status_hours: 3.5
+      jira_url: https://<instance>/browse/PLAT-1234
+
+--------------------------------------------------------------------------------
+SECTION 6: BOTTLENECK DETECTION
+--------------------------------------------------------------------------------
+
+bottleneck_detector.py evaluates conditions that indicate the operator is a
+blocking dependency. Each condition has an explicit detection rule, severity,
+and Slack notification template.
+
+6.1 Bottleneck Conditions
+
+  CRITICAL (immediate Slack alert):
+    - Team MR awaiting operator review for > 4 hours during business hours
+    - Jira ticket assigned to operator with a comment from a teammate asking
+      for status, with no response from operator in > 2 hours
+    - Pipeline failure on operator's MR with no activity for > 1 hour
+
+  HIGH (Slack alert at next natural pause in workflow):
+    - Team MR in OPEN state with 0 reviews, created > 24 hours ago
+    - Jira ticket in IN_REVIEW status assigned to operator for > 8 hours
+    - Jira ticket blocking another ticket, where blocking ticket is OPEN
+
+  MEDIUM (included in EOD summary):
+    - Operator has > 5 open MR reviews outstanding
+    - Operator has > 3 Jira tickets in IN_PROGRESS simultaneously
+    - Any task DEFERRED more than twice
+
+6.2 Bottleneck Record Schema (dispatch.db bottlenecks table)
+
+  bottleneck_id:       uuid
+  detected_at:        ISO 8601
+  severity:           CRITICAL | HIGH | MEDIUM
+  type:               string (mr_review_delay, jira_comment_pending, etc.)
+  resource_id:        string (MR URL or Jira issue key)
+  description:        string
+  slack_notified:     boolean
+  resolved_at:        ISO 8601 or null
+  resolution:         string or null
+
+--------------------------------------------------------------------------------
+SECTION 7: SUB-SKILL INVOCATION CONTRACT
+--------------------------------------------------------------------------------
+
+Dispatch orchestrates /mr-review and /jira as sub-skills. The invocation
+contract defines how dispatch hands off, collects artifacts, and records
+outcomes without losing sub-skill output.
+
+7.1 Sub-Skill Invocation Pattern
+
+  When dispatch runs a step with skill: defined in workflow.yaml:
+
+  Step 1 — Generate handoff context:
+    dispatch_runner.py writes a handoff.md to the step's working directory
+    containing: the step parameters, the operator's current task context,
+    and any relevant state from dispatch.db.
+
+  Step 2 — Surface the sub-skill invocation prompt:
+    The SKILL.md surfaces a clearly formatted invocation block:
+      ╔═ DISPATCH: Invoking /mr-review personal ══════════════════╗
+      ║  Task context: PLAT-1234                                   ║
+      ║  Output dir: ~/.zsh/review/2026/04/01/                     ║
+      ║  Started: 08:15:32                                         ║
+      ╚══════════════════════════════════════════════════════════╝
+    The operator sees this and the sub-skill runs within the same session.
+
+  Step 3 — Collect artifacts:
+    After the sub-skill completes, dispatch_runner.py:
+    - Reads the sub-skill's output artifact (review.md, jira export)
+    - Extracts the YAML frontmatter (both /mr-review and /jira produce
+      machine-readable frontmatter — see Section 11 on dispatch ↔ sibling
+      skill contracts)
+    - Records the outcome in step_log
+    - Symlinks the artifact into the task's directory in dispatch.db
+
+  Step 4 — Post-step actions:
+    - Send Slack notification if configured on step
+    - Evaluate bottleneck conditions on the new data
+    - Check for human gate
+
+7.2 JIRA_CALLER Contract
+
+  When dispatch invokes /jira for the jira_mentions step:
+    JIRA_CALLER=dispatch
+
+  This enforces FORCED READ-ONLY MODE on the jira skill. Dispatch never
+  triggers jira write operations. If the operator wants to update a Jira ticket
+  after reviewing dispatch output, they invoke /jira directly.
+
+7.3 Git Guardrail Propagation
+
+  When dispatch invokes /mr-review, the sub-skill's git guardrails remain
+  in effect. Dispatch adds no git permissions beyond what the operator has
+  explicitly granted per task.
+
+--------------------------------------------------------------------------------
+SECTION 8: SLACK NOTIFICATION SYSTEM
+--------------------------------------------------------------------------------
+
+8.1 Notification Channel
+
+  Primary channel: #dispatch (ID: C0AQC48GL1G)
+  All notifications go to this channel unless the operator specifies otherwise.
+
+8.2 Notification Templates
+
+  All Slack messages are structured with consistent fields so the operator
+  can parse them at a glance. Templates are defined in templates/slack/:
+
+  session_start.md.j2:
+    🟢 *Dispatch Session Started* — {{ date }}
+    Operator: @zettatron | Step count: {{ step_count }}
+    Carried over: {{ carry_forward_count }} tasks
+    Morning schedule: {{ step_names | join(' → ') }}
+
+  step_complete.md.j2:
+    ✅ *{{ step_name }}* complete
+    Duration: {{ duration }} | Findings: {{ summary }}
+
+  blocker_detected.md.j2:
+    🔴 *BLOCKER DETECTED* — {{ severity }}
+    {{ description }}
+    Resource: {{ resource_url }}
+    Detected at: {{ timestamp }}
+
+  bottleneck_detected.md.j2:
+    ⚠️ *BOTTLENECK* — You are blocking: {{ blocked_resource }}
+    Reason: {{ reason }}
+    Time pending: {{ pending_duration }}
+    Suggested action: {{ action }}
+
+  task_started.md.j2:
+    🔵 *Task Started*: {{ task_id }} — {{ title }}
+    Priority: {{ priority }} | Git permission: {{ git_permission }}
+
+  task_closed.md.j2:
+    ✅ *Task Closed*: {{ task_id }} — {{ title }}
+    Duration: {{ duration_hours }}h | MRs: {{ mr_count }}
+    Optimus review: {{ optimus_queued }}
+
+  session_end.md.j2:
+    🌙 *Dispatch EOD Summary* — {{ date }}
+    Tasks closed: {{ closed }} | Deferred: {{ deferred }} | In Progress: {{ in_progress }}
+    Bottlenecks: {{ bottleneck_count }} | Steps run: {{ step_count }}
+    Tomorrow's carry-forward: {{ carry_forward_summary }}
+
+  cron_suggestion.md.j2:
+    ⏰ *Cron Job Suggested* — Requires your approval
+    Schedule: {{ cron_expression }} ({{ human_readable }})
+    Command: {{ command }}
+    Rationale: {{ rationale }}
+    To approve: /dispatch cron approve {{ cron_id }}
+
+8.3 Notification Deduplication
+
+  The notifications table in dispatch.db stores a content_hash for each
+  message. Before sending any Slack notification, slack_notifier.py checks
+  that the same hash has not been sent in the past 30 minutes. This prevents
+  spam during rapid step iteration or retry scenarios.
+
+8.4 Cron Job Notification Protocol
+
+  Whenever the skill identifies a useful cron schedule (from bottleneck
+  patterns, Optimus suggestions, or explicit request):
+  1. The cron config is written to ~/.zsh/dispatch/cron/ with status: PENDING.
+  2. A Slack message is sent using cron_suggestion.md.j2.
+  3. Operator must explicitly approve with: /dispatch cron approve <cron_id>
+  4. Only after approval does cron_manager.py install the entry to crontab.
+  5. All installed cron jobs are tracked in dispatch.db with their approval
+     timestamp, rationale, and current enabled status.
+
+--------------------------------------------------------------------------------
+SECTION 9: OPTIMUS AGENT
+--------------------------------------------------------------------------------
+
+Optimus is the "Optimization Agent" — a specialized Claude Code subagent
+defined in .claude/agents/optimus.md. It runs in an isolated context window
+with no access to the dispatch session, ensuring its analysis is unbiased.
+
+9.1 Agent Definition (.claude/agents/optimus.md)
+
+  The generated SKILL.md must produce the full content of this agent file.
+  Key fields:
+    name: optimus
+    description: Reviews dispatch task logs and session data to identify
+                 process improvements, tooling gaps, automation opportunities,
+                 and workflow optimizations. Triggered after task closure or
+                 by explicit /dispatch optimus invocation.
+    model: claude-opus-4-6
+    tools: Read, Bash(cat *), Bash(find *), Bash(python3 *), Write
+
+9.2 Optimus Invocation Triggers
+
+  Automatic (after task close):
+    - When a task transitions to COMPLETE, optimus_runner.py checks if all
+      tasks for the day are complete. If yes, Optimus is invoked for the day.
+    - If not all tasks are complete, Optimus is queued and runs at EOD.
+
+  Manual (operator-forced):
+    - /dispatch optimus: runs Optimus on all tasks in the current period,
+      including incomplete tasks.
+    - /dispatch optimus --period=week: runs Optimus across the current week's
+      task and session logs.
+
+9.3 Optimus Brief (optimus_brief.md)
+
+  optimus_runner.py generates this file before invoking Optimus. Contents:
+
+  ## Review Period
+  - Date range: {{ start_date }} to {{ end_date }}
+  - Total tasks: {{ task_count }}
+  - Completed: {{ completed }} | Deferred: {{ deferred }} | Abandoned: {{ abandoned }}
+
+  ## Task Log Paths
+  {{ task_log_paths }}  (list of paths for Optimus to read)
+
+  ## Session Data (JSON summary from dispatch.db)
+  {{ session_summary_json }}
+
+  ## Workflow Configuration
+  {{ workflow_yaml_contents }}
+
+  ## Optimus Instructions
+  You are Optimus, the workflow optimization agent for @zettatron's DevOps
+  dispatch system. You have no access to the operator's current session.
+  Your role is to perform a critical, data-driven analysis of the task logs,
+  bash command history, bottleneck records, and session metadata provided.
+
+  Produce an optimization report in the format defined in Section 9.4.
+  Ground every recommendation in specific evidence from the logs.
+  Do not hallucinate patterns not present in the data.
+  Label inferences as [INFERENCE] and observations as [OBSERVED].
+
+9.4 Optimus Report Format (optimus_report.md)
+
+  ---
+  period_start: <date>
+  period_end: <date>
+  tasks_reviewed: <integer>
+  total_findings: <integer>
+  findings_by_category:
+    tooling: <integer>
+    process: <integer>
+    automation: <integer>
+    mcp_integration: <integer>
+    workflow_gap: <integer>
+  generated_at: <ISO 8601>
+  ---
+
+  ## Executive Summary
+  (2-3 sentences: what period covered, top 3 findings, overall assessment)
+
+  ## Observed Patterns
+  (Data-driven observations from log evidence — no speculation)
+
+  ## Findings
+
+  ### [FINDING-001] <Title>
+  Category: tooling | process | automation | mcp_integration | workflow_gap
+  Severity: HIGH | MEDIUM | LOW
+  Evidence: (specific log entries, command patterns, timestamps)
+  Recommendation: (concrete, actionable change)
+  Implementation path: (how to implement — tool to install, config to add,
+                         workflow.yaml change, cron to add, etc.)
+  External reference: (link to authoritative resource if applicable)
+
+  ## Suggested Cron Jobs
+  (List of cron job candidates with rationale — each requires operator approval)
+
+  ## Suggested workflow.yaml Changes
+  (Diff-style before/after for any step modifications)
+
+  ## Suggested New Tools / MCPs / CLI Utilities
+  (For each: name, purpose, install command, integration point)
+
+  ## Optimus Knowledge Base Update
+  (Summary of what should be persisted to long-term knowledge — see Section 9.5)
+
+9.5 Long-Term Knowledge Persistence
+
+  Optimus maintains a local knowledge base at:
+    ~/.zsh/dispatch/optimus/
+    ├── knowledge.md              — cumulative findings and resolved items
+    ├── resolved_findings.md      — archive of implemented improvements
+    ├── pattern_library.yaml      — recurring patterns observed across periods
+    └── pending_improvements.yaml — improvements not yet implemented
+
+  NOTE on NotebookLM MCP: The operator's draft references NotebookLM MCP.
+  As of this prompt's authorship (April 2026), the NotebookLM MCP is not a
+  widely available, stable integration. The SKILL.md MUST implement the local
+  knowledge base above as the primary persistence mechanism. The NotebookLM
+  integration should be defined as an OPTIONAL extension in a dedicated section
+  at the end of the SKILL.md body, clearly labeled:
+
+    ## Optional: NotebookLM Integration (requires /notebook skill)
+    If the /notebook skill is installed and a NotebookLM MCP is available,
+    Optimus can additionally push findings to a NotebookLM notebook. This
+    section defines the push protocol. The local knowledge base is always
+    maintained regardless of NotebookLM availability.
+
+  This prevents the skill from being non-functional if the MCP is unavailable.
+
+--------------------------------------------------------------------------------
+SECTION 10: PERIOD REVIEWS
+--------------------------------------------------------------------------------
+
+10.1 Daily Review
+
+  Generated: automatically at EOD (cron) or via /dispatch review day
+  Source data: dispatch.db filtered to current day
+  Output: ~/.zsh/dispatch/{YYYY}/{MM}/{DD}/session.yaml + Optimus report
+
+  Sections:
+    - Day summary (tasks, steps, bottlenecks, Slack messages)
+    - Task disposition table (one row per task with status and duration)
+    - Bottleneck analysis (each bottleneck with resolution status)
+    - Bash command summary (top commands by frequency)
+    - Step performance (each step: duration, outcome, artifacts)
+    - Carry-forward list (tasks moving to tomorrow)
+    - Optimus highlights (top 3 findings)
+
+10.2 Weekly Review
+
+  Generated: automatically on Friday EOD or via /dispatch review week
+  Source data: dispatch.db filtered to Mon-Fri of current ISO week
+  Output: ~/.zsh/dispatch/{YYYY}/{MM}/{DD}/weekly_report.md (in Friday's dir)
+
+  Additional sections beyond daily:
+    - Trend analysis (tasks per day, bottlenecks per day, steps run)
+    - Recurring blockers (patterns across the week)
+    - MR review throughput (team MRs reviewed vs. open)
+    - Jira velocity (tickets moved vs. opened)
+    - Week-over-week delta (if prior week report exists)
+
+10.3 Monthly Review
+
+  Generated: last business day of month or via /dispatch review month
+  Output: ~/.zsh/dispatch/{YYYY}/{MM}/monthly_report.md
+
+  Additional sections:
+    - Month-over-month delta
+    - Tool and process improvement adoption rate (from Optimus recommendations)
+    - Recurring bottleneck types
+    - Workflow.yaml evolution log (changes made this month)
+
+--------------------------------------------------------------------------------
+SECTION 11: ENVIRONMENT PRE-VALIDATION
+--------------------------------------------------------------------------------
+
+scripts/check_env.py runs at every /dispatch invocation. Checks:
+
+  1. Python >= 3.10
+  2. Required packages: sqlite3 (stdlib), requests, jinja2, pyyaml
+  3. SQLite database accessible and schema current (run migrations if needed)
+  4. ~/.zsh/dispatch/ directory writable
+  5. workflow.yaml present and valid (parse and validate schema)
+  6. Slack MCP connectivity (call Slack MCP ping or equivalent)
+  7. /mr-review skill present at ~/.claude/skills/mr-review or symlink
+  8. /jira skill present at ~/.claude/skills/jira or symlink
+  9. claude binary on PATH (required for Optimus subprocess invocation)
+  10. .claude/hooks/ directory writable (for hook installation)
+  11. ANTHROPIC_API_KEY set (required for claude -p Optimus invocation)
+  12. git binary on PATH
+
+  On failure of any check, surface an actionable error and abort.
+  On success: ENV OK — dispatch environment validated.
+
+  python scripts/check_env.py [--verbose] [--json] [--fix]
+  --fix: attempt to create missing directories and install missing packages
+
+--------------------------------------------------------------------------------
+SECTION 12: OPERATIONAL GUARDRAILS
+--------------------------------------------------------------------------------
+
+Include this block verbatim at the top of the SKILL.md body:
+
+  ┌────────────────────────── DISPATCH GUARDRAILS ─────────────────────────────┐
+  │  GIT — NEVER WITHOUT EXPLICIT TASK-LEVEL PERMISSION                        │
+  │    • git add / git commit / git push blocked by hook unless                 │
+  │      task has git_permission: true in dispatch.db                           │
+  │    • git_permission is per-task, per-day — never global                    │
+  │    • Grant with: /dispatch task git-allow <jira-id>                        │
+  │                                                                            │
+  │  JIRA — READ-ONLY FROM DISPATCH                                            │
+  │    • JIRA_CALLER=dispatch always set when invoking /jira skill             │
+  │    • Dispatch cannot approve Jira write operations                          │
+  │    • Write operations require the operator to invoke /jira directly        │
+  │                                                                            │
+  │  GITLAB — READ-ONLY FROM DISPATCH                                          │
+  │    • Dispatch invokes /mr-review in read-only mode                         │
+  │    • No GitLab comments, approvals, or merges from dispatch                │
+  │                                                                            │
+  │  CRON — OPERATOR APPROVAL REQUIRED                                         │
+  │    • No cron entry is installed without explicit /dispatch cron approve    │
+  │    • All cron jobs tracked in dispatch.db with approval timestamp          │
+  │                                                                            │
+  │  OPTIMUS — ANALYSIS ONLY                                                   │
+  │    • Optimus produces reports and recommendations only                     │
+  │    • Optimus does not modify workflow.yaml, dispatch.db, or crontab        │
+  │    • Operator implements all Optimus recommendations manually              │
+  └────────────────────────────────────────────────────────────────────────────┘
+
+--------------------------------------------------------------------------------
+SECTION 13: SCAFFOLD GENERATION (/dispatch scaffold)
+--------------------------------------------------------------------------------
+
+On first invocation or when /dispatch scaffold is called, the skill generates
+the full directory and script structure. This is a one-time bootstrapping step.
+
+Generated artifacts:
+
+  ~/.zsh/dispatch/
+    workflow.yaml                  (populated with operator's defaults)
+    dispatch.db                    (SQLite, schema initialized)
+    cron/                          (empty, ready for cron configs)
+
+  /Users/sethallen/agent-skills/dispatch/
+    SKILL.md
+    scripts/
+      check_env.py
+      dispatch_runner.py
+      state_store.py
+      slack_notifier.py
+      optimus_runner.py
+      log_writer.py
+      cron_manager.py
+      bottleneck_detector.py
+    templates/
+      slack/
+        session_start.md.j2
+        step_complete.md.j2
+        blocker_detected.md.j2
+        bottleneck_detected.md.j2
+        task_started.md.j2
+        task_closed.md.j2
+        session_end.md.j2
+        cron_suggestion.md.j2
+      reports/
+        daily_report.md.j2
+        weekly_report.md.j2
+        monthly_report.md.j2
+        optimus_report.md.j2
+        task_log.md.j2
+    config/
+      dispatch.yaml                (skill-level config, separate from workflow)
+    .claude/
+      agents/
+        optimus.md                 (Optimus agent definition)
+      hooks/
+        post_bash.py
+        post_write.py
+        post_edit.py
+        pre_bash_guard.py
+    references/
+      workflow-schema.md           (full workflow.yaml schema documentation)
+      state-machine.md             (task lifecycle diagram and rules)
+      slack-templates.md           (template variable reference)
+
+  ~/.claude/skills/dispatch -> /Users/sethallen/agent-skills/dispatch/ (symlink)
+  ~/.claude/hooks/ -> /Users/sethallen/agent-skills/dispatch/.claude/hooks/
+                      (symlink or copy — per Claude Code hook install pattern)
+
+Scaffold generation requires operator confirmation before writing any files.
+A dry-run mode (/dispatch scaffold --dry-run) prints all paths to be created
+without writing anything.
+
+--------------------------------------------------------------------------------
+SECTION 14: CONTEXT WINDOW MANAGEMENT
+--------------------------------------------------------------------------------
+
+A full day's worth of task logs, bash command history, and sub-skill artifacts
+can easily exceed Claude Code's context window. The SKILL.md must define an
+explicit strategy for managing context across a multi-step day.
+
+14.1 Progressive Loading
+
+  - At session start, dispatch loads only: session.yaml, task.yaml (today),
+    carry_forward.yaml, and the relevant workflow.yaml steps.
+  - Sub-skill artifacts (review.md, jira exports) are summarized on load,
+    not fully expanded. The full artifact path is recorded; the content is
+    loaded on demand only when a step requires it.
+
+14.2 Compaction Triggers
+
+  - The dispatch SKILL.md instructs Claude Code to use /compact at defined
+    logical breakpoints: after each workflow step completes, before invoking
+    a sub-skill, before invoking Optimus.
+  - Compaction points are logged to session.yaml as context_compaction events.
+  - After compaction, dispatch_runner.py re-hydrates state from dispatch.db
+    (not from context memory), ensuring continuity.
+
+14.3 Optimus Context Isolation
+
+  Optimus runs as a subprocess (claude -p) with its own context window. It
+  receives only the optimus_brief.md and agent definition — it does not inherit
+  the dispatch session context. This is by design: a fresh context produces
+  more objective analysis.
+
+14.4 Large Log Handling
+
+  If a task's bash_commands.log exceeds 500 lines, dispatch_runner.py
+  generates a summarized version (bash_commands_summary.log) using frequency
+  analysis and de-duplication. Optimus receives the summary; the full log is
+  preserved on disk. The threshold is configurable in dispatch.yaml.
+
+--------------------------------------------------------------------------------
+SECTION 15: PRIORITY AND TRIAGE FRAMEWORK
+--------------------------------------------------------------------------------
+
+Dispatch operates across two systems (GitLab, Jira) that each have their own
+priority signals. The skill must synthesize these into a unified priority view.
+
+Priority scoring (computed by bottleneck_detector.py at session start):
+
+  P1 — CRITICAL: address immediately
+    - MR with failing pipeline, author waiting for review
+    - Jira ticket in BLOCKED state where operator is the blocker
+    - Teammate's MR open > 4 hours with 0 reviews from operator
+
+  P2 — HIGH: address before end of day
+    - Personal MR with review comments requiring response
+    - Jira ticket with unread @mentions from team lead or PM
+    - Team MR open > 24 hours
+
+  P3 — NORMAL: address within 2 days
+    - Team MR in draft state (awareness, not action required)
+    - Jira ticket in TO DO status assigned to operator
+    - Jira tickets where operator is CC'd
+
+  P4 — LOW: address when convenient
+    - Informational Jira comments without action required
+    - Team MRs with active reviews already in progress from others
+
+  At session start, dispatch_runner.py generates a prioritized work queue
+  and presents it to the operator before beginning the workflow steps:
+    "Today's priority queue:
+     [P1] Review PLAT-123 MR (teammate blocked)
+     [P2] Respond to review comments on branch feature/xyz
+     [P3] 3 team MRs awaiting review
+     Proceed with morning workflow? [Y/n]"
+
+--------------------------------------------------------------------------------
+SECTION 16: FAILURE HANDLING AND RECOVERY
+--------------------------------------------------------------------------------
+
+16.1 Step Failure Protocol
+
+  If a workflow step fails (sub-skill error, API timeout, hook exception):
+  1. The failure is recorded in step_log with error details.
+  2. A Slack notification is sent to #dispatch.
+  3. The step is marked FAILED in session.yaml.
+  4. The workflow continues to the next step (unless the failed step is marked
+     blocking: true in workflow.yaml, in which case the operator is prompted).
+  5. Failed steps are retried once automatically on next invocation.
+  6. After 3 consecutive failures of the same step, the step is disabled until
+     the operator manually re-enables it.
+
+16.2 Sub-Skill Failure Protocol
+
+  If /mr-review or /jira fail to produce an artifact:
+  - Dispatch records the failure and skips artifact collection for that step.
+  - The bottleneck detector does not run on missing data.
+  - A clear error is surfaced: "Step mr_review_personal produced no artifact.
+    Check /mr-review skill configuration. Continuing to next step."
+
+16.3 Slack MCP Unavailable
+
+  If the Slack MCP is unavailable:
+  - All pending notifications are queued in dispatch.db (notifications table,
+    status: PENDING).
+  - At the next successful Slack connection, queued notifications are sent in
+    chronological order (no dedup bypass — duplicates are still suppressed).
+  - A local fallback log is written: ~/.zsh/dispatch/{date}/slack_queue.yaml
+
+16.4 Database Corruption
+
+  If dispatch.db is corrupt or unreadable:
+  1. Attempt SQLite integrity check: PRAGMA integrity_check.
+  2. If corrupt: create dispatch.db.backup.<timestamp>, re-initialize schema.
+  3. Attempt to recover task records from filesystem (task.yaml files).
+  4. Surface a detailed recovery report to the operator.
+  5. Send Slack notification: "dispatch.db was corrupted and re-initialized.
+     Manual review of ~/.zsh/dispatch/ recommended."
+
+--------------------------------------------------------------------------------
+SECTION 17: PROMPT ENGINEERING REQUIREMENTS
+--------------------------------------------------------------------------------
+
+17.1 Precision and Imperative Mood
+  - All behavioral rules stated explicitly with imperative mood.
+  - Ambiguous terms defined on first use.
+  - The SKILL.md must state clearly: "This skill generates scaffolding on first
+    run. It is not functional without the generated scripts."
+
+17.2 Progressive Disclosure
+  - SKILL.md body: < 500 lines. Overflow into references/.
+  - References loaded only when the relevant step is active.
+  - Optimus agent loaded only when Optimus is invoked.
+
+17.3 Failure Mode Coverage
+  - Every major operation has a defined failure behavior (see Section 16).
+  - No operation silently fails. All failures are logged and surfaced.
+
+17.4 Idempotency
+  - All steps checkpointed. Re-running on same day resumes from last
+    completed checkpoint.
+  - /dispatch scaffold --dry-run always safe to run.
+  - Optimus invocation on already-reviewed period detects and skips.
+
+17.5 No Hallucination Guardrails
+  - Optimus findings must cite specific log evidence.
+  - Bottleneck detection must cite the specific resource and timestamp.
+  - Priority scoring must cite the specific data signal that drove it.
+  - [OBSERVED] vs [INFERENCE] tagging required throughout Optimus output.
+
+17.6 Extensibility Contract
+  - The SKILL.md must explicitly state: adding a new workflow step requires
+    only editing workflow.yaml. No skill code modification is needed.
+  - Adding a new Slack notification template requires only adding a .j2 file
+    to templates/slack/ and referencing it in workflow.yaml.
+  - Adding a new bottleneck condition requires only adding a condition block
+    to scripts/bottleneck_detector.py — no SKILL.md changes needed.
+
+--------------------------------------------------------------------------------
+IMPLEMENTATION REQUIREMENTS
+--------------------------------------------------------------------------------
+
+Create all of the following files inside the skill directory using the
+/skill-creator workflow. All files must be complete, production-quality, and
+immediately functional. Follow the skill-creator draft → test → iterate cycle,
+testing against the invocation patterns in Section 1 before finalizing.
+
+FILE 1: SKILL.md
+  - YAML frontmatter (name, description — description must be "pushy" and
+    trigger on all variants listed in Section 1)
+  - DISPATCH GUARDRAILS block immediately after frontmatter
+  - H2/H3 Markdown structure covering all sections
+  - References to scripts and templates with explicit load-when guidance
+  - < 500 lines body; reference files for overflow
+  - Must explicitly state the two-layer architecture constraint
+
+FILE 2: .claude/agents/optimus.md
+  - Complete agent definition as specified in Section 9.1
+  - Full system prompt for Optimus with output format requirements
+  - Tool allowlist and model specification
+
+FILE 3: workflow.yaml (initial template)
+  - Complete schema as defined in Section 3.1
+  - Operator defaults pre-populated
+  - All three default steps defined (mr_review_personal, mr_review_team,
+    jira_mentions)
+  - Schedule block with all three cron entries (unapproved by default)
+
+FILE 4: scripts/dispatch_runner.py (stub with full interface)
+  - argparse interface: --mode=[morning|eod|step|status]
+  - --step, --dry-run, --force-refresh, --no-slack flags
+  - All function signatures with docstrings
+  - Import structure for all sibling scripts
+  - Main execution loop outlined with checkpoint pattern
+
+FILE 5: scripts/state_store.py (stub with full interface)
+  - SQLite connection and schema initialization
+  - All table definitions
+  - CRUD functions for tasks, sessions, step_log, bash_log, notifications,
+    optimus_runs, bottlenecks
+  - Carry-forward generation function
+
+FILE 6: .claude/hooks/pre_bash_guard.py
+  - Complete implementation (not stub) — this is safety-critical
+  - Reads task context from dispatch.db
+  - Blocks git add/commit/push if git_permission is false
+  - Logs all bash commands to bash_log table regardless of permit/block
+
+================================================================================

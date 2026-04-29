@@ -1,0 +1,6 @@
+{% for var in config_vars %}
+variable "{{ var }}" {
+  type = string
+}
+
+{% endfor %}

@@ -1,0 +1,531 @@
+{
+  "id": 469430060,
+  "iid": 463,
+  "project_id": 50539459,
+  "title": "DSP-7993: make new config variables per-workspace",
+  "description": "## Description\n\n`SLAP_ACTIVE_MEMBER_SEARCH` _and_ `SLAP_REQUIRES_CONSENT_ERROR_PAGE` _should be configured per-workspace_\n\n## MR Checklist\n\n- [x] Is there a Jira ticket in the title of this MR?\n- [x] Are the summary notes in the Jira ticket filled in with a sentence describing the change to non-technical users?\n- [x] Has the `breaking` label been applied, if this is a breaking change?\n- [x] Has the `new-feature` label been added, if this change adds a new feature?\n\nCloses DSP-7993",
+  "state": "opened",
+  "created_at": "2026-03-31T19:55:44.609Z",
+  "updated_at": "2026-04-02T12:51:34.671Z",
+  "merged_by": null,
+  "merge_user": null,
+  "merged_at": null,
+  "closed_by": null,
+  "closed_at": null,
+  "target_branch": "qa",
+  "source_branch": "gmarx-DSP-7993",
+  "user_notes_count": 0,
+  "upvotes": 0,
+  "downvotes": 0,
+  "author": {
+    "id": 32024399,
+    "username": "gordon.marx",
+    "public_email": "",
+    "name": "Gordon Marx",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/32024399/avatar.png",
+    "web_url": "https://gitlab.com/gordon.marx"
+  },
+  "assignees": [
+    {
+      "id": 32024399,
+      "username": "gordon.marx",
+      "public_email": "",
+      "name": "Gordon Marx",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/32024399/avatar.png",
+      "web_url": "https://gitlab.com/gordon.marx"
+    }
+  ],
+  "assignee": {
+    "id": 32024399,
+    "username": "gordon.marx",
+    "public_email": "",
+    "name": "Gordon Marx",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/32024399/avatar.png",
+    "web_url": "https://gitlab.com/gordon.marx"
+  },
+  "reviewers": [],
+  "source_project_id": 50539459,
+  "target_project_id": 50539459,
+  "labels": [],
+  "draft": false,
+  "imported": false,
+  "imported_from": "none",
+  "work_in_progress": false,
+  "milestone": null,
+  "merge_when_pipeline_succeeds": false,
+  "merge_status": "can_be_merged",
+  "detailed_merge_status": "mergeable",
+  "merge_after": null,
+  "sha": "ae1c123a20849bae1c518d02c1a4e856c8823306",
+  "merge_commit_sha": null,
+  "squash_commit_sha": null,
+  "discussion_locked": null,
+  "should_remove_source_branch": null,
+  "force_remove_source_branch": true,
+  "prepared_at": "2026-03-31T19:55:47.479Z",
+  "reference": "!463",
+  "references": {
+    "short": "!463",
+    "relative": "!463",
+    "full": "abacusinsights/abacus-v2/next-gen-platform/onyx-infrastructure!463"
+  },
+  "web_url": "https://gitlab.com/abacusinsights/abacus-v2/next-gen-platform/onyx-infrastructure/-/merge_requests/463",
+  "time_stats": {
+    "time_estimate": 0,
+    "total_time_spent": 0,
+    "human_time_estimate": null,
+    "human_total_time_spent": null
+  },
+  "squash": false,
+  "squash_on_merge": false,
+  "task_completion_status": {
+    "count": 4,
+    "completed_count": 4
+  },
+  "has_conflicts": false,
+  "blocking_discussions_resolved": true,
+  "approvals_before_merge": null,
+  "subscribed": false,
+  "changes_count": "4",
+  "latest_build_started_at": "2026-03-31T19:53:25.029Z",
+  "latest_build_finished_at": "2026-03-31T19:56:34.280Z",
+  "first_deployed_to_production_at": null,
+  "pipeline": {
+    "id": 2421811419,
+    "iid": 4975,
+    "project_id": 50539459,
+    "sha": "ae1c123a20849bae1c518d02c1a4e856c8823306",
+    "ref": "gmarx-DSP-7993",
+    "status": "success",
+    "source": "push",
+    "created_at": "2026-03-31T19:53:20.419Z",
+    "updated_at": "2026-03-31T19:56:34.294Z",
+    "web_url": "https://gitlab.com/abacusinsights/abacus-v2/next-gen-platform/onyx-infrastructure/-/pipelines/2421811419"
+  },
+  "head_pipeline": {
+    "id": 2421811419,
+    "iid": 4975,
+    "project_id": 50539459,
+    "sha": "ae1c123a20849bae1c518d02c1a4e856c8823306",
+    "ref": "gmarx-DSP-7993",
+    "status": "success",
+    "source": "push",
+    "created_at": "2026-03-31T19:53:20.419Z",
+    "updated_at": "2026-03-31T19:56:34.294Z",
+    "web_url": "https://gitlab.com/abacusinsights/abacus-v2/next-gen-platform/onyx-infrastructure/-/pipelines/2421811419",
+    "before_sha": "0000000000000000000000000000000000000000",
+    "tag": false,
+    "yaml_errors": null,
+    "user": {
+      "id": 32024399,
+      "username": "gordon.marx",
+      "public_email": "",
+      "name": "Gordon Marx",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/32024399/avatar.png",
+      "web_url": "https://gitlab.com/gordon.marx"
+    },
+    "started_at": "2026-03-31T19:53:25.029Z",
+    "finished_at": "2026-03-31T19:56:34.280Z",
+    "committed_at": null,
+    "duration": 167,
+    "queued_duration": 4,
+    "coverage": null,
+    "detailed_status": {
+      "icon": "status_warning",
+      "text": "Warning",
+      "label": "passed with warnings",
+      "group": "success-with-warnings",
+      "tooltip": "passed with warnings",
+      "has_details": true,
+      "details_path": "/abacusinsights/abacus-v2/next-gen-platform/onyx-infrastructure/-/pipelines/2421811419",
+      "illustration": null,
+      "favicon": "/assets/ci_favicons/favicon_status_success-8451333011eee8ce9f2ab25dc487fe24a8758c694827a582f17f42b0a90446a2.png"
+    },
+    "archived": false
+  },
+  "diff_refs": {
+    "base_sha": "1da9ba9c5b397533769b008b1618bb8a9726e6e1",
+    "head_sha": "ae1c123a20849bae1c518d02c1a4e856c8823306",
+    "start_sha": "1da9ba9c5b397533769b008b1618bb8a9726e6e1"
+  },
+  "merge_error": null,
+  "first_contribution": false,
+  "user": {
+    "can_merge": true
+  },
+  "diffs": [
+    {
+      "diff": "@@ -21,3 +21,13 @@ config:\n       required: false\n       tfvar: true\n       type: str\n+    slap_requires_consent_error_page:\n+      description: \"Per-workspace map of whether SLAP shows a consent error page. Keys are workspace names, values are 'True' or 'False'.\"\n+      required: false\n+      tfvar: true\n+      type: map\n+    slap_active_member_search:\n+      description: \"Per-workspace map of whether SLAP restricts member search to active members only. Keys are workspace names, values are 'True' or 'False'.\"\n+      required: false\n+      tfvar: true\n+      type: map\n",
+      "collapsed": false,
+      "too_large": false,
+      "new_path": "terraform/layers/onyx/slap/deploy/luna-config-spec.yaml",
+      "old_path": "terraform/layers/onyx/slap/deploy/luna-config-spec.yaml",
+      "a_mode": "100644",
+      "b_mode": "100644",
+      "new_file": false,
+      "renamed_file": false,
+      "deleted_file": false,
+      "generated_file": false
+    },
+    {
+      "diff": "@@ -5,3 +5,19 @@ resource \"aws_ssm_parameter\" \"slap_irsa\" {\n   description = \"Used by ASCP in SLAP for retrieveing Database credentials\"\n   value       = module.slap_irsa[each.value].role_arn\n }\n+\n+resource \"aws_ssm_parameter\" \"slap_requires_consent_error_page\" {\n+  for_each    = var.onyx_enabled_workspaces\n+  name        = \"/${local.label}/config/nextgen.onyx.deploy/slap_requires_consent_error_page/${each.value}\"\n+  type        = \"String\"\n+  description = \"Whether SLAP should show a consent error page for workspace ${each.value}. Values: True or False.\"\n+  value       = lookup(var.slap_requires_consent_error_page, each.value, \"False\")\n+}\n+\n+resource \"aws_ssm_parameter\" \"slap_active_member_search\" {\n+  for_each    = var.onyx_enabled_workspaces\n+  name        = \"/${local.label}/config/nextgen.onyx.deploy/slap_active_member_search/${each.value}\"\n+  type        = \"String\"\n+  description = \"Whether SLAP should restrict member search to active members only for workspace ${each.value}. Values: True or False.\"\n+  value       = lookup(var.slap_active_member_search, each.value, \"False\")\n+}\n",
+      "collapsed": false,
+      "too_large": false,
+      "new_path": "terraform/layers/onyx/slap/ssm.tf",
+      "old_path": "terraform/layers/onyx/slap/ssm.tf",
+      "a_mode": "100644",
+      "b_mode": "100644",
+      "new_file": false,
+      "renamed_file": false,
+      "deleted_file": false,
+      "generated_file": false
+    },
+    {
+      "diff": "@@ -17,3 +17,15 @@ variable \"snapshot_to_restore\" {\n   description = \"The name of a snapshot to restore the Airbyte database from, rather than stand up a blank one.\"\n   type        = string\n }\n+\n+variable \"slap_requires_consent_error_page\" {\n+  description = \"Per-workspace flag controlling whether SLAP shows a consent error page. Values: 'True' or 'False'.\"\n+  type        = map(string)\n+  default     = {}\n+}\n+\n+variable \"slap_active_member_search\" {\n+  description = \"Per-workspace flag controlling whether SLAP restricts member search to active members only. Values: 'True' or 'False'.\"\n+  type        = map(string)\n+  default     = {}\n+}\n",
+      "collapsed": false,
+      "too_large": false,
+      "new_path": "terraform/layers/onyx/slap/variables.tf",
+      "old_path": "terraform/layers/onyx/slap/variables.tf",
+      "a_mode": "100644",
+      "b_mode": "100644",
+      "new_file": false,
+      "renamed_file": false,
+      "deleted_file": false,
+      "generated_file": false
+    },
+    {
+      "diff": "@@ -21,4 +21,6 @@ __pycache__/\n .flake8\n manifest.yaml\n .vscode\n+\n+# Cursor AI config (managed by dispatch-sync)\n .cursor/\n",
+      "collapsed": false,
+      "too_large": false,
+      "new_path": ".gitignore",
+      "old_path": ".gitignore",
+      "a_mode": "100644",
+      "b_mode": "100644",
+      "new_file": false,
+      "renamed_file": false,
+      "deleted_file": false,
+      "generated_file": false
+    }
+  ],
+  "discussions": [
+    {
+      "id": "70daa915a2e9d352adf43331755b21b977acea58",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3210705307,
+          "type": null,
+          "body": "assigned to @gordon.marx",
+          "author": {
+            "id": 32024399,
+            "username": "gordon.marx",
+            "public_email": "",
+            "name": "Gordon Marx",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/32024399/avatar.png",
+            "web_url": "https://gitlab.com/gordon.marx"
+          },
+          "created_at": "2026-03-31T19:55:44.784Z",
+          "updated_at": "2026-03-31T19:55:44.802Z",
+          "system": true,
+          "noteable_id": 469430060,
+          "noteable_type": "MergeRequest",
+          "project_id": 50539459,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 463,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "845952b98a74d6a9fc53c66682ae4bca6eb36992",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3216934796,
+          "type": null,
+          "body": "approved this merge request",
+          "author": {
+            "id": 34702854,
+            "username": "eric.shtivelberg",
+            "public_email": "",
+            "name": "Shtiv",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+            "web_url": "https://gitlab.com/eric.shtivelberg"
+          },
+          "created_at": "2026-04-02T12:51:34.549Z",
+          "updated_at": "2026-04-02T12:51:34.568Z",
+          "system": true,
+          "noteable_id": 469430060,
+          "noteable_type": "MergeRequest",
+          "project_id": 50539459,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 463,
+          "commands_changes": {}
+        }
+      ]
+    }
+  ],
+  "approvals": {
+    "id": 469430060,
+    "iid": 463,
+    "project_id": 50539459,
+    "title": "DSP-7993: make new config variables per-workspace",
+    "description": "## Description\n\n`SLAP_ACTIVE_MEMBER_SEARCH` _and_ `SLAP_REQUIRES_CONSENT_ERROR_PAGE` _should be configured per-workspace_\n\n## MR Checklist\n\n- [x] Is there a Jira ticket in the title of this MR?\n- [x] Are the summary notes in the Jira ticket filled in with a sentence describing the change to non-technical users?\n- [x] Has the `breaking` label been applied, if this is a breaking change?\n- [x] Has the `new-feature` label been added, if this change adds a new feature?\n\nCloses DSP-7993",
+    "state": "opened",
+    "created_at": "2026-03-31T19:55:44.609Z",
+    "updated_at": "2026-04-02T12:51:34.671Z",
+    "merge_status": "can_be_merged",
+    "approved": true,
+    "approvals_required": 1,
+    "approvals_left": 0,
+    "require_password_to_approve": false,
+    "approved_by": [
+      {
+        "user": {
+          "id": 34702854,
+          "username": "eric.shtivelberg",
+          "public_email": "",
+          "name": "Shtiv",
+          "state": "active",
+          "locked": false,
+          "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+          "web_url": "https://gitlab.com/eric.shtivelberg"
+        },
+        "approved_at": "2026-04-02T12:51:34.402Z"
+      }
+    ],
+    "suggested_approvers": [
+      {
+        "id": 3708312,
+        "username": "zettatron",
+        "public_email": "",
+        "name": "Seth Allen",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/3708312/avatar.png",
+        "web_url": "https://gitlab.com/zettatron"
+      },
+      {
+        "id": 5057824,
+        "username": "dave.loose",
+        "public_email": "",
+        "name": "Dave Loose",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/cb4c555252eca549f19cab89458eb8e6050426b3bb5a6a182d31f50f901f54be?s=80&d=identicon",
+        "web_url": "https://gitlab.com/dave.loose"
+      },
+      {
+        "id": 5622501,
+        "username": "luisanevers",
+        "public_email": "",
+        "name": "Luisa Nevers",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/5622501/avatar.png",
+        "web_url": "https://gitlab.com/luisanevers"
+      },
+      {
+        "id": 5938765,
+        "username": "srosenfeld",
+        "public_email": "",
+        "name": "Steve Rosenfeld",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/25c818116c8ce2c185043ca59ff2a1e141a9f8211eeb4dd1248b9dc41b734527?s=80&d=identicon",
+        "web_url": "https://gitlab.com/srosenfeld"
+      },
+      {
+        "id": 6248994,
+        "username": "alex_ai",
+        "public_email": "",
+        "name": "Alex Deng",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/6248994/avatar.png",
+        "web_url": "https://gitlab.com/alex_ai"
+      },
+      {
+        "id": 6729997,
+        "username": "matt_donaghey",
+        "public_email": "",
+        "name": "Matt Donaghey",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/c6cbcc03abbcff4ddd6a3b9848e2f56667ba177a287c5718a95cee4ed5b78cd5?s=80&d=identicon",
+        "web_url": "https://gitlab.com/matt_donaghey"
+      },
+      {
+        "id": 12925483,
+        "username": "pbhattarai",
+        "public_email": null,
+        "name": "Pradip Bhattarai",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/793771c2cbb3bc1674001c2e2842797ae2eb1d59f42f66d3baf196a93a9d51b6?s=80&d=identicon",
+        "web_url": "https://gitlab.com/pbhattarai"
+      },
+      {
+        "id": 13137916,
+        "username": "adhungana",
+        "public_email": null,
+        "name": "Aashish Dhungana",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/b036e34ee891ad0f99fc81249bfcfe724f64eb80055bfd62d4443b54c70c2fa0?s=80&d=identicon",
+        "web_url": "https://gitlab.com/adhungana"
+      },
+      {
+        "id": 14469776,
+        "username": "larry.king",
+        "public_email": "",
+        "name": "Larry King",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/14469776/avatar.png",
+        "web_url": "https://gitlab.com/larry.king"
+      },
+      {
+        "id": 15119047,
+        "username": "sumit_13",
+        "public_email": null,
+        "name": "Sumit Luitel",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/2001f885b245c0918a5b0cf1325057712d6fab3bb3477d1b42a816d5d045fa14?s=80&d=identicon",
+        "web_url": "https://gitlab.com/sumit_13"
+      },
+      {
+        "id": 18558367,
+        "username": "wei.wu1",
+        "public_email": null,
+        "name": "Wei Wu",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/73277a31f429129be140bac1e2b78c7085d2397b5233d03c670029c3a812eb9e?s=80&d=identicon",
+        "web_url": "https://gitlab.com/wei.wu1"
+      },
+      {
+        "id": 20761640,
+        "username": "mahendra-gautam",
+        "public_email": null,
+        "name": "Mahendra Gautam",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/058676a8c658492092816411b22515e6ec9ce614b21d75e493198a9fe3f42a1c?s=80&d=identicon",
+        "web_url": "https://gitlab.com/mahendra-gautam"
+      },
+      {
+        "id": 25756645,
+        "username": "inderjit.bassi",
+        "public_email": null,
+        "name": "Inderjit Bassi",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/82965ba9db48a279a6b1dad30a61c3bc2bf24c6b6d7114716b620e714a4c5ea4?s=80&d=identicon",
+        "web_url": "https://gitlab.com/inderjit.bassi"
+      },
+      {
+        "id": 27540410,
+        "username": "Rivlin.pereira",
+        "public_email": null,
+        "name": "Rivlin Pereira",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/e60c1edac688cb16a84f813ca373e584d8de9ecf21e2d356666008bd45719184?s=80&d=identicon",
+        "web_url": "https://gitlab.com/Rivlin.pereira"
+      },
+      {
+        "id": 29117917,
+        "username": "abdul.rahman.mohammad",
+        "public_email": null,
+        "name": "Abdul Rahman Mohammad",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/05ea1844e395b6313bcce2a543af85f8bc4681b7a35f57718269c8edec458d4f?s=80&d=identicon",
+        "web_url": "https://gitlab.com/abdul.rahman.mohammad"
+      },
+      {
+        "id": 30716559,
+        "username": "blaine.elliott",
+        "public_email": "",
+        "name": "Blaine Elliott",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/30716559/avatar.png",
+        "web_url": "https://gitlab.com/blaine.elliott"
+      },
+      {
+        "id": 30753158,
+        "username": "andrew.huddleston1",
+        "public_email": "",
+        "name": "Andrew Huddleston",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/30753158/avatar.png",
+        "web_url": "https://gitlab.com/andrew.huddleston1"
+      },
+      {
+        "id": 4971219,
+        "username": "overfl0wd",
+        "public_email": "",
+        "name": "dana taylor",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/4971219/avatar.png",
+        "web_url": "https://gitlab.com/overfl0wd"
+      },
+      {
+        "id": 5631801,
+        "username": "aitom",
+        "public_email": "",
+        "name": "Tom",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/5631801/avatar.png",
+        "web_url": "https://gitlab.com/aitom"
+      },
+      {
+        "id": 12171540,
+        "username": "bhuffman-sec",
+        "public_email": "",
+        "name": "Brad Huffman",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/12171540/avatar.png",
+        "web_url": "https://gitlab.com/bhuffman-sec"
+      }
+    ],
+    "approvers": [],
+    "approver_groups": [],
+    "user_has_approved": false,
+    "user_can_approve": true,
+    "approval_rules_left": [],
+    "has_approval_rules": true,
+    "merge_request_approvers_available": true,
+    "multiple_approval_rules_available": true,
+    "invalid_approvers_rules": []
+  }
+}

@@ -1,0 +1,187 @@
+---
+mr_id: {{ frontmatter.mr_id }}
+mr_iid: {{ frontmatter.mr_iid }}
+mr_url: "{{ frontmatter.mr_url }}"
+project: "{{ frontmatter.project }}"
+title: "{{ frontmatter.title }}"
+author: "{{ frontmatter.author }}"
+source_branch: "{{ frontmatter.source_branch }}"
+target_branch: "{{ frontmatter.target_branch }}"
+state: {{ frontmatter.state }}
+pipeline_status: {{ frontmatter.pipeline_status }}
+pipeline_url: {{ frontmatter.pipeline_url | default("null", true) }}
+has_conflicts: {{ frontmatter.has_conflicts | lower }}
+approvals_required: {{ frontmatter.approvals_required }}
+approvals_given: {{ frontmatter.approvals_given }}
+approved_by: {{ frontmatter.approved_by | tojson }}
+verdict_critical: {{ frontmatter.verdict_critical }}
+verdict_major: {{ frontmatter.verdict_major }}
+verdict_minor: {{ frontmatter.verdict_minor }}
+verdict_suggestion: {{ frontmatter.verdict_suggestion }}
+linked_issues: {{ frontmatter.linked_issues | tojson }}
+review_timestamp: "{{ frontmatter.review_timestamp }}"
+review_path: "{{ frontmatter.review_path }}"
+previous_review_path: {{ frontmatter.previous_review_path | default("null", true) }}
+skill_version: "{{ frontmatter.skill_version }}"
+jira_key: {{ frontmatter.jira_key | default("null", true) }}
+jira_url: {{ frontmatter.jira_url | default("null", true) }}
+---
+
+{% if is_draft %}
+> **DRAFT MR** — This MR is not marked as ready for review by its author.
+> Findings should be interpreted as early feedback rather than final review.
+{% endif %}
+
+## MR Summary
+
+| Field | Value |
+|-------|-------|
+| **Title** | {% if jira_key and jira_url %}{{ mr.title | replace(jira_key, '[' ~ jira_key ~ '](' ~ jira_url ~ ')') }}{% else %}{{ mr.title }}{% endif %} |
+{% if jira_key and jira_url %}| **Jira** | [{{ jira_key }}]({{ jira_url }}) |
+{% endif %}| **MR ID** | !{{ mr.iid }} |
+| **URL** | {{ mr.web_url }} |
+| **Author** | {{ mr.author }} |
+| **Source Branch** | `{{ mr.source_branch }}` |
+| **Target Branch** | `{{ mr.target_branch }}` |
+| **State** | {{ mr.state }} |
+| **Created** | {{ mr.created_at }} |
+| **Updated** | {{ mr.updated_at }} |
+
+{{ mr.description_summary }}
+
+{% if excluded_files %}
+### Excluded from Analysis
+
+{{ excluded_files.summary }}
+{% endif %}
+
+### Pipeline Status Block
+
+{% if pipeline.status == "failed" or pipeline.status == "canceled" %}
+> **PIPELINE FAILURE** — Review findings below are based on a branch with a
+> failing CI pipeline. Merge is blocked until the pipeline passes.
+{% elif not pipeline.exists %}
+> **NO PIPELINE** — No CI pipeline is associated with this MR.
+{% endif %}
+
+{% if pipeline.exists %}
+Pipeline: {{ pipeline.status }} | {{ pipeline.web_url }} | Duration: {{ pipeline.duration }} | Finished: {{ pipeline.finished_at }}
+{% endif %}
+
+### Merge Conflict Block
+
+{% if has_conflicts %}
+> **MERGE CONFLICTS DETECTED** — This MR cannot be merged in its current state.
+> Resolve conflicts in the source branch before proceeding with review.
+> (Review continues below for informational purposes only.)
+{% else %}
+Merge conflicts: None detected.
+{% endif %}
+
+### Approval Status Block
+
+Approvals: {{ approvals.given }}/{{ approvals.required }} required
+Approved by: {{ approvals.approved_by_str or "None" }}
+Pending rules: {{ approvals.pending_rules_str or "None" }}
+
+{% if linked_issues %}
+### Linked Issues Block
+
+{% for issue in linked_issues %}
+Issue #{{ issue.iid }}: {{ issue.title }} [{{ issue.state }}]
+{{ issue.url }}
+Summary: {{ issue.summary }}
+
+{% endfor %}
+{% else %}
+Linked issues: None detected via closing keywords.
+{% endif %}
+
+## Diff Analysis
+
+{% for file in diff_files %}
+### `{{ file.path }}` ({{ file.change_type }})
+
+{{ file.analysis }}
+
+{% for finding in file.findings %}
+**{{ finding.severity }}**: {{ finding.description }}
+
+```{{ finding.language }}
+{{ finding.code_snippet }}
+```
+
+{% if finding.recommendation %}
+Recommended:
+```{{ finding.language }}
+{{ finding.recommendation }}
+```
+{% endif %}
+
+{% endfor %}
+{% endfor %}
+
+## Existing Review Comments
+
+{% for comment in existing_comments %}
+**{{ comment.author }}** ({{ comment.timestamp }}):
+> {{ comment.body }}
+
+Assessment: **{{ comment.assessment }}**{% if comment.assessment_reason %} — {{ comment.assessment_reason }}{% endif %}
+
+{% endfor %}
+
+## Cross-Project Context
+
+{% if cross_project_refs %}
+{% for ref in cross_project_refs %}
+- **{{ ref.repo }}**: {{ ref.finding }}
+{% endfor %}
+{% else %}
+No cross-project dependencies identified.
+{% endif %}
+
+## Summary of Recommended Changes
+
+{% for finding in all_findings %}
+- **{{ finding.severity }}** — `{{ finding.file }}:{{ finding.line_range }}` — {{ finding.title }}
+{% endfor %}
+
+## External References
+
+{% for ref in external_references %}
+- {{ ref.context }}: [{{ ref.title }}]({{ ref.url }})
+{% endfor %}
+
+## Resolution Paths
+
+{% for item in resolution_paths %}
+### {{ item.severity }}: {{ item.title }}
+
+{{ item.steps }}
+
+{% endfor %}
+
+## Review Metadata
+
+- Review timestamp: {{ review_timestamp }}
+- Cache file: {{ cache_file_path }} (age: {{ cache_age }})
+- Skill version: {{ skill_version }}
+{% if cloned_repos %}
+- External repos cloned: {{ cloned_repos | join(", ") }}
+{% endif %}
+
+{% if review_delta %}
+## Review Delta
+
+Previous review: {{ review_delta.previous_path }}
+Previous timestamp: {{ review_delta.previous_timestamp }}
+
+### Changes Since Last Review
+
+**New findings**: {{ review_delta.new_count }}
+**Resolved**: {{ review_delta.resolved_count }}
+**Remaining**: {{ review_delta.remaining_count }}
+
+Net change: {% for sev, delta in review_delta.net_changes.items() %}{{ sev }}: {{ delta }}{% if not loop.last %} | {% endif %}{% endfor %}
+{% endif %}

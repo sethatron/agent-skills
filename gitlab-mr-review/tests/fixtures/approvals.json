@@ -1,0 +1,10 @@
+{
+  "approvals_required": 2,
+  "approvals_left": 1,
+  "approved_by": [
+    {"user": {"username": "alex_ai", "name": "Alex AI"}}
+  ],
+  "approval_rules_left": [
+    {"name": "Platform Team Lead"}
+  ]
+}

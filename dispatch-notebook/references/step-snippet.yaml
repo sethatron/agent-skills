@@ -1,0 +1,19 @@
+- id: morning_briefing_load
+  name: "Morning Briefing Intelligence"
+  skill: /dispatch-notebook
+  args: "briefing"
+  description: "Load NotebookLM intelligence briefing into session context"
+  on_blocker: log_and_continue
+  timeout_minutes: 2
+  tags: [notebook, morning]
+  enabled: true
+
+- id: notebook_update
+  name: "Notebook Source Update"
+  skill: /dispatch-notebook
+  args: "update"
+  description: "Refresh NotebookLM sources with latest framework state"
+  on_blocker: notify_slack
+  timeout_minutes: 15
+  tags: [notebook, eod]
+  enabled: true

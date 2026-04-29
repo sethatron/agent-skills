@@ -1,0 +1,547 @@
+{
+  "id": 466164208,
+  "iid": 672,
+  "project_id": 23971785,
+  "title": "[DSP-7003] Update dev,qa,client eks_source_ami for EKS 1.33",
+  "description": "I forgot to include this with the original batch of changes\n\n---\n\nI have confirmed that I have satisfied the following conditions in this merge request:\n\n- [x] All three baselines are populated for any luna-config changes\n- [x] Created Dispatch ticket for any luna-secrets changes required\n\nCloses DSP-7003",
+  "state": "opened",
+  "created_at": "2026-03-21T23:42:09.414Z",
+  "updated_at": "2026-03-24T02:01:21.695Z",
+  "merged_by": null,
+  "merge_user": {
+    "id": 3708312,
+    "username": "zettatron",
+    "public_email": "",
+    "name": "Seth Allen",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/3708312/avatar.png",
+    "web_url": "https://gitlab.com/zettatron"
+  },
+  "merged_at": null,
+  "closed_by": null,
+  "closed_at": null,
+  "target_branch": "master",
+  "source_branch": "DSP-7003",
+  "user_notes_count": 1,
+  "upvotes": 0,
+  "downvotes": 0,
+  "author": {
+    "id": 3708312,
+    "username": "zettatron",
+    "public_email": "",
+    "name": "Seth Allen",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/3708312/avatar.png",
+    "web_url": "https://gitlab.com/zettatron"
+  },
+  "assignees": [
+    {
+      "id": 3708312,
+      "username": "zettatron",
+      "public_email": "",
+      "name": "Seth Allen",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/3708312/avatar.png",
+      "web_url": "https://gitlab.com/zettatron"
+    }
+  ],
+  "assignee": {
+    "id": 3708312,
+    "username": "zettatron",
+    "public_email": "",
+    "name": "Seth Allen",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/3708312/avatar.png",
+    "web_url": "https://gitlab.com/zettatron"
+  },
+  "reviewers": [],
+  "source_project_id": 23971785,
+  "target_project_id": 23971785,
+  "labels": [],
+  "draft": false,
+  "imported": false,
+  "imported_from": "none",
+  "work_in_progress": false,
+  "milestone": null,
+  "merge_when_pipeline_succeeds": true,
+  "merge_status": "can_be_merged",
+  "detailed_merge_status": "not_approved",
+  "merge_after": null,
+  "sha": "4ecc1383572659610e277a9d5f950529a0f2c89c",
+  "merge_commit_sha": null,
+  "squash_commit_sha": null,
+  "discussion_locked": null,
+  "should_remove_source_branch": true,
+  "force_remove_source_branch": true,
+  "prepared_at": "2026-03-21T23:42:12.142Z",
+  "reference": "!672",
+  "references": {
+    "short": "!672",
+    "relative": "!672",
+    "full": "abacusinsights/lunatic-dove/luna-config-files!672"
+  },
+  "web_url": "https://gitlab.com/abacusinsights/lunatic-dove/luna-config-files/-/merge_requests/672",
+  "time_stats": {
+    "time_estimate": 0,
+    "total_time_spent": 0,
+    "human_time_estimate": null,
+    "human_total_time_spent": null
+  },
+  "squash": false,
+  "squash_on_merge": false,
+  "task_completion_status": {
+    "count": 2,
+    "completed_count": 2
+  },
+  "has_conflicts": false,
+  "blocking_discussions_resolved": true,
+  "approvals_before_merge": null,
+  "subscribed": true,
+  "changes_count": "4",
+  "latest_build_started_at": "2026-03-21T23:42:17.880Z",
+  "latest_build_finished_at": "2026-03-21T23:44:12.801Z",
+  "first_deployed_to_production_at": null,
+  "pipeline": {
+    "id": 2400518731,
+    "iid": 3192,
+    "project_id": 23971785,
+    "sha": "4ecc1383572659610e277a9d5f950529a0f2c89c",
+    "ref": "DSP-7003",
+    "status": "success",
+    "source": "push",
+    "created_at": "2026-03-21T23:42:11.151Z",
+    "updated_at": "2026-03-21T23:44:12.812Z",
+    "web_url": "https://gitlab.com/abacusinsights/lunatic-dove/luna-config-files/-/pipelines/2400518731"
+  },
+  "head_pipeline": {
+    "id": 2400518731,
+    "iid": 3192,
+    "project_id": 23971785,
+    "sha": "4ecc1383572659610e277a9d5f950529a0f2c89c",
+    "ref": "DSP-7003",
+    "status": "success",
+    "source": "push",
+    "created_at": "2026-03-21T23:42:11.151Z",
+    "updated_at": "2026-03-21T23:44:12.812Z",
+    "web_url": "https://gitlab.com/abacusinsights/lunatic-dove/luna-config-files/-/pipelines/2400518731",
+    "before_sha": "39e88b24c262ab39dab7a403c0b344cb4789871e",
+    "tag": false,
+    "yaml_errors": null,
+    "user": {
+      "id": 3708312,
+      "username": "zettatron",
+      "public_email": "",
+      "name": "Seth Allen",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/3708312/avatar.png",
+      "web_url": "https://gitlab.com/zettatron"
+    },
+    "started_at": "2026-03-21T23:42:17.880Z",
+    "finished_at": "2026-03-21T23:44:12.801Z",
+    "committed_at": null,
+    "duration": 104,
+    "queued_duration": 6,
+    "coverage": null,
+    "detailed_status": {
+      "icon": "status_warning",
+      "text": "Warning",
+      "label": "passed with warnings",
+      "group": "success-with-warnings",
+      "tooltip": "passed with warnings",
+      "has_details": true,
+      "details_path": "/abacusinsights/lunatic-dove/luna-config-files/-/pipelines/2400518731",
+      "illustration": null,
+      "favicon": "/assets/ci_favicons/favicon_status_success-8451333011eee8ce9f2ab25dc487fe24a8758c694827a582f17f42b0a90446a2.png"
+    },
+    "archived": false
+  },
+  "diff_refs": {
+    "base_sha": "ab4a2fc8c17778227e4cccea5d0db5aaa187bab9",
+    "head_sha": "4ecc1383572659610e277a9d5f950529a0f2c89c",
+    "start_sha": "ab4a2fc8c17778227e4cccea5d0db5aaa187bab9"
+  },
+  "merge_error": null,
+  "first_contribution": false,
+  "user": {
+    "can_merge": true
+  },
+  "diffs": [
+    {
+      "diff": "@@ -6,6 +6,9 @@ metadata:\n \n variables:\n   _:\n+    shared_ami_account: \"607786335520\"\n+    shared_kms_arn: \"arn:aws:kms:us-east-1:607786335520:key/mrk-9841ebec15e642f0aa63c30f1241cf66\"\n+\n     data_lake_ro_nextgen_roles:\n       - role_arn: \"arn:aws:iam::951193945349:role/abacus-compute-interactive-reader-dev\"\n         path: \"data-main/conn/v2/*\"\n@@ -30,7 +33,7 @@ variables:\n \n   data_ingestion_api:\n     enable: true\n-  \n+\n   trigger_snowflake_pipeline:\n     enable: true\n \n",
+      "collapsed": false,
+      "too_large": false,
+      "new_path": "connector/environment-specific-values/dev/luna-config-conntest1.yaml",
+      "old_path": "connector/environment-specific-values/dev/luna-config-conntest1.yaml",
+      "a_mode": "100644",
+      "b_mode": "100644",
+      "new_file": false,
+      "renamed_file": false,
+      "deleted_file": false,
+      "generated_file": false
+    },
+    {
+      "diff": "@@ -35,7 +35,7 @@ variables:\n   ecs:\n     ecs_source_ami_image_id_filter: ami-08448a644a9a06203 # 25.8\n   eks:\n-    eks_source_ami_image_id_filter: ami-012931d51cb2942a8 # 26.2 / eks 1.32\n+    eks_source_ami_image_id_filter: ami-0ea99efd5ea846c16 # 26.2 / eks 1.33\n     eks_worker_enable_monitoring: true\n     use_spot_instance: false\n     worker_group_desired_capacity: 3\n",
+      "collapsed": false,
+      "too_large": false,
+      "new_path": "platform/baseline-values/luna-config-client-baseline.yaml",
+      "old_path": "platform/baseline-values/luna-config-client-baseline.yaml",
+      "a_mode": "100644",
+      "b_mode": "100644",
+      "new_file": false,
+      "renamed_file": false,
+      "deleted_file": false,
+      "generated_file": false
+    },
+    {
+      "diff": "@@ -35,7 +35,7 @@ variables:\n     ecs_source_ami_image_id_filter: ami-08448a644a9a06203 # 25.8\n \n   eks:\n-    eks_source_ami_image_id_filter: ami-012931d51cb2942a8 # 26.2 / eks 1.32\n+    eks_source_ami_image_id_filter: ami-0ea99efd5ea846c16 # 26.2 / eks 1.33\n     eks_worker_enable_monitoring: true\n     use_spot_instance: false\n     worker_group_desired_capacity: 3\n",
+      "collapsed": false,
+      "too_large": false,
+      "new_path": "platform/baseline-values/luna-config-qa-baseline.yaml",
+      "old_path": "platform/baseline-values/luna-config-qa-baseline.yaml",
+      "a_mode": "100644",
+      "b_mode": "100644",
+      "new_file": false,
+      "renamed_file": false,
+      "deleted_file": false,
+      "generated_file": false
+    },
+    {
+      "diff": "@@ -11,7 +11,7 @@ variables:\n     tag_hitrust_phi: no\n \n     shared_ami_account: \"607786335520\"\n-    shared_kms_arn: \"arn:aws:kms:us-east-1:607786335520:key/806342da-5dae-4905-987c-948f3ead1581\"\n+    shared_kms_arn: \"arn:aws:kms:us-east-1:607786335520:key/mrk-9841ebec15e642f0aa63c30f1241cf66\"\n \n     global_lights_out_enabled: true\n     global_lights_out_schedule_off: cron(0 4 ? * * *)\n",
+      "collapsed": false,
+      "too_large": false,
+      "new_path": "seiji/environment-specific-values/seijidev/config-seijidev.yaml",
+      "old_path": "seiji/environment-specific-values/seijidev/config-seijidev.yaml",
+      "a_mode": "100644",
+      "b_mode": "100644",
+      "new_file": false,
+      "renamed_file": false,
+      "deleted_file": false,
+      "generated_file": false
+    }
+  ],
+  "discussions": [
+    {
+      "id": "39f93b0cc06e4f2c5dbcbdc68faabc67f026e71b",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3181028479,
+          "type": null,
+          "body": "assigned to @zettatron",
+          "author": {
+            "id": 3708312,
+            "username": "zettatron",
+            "public_email": "",
+            "name": "Seth Allen",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/3708312/avatar.png",
+            "web_url": "https://gitlab.com/zettatron"
+          },
+          "created_at": "2026-03-21T23:42:09.660Z",
+          "updated_at": "2026-03-21T23:42:09.666Z",
+          "system": true,
+          "noteable_id": 466164208,
+          "noteable_type": "MergeRequest",
+          "project_id": 23971785,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 672,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "c589e55df316bcd9455f5cd56c93dc61ba6474b7",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3181028498,
+          "type": null,
+          "body": "enabled an automatic merge when all merge checks for 4ecc1383572659610e277a9d5f950529a0f2c89c pass",
+          "author": {
+            "id": 3708312,
+            "username": "zettatron",
+            "public_email": "",
+            "name": "Seth Allen",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/3708312/avatar.png",
+            "web_url": "https://gitlab.com/zettatron"
+          },
+          "created_at": "2026-03-21T23:42:14.058Z",
+          "updated_at": "2026-03-21T23:42:14.062Z",
+          "system": true,
+          "noteable_id": 466164208,
+          "noteable_type": "MergeRequest",
+          "project_id": 23971785,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 672,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "64d71d4129d631bd62dc22a3a719fb8b76bca85a",
+      "individual_note": false,
+      "resolvable": true,
+      "resolved": false,
+      "notes": [
+        {
+          "id": 3185330762,
+          "type": "DiffNote",
+          "body": "Where are these being used?",
+          "author": {
+            "id": 25756645,
+            "username": "inderjit.bassi",
+            "public_email": null,
+            "name": "Inderjit Bassi",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://secure.gravatar.com/avatar/82965ba9db48a279a6b1dad30a61c3bc2bf24c6b6d7114716b620e714a4c5ea4?s=80&d=identicon",
+            "web_url": "https://gitlab.com/inderjit.bassi"
+          },
+          "created_at": "2026-03-24T02:01:21.660Z",
+          "updated_at": "2026-03-24T02:01:21.660Z",
+          "system": false,
+          "noteable_id": 466164208,
+          "noteable_type": "MergeRequest",
+          "project_id": 23971785,
+          "commit_id": null,
+          "position": {
+            "base_sha": "ab4a2fc8c17778227e4cccea5d0db5aaa187bab9",
+            "start_sha": "ab4a2fc8c17778227e4cccea5d0db5aaa187bab9",
+            "head_sha": "4ecc1383572659610e277a9d5f950529a0f2c89c",
+            "old_path": "connector/environment-specific-values/dev/luna-config-conntest1.yaml",
+            "new_path": "connector/environment-specific-values/dev/luna-config-conntest1.yaml",
+            "position_type": "text",
+            "old_line": null,
+            "new_line": 11,
+            "line_range": {
+              "start": {
+                "line_code": "833d02a1e7e1edd73978ad50eef28a715c7e986b_9_9",
+                "type": "new",
+                "old_line": null,
+                "new_line": 9
+              },
+              "end": {
+                "line_code": "833d02a1e7e1edd73978ad50eef28a715c7e986b_9_11",
+                "type": "new",
+                "old_line": null,
+                "new_line": 11
+              }
+            }
+          },
+          "resolvable": true,
+          "resolved": false,
+          "resolved_by": null,
+          "resolved_at": null,
+          "suggestions": [],
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 672,
+          "commands_changes": {}
+        }
+      ]
+    }
+  ],
+  "approvals": {
+    "id": 466164208,
+    "iid": 672,
+    "project_id": 23971785,
+    "title": "[DSP-7003] Update dev,qa,client eks_source_ami for EKS 1.33",
+    "description": "I forgot to include this with the original batch of changes\n\n---\n\nI have confirmed that I have satisfied the following conditions in this merge request:\n\n- [x] All three baselines are populated for any luna-config changes\n- [x] Created Dispatch ticket for any luna-secrets changes required\n\nCloses DSP-7003",
+    "state": "opened",
+    "created_at": "2026-03-21T23:42:09.414Z",
+    "updated_at": "2026-03-24T02:01:21.695Z",
+    "merge_status": "can_be_merged",
+    "approved": false,
+    "approvals_required": 1,
+    "approvals_left": 1,
+    "require_password_to_approve": false,
+    "approved_by": [],
+    "suggested_approvers": [
+      {
+        "id": 5938765,
+        "username": "srosenfeld",
+        "public_email": "",
+        "name": "Steve Rosenfeld",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/25c818116c8ce2c185043ca59ff2a1e141a9f8211eeb4dd1248b9dc41b734527?s=80&d=identicon",
+        "web_url": "https://gitlab.com/srosenfeld"
+      },
+      {
+        "id": 6248994,
+        "username": "alex_ai",
+        "public_email": "",
+        "name": "Alex Deng",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/6248994/avatar.png",
+        "web_url": "https://gitlab.com/alex_ai"
+      },
+      {
+        "id": 15119047,
+        "username": "sumit_13",
+        "public_email": null,
+        "name": "Sumit Luitel",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/2001f885b245c0918a5b0cf1325057712d6fab3bb3477d1b42a816d5d045fa14?s=80&d=identicon",
+        "web_url": "https://gitlab.com/sumit_13"
+      },
+      {
+        "id": 20761640,
+        "username": "mahendra-gautam",
+        "public_email": null,
+        "name": "Mahendra Gautam",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/058676a8c658492092816411b22515e6ec9ce614b21d75e493198a9fe3f42a1c?s=80&d=identicon",
+        "web_url": "https://gitlab.com/mahendra-gautam"
+      },
+      {
+        "id": 25756645,
+        "username": "inderjit.bassi",
+        "public_email": null,
+        "name": "Inderjit Bassi",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/82965ba9db48a279a6b1dad30a61c3bc2bf24c6b6d7114716b620e714a4c5ea4?s=80&d=identicon",
+        "web_url": "https://gitlab.com/inderjit.bassi"
+      },
+      {
+        "id": 27540410,
+        "username": "Rivlin.pereira",
+        "public_email": null,
+        "name": "Rivlin Pereira",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/e60c1edac688cb16a84f813ca373e584d8de9ecf21e2d356666008bd45719184?s=80&d=identicon",
+        "web_url": "https://gitlab.com/Rivlin.pereira"
+      },
+      {
+        "id": 30753158,
+        "username": "andrew.huddleston1",
+        "public_email": "",
+        "name": "Andrew Huddleston",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/30753158/avatar.png",
+        "web_url": "https://gitlab.com/andrew.huddleston1"
+      },
+      {
+        "id": 32024399,
+        "username": "gordon.marx",
+        "public_email": "",
+        "name": "Gordon Marx",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/32024399/avatar.png",
+        "web_url": "https://gitlab.com/gordon.marx"
+      },
+      {
+        "id": 34702854,
+        "username": "eric.shtivelberg",
+        "public_email": "",
+        "name": "Shtiv",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+        "web_url": "https://gitlab.com/eric.shtivelberg"
+      },
+      {
+        "id": 4971219,
+        "username": "overfl0wd",
+        "public_email": "",
+        "name": "dana taylor",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/4971219/avatar.png",
+        "web_url": "https://gitlab.com/overfl0wd"
+      },
+      {
+        "id": 5622501,
+        "username": "luisanevers",
+        "public_email": "",
+        "name": "Luisa Nevers",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/5622501/avatar.png",
+        "web_url": "https://gitlab.com/luisanevers"
+      },
+      {
+        "id": 5631801,
+        "username": "aitom",
+        "public_email": "",
+        "name": "Tom",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/5631801/avatar.png",
+        "web_url": "https://gitlab.com/aitom"
+      },
+      {
+        "id": 6729997,
+        "username": "matt_donaghey",
+        "public_email": "",
+        "name": "Matt Donaghey",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/c6cbcc03abbcff4ddd6a3b9848e2f56667ba177a287c5718a95cee4ed5b78cd5?s=80&d=identicon",
+        "web_url": "https://gitlab.com/matt_donaghey"
+      },
+      {
+        "id": 12171540,
+        "username": "bhuffman-sec",
+        "public_email": "",
+        "name": "Brad Huffman",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/12171540/avatar.png",
+        "web_url": "https://gitlab.com/bhuffman-sec"
+      },
+      {
+        "id": 14469776,
+        "username": "larry.king",
+        "public_email": "",
+        "name": "Larry King",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/14469776/avatar.png",
+        "web_url": "https://gitlab.com/larry.king"
+      }
+    ],
+    "approvers": [],
+    "approver_groups": [],
+    "user_has_approved": false,
+    "user_can_approve": false,
+    "approval_rules_left": [
+      {
+        "id": 1351348,
+        "name": "Dispatch/QA",
+        "rule_type": "regular"
+      }
+    ],
+    "has_approval_rules": true,
+    "merge_request_approvers_available": true,
+    "multiple_approval_rules_available": true,
+    "invalid_approvers_rules": []
+  }
+}

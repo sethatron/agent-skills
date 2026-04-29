@@ -1,0 +1,14 @@
+# {{ title }}
+
+{{ description }}
+
+{% for field in fields %}
+## {{ field.name }}
+
+**Value:** {{ field.value }}
+
+{% if field.explanation %}
+{{ field.explanation }}
+{% endif %}
+
+{% endfor %}

@@ -1,0 +1,59 @@
+# {{ skill.name }} Integration
+
+## Skills This Skill Reads
+
+{% if skill.reads %}
+| Skill | What Is Read | Purpose |
+|-------|-------------|---------|
+{%- for r in skill.reads %}
+| {{ r.skill }} | {{ r.what }} | {{ r.purpose }} |
+{%- endfor %}
+{% else %}
+This skill does not read from other skills.
+{% endif %}
+
+## Skills This Skill Calls
+
+{% if skill.calls %}
+| Skill | How Called | Purpose |
+|-------|-----------|---------|
+{%- for c in skill.calls %}
+| {{ c.skill }} | {{ c.how }} | {{ c.purpose }} |
+{%- endfor %}
+{% else %}
+This skill does not call other skills.
+{% endif %}
+
+## Contracts
+
+{% for contract in skill.contracts %}
+### {{ contract.direction }}: {{ contract.name }}
+
+Location: `{{ contract.location }}`
+
+{% if contract.schema %}
+```yaml
+{{ contract.schema }}
+```
+{% endif %}
+
+Consumers: {{ contract.consumers | join(", ") }}
+{% endfor %}
+
+{% if skill.ecosystem_entry %}
+## Registration in Ecosystem
+
+```yaml
+{{ skill.ecosystem_entry }}
+```
+{% endif %}
+
+{% if skill.downstream_changes %}
+## Downstream Changes
+
+| Target | Change | Reference |
+|--------|--------|-----------|
+{%- for ch in skill.downstream_changes %}
+| {{ ch.target }} | {{ ch.description }} | {{ ch.reference }} |
+{%- endfor %}
+{% endif %}

@@ -1,0 +1,458 @@
+{
+  "id": 470129130,
+  "iid": 575,
+  "project_id": 18874145,
+  "title": "[DSP-7955 1/2] Implement DAG cycle detection/resolution, additional context for error messages",
+  "description": "There are a few other miscellaneous small fixes here:\n\n* prevent timeouts/failed jobs from showing PASSED status\n* add failure reason metadata to dynamodb events table to pass that context back to the cli\n\nExample new notifications:\n\nmultiple cycles:\n\n![Screenshot 2026-04-02 at 11.18.31\u202fAM.png](/uploads/a67bff4d147a36b9377951a2711857ad/Screenshot_2026-04-02_at_11.18.31_AM.png){width=620 height=101}\n\nsingle cycle:\n\n![Screenshot 2026-04-02 at 11.17.34\u202fAM.png](/uploads/266bc1bf6df3ea89863a5bdf0ac7e8fd/Screenshot_2026-04-02_at_11.17.34_AM.png){width=467 height=83}\n\nDAG registration failure (rare, but could be caused by any number of reasons)\n\n![Screenshot 2026-04-02 at 11.18.09\u202fAM.png](/uploads/03178871eaa5c28d8d8bd38b9f3d4bbb/Screenshot_2026-04-02_at_11.18.09_AM.png){width=468 height=57}\n\nCloses DSP-7955",
+  "state": "opened",
+  "created_at": "2026-04-02T19:05:15.110Z",
+  "updated_at": "2026-04-02T19:09:25.819Z",
+  "merged_by": null,
+  "merge_user": {
+    "id": 3708312,
+    "username": "zettatron",
+    "public_email": "",
+    "name": "Seth Allen",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/3708312/avatar.png",
+    "web_url": "https://gitlab.com/zettatron"
+  },
+  "merged_at": null,
+  "closed_by": null,
+  "closed_at": null,
+  "target_branch": "master",
+  "source_branch": "DSP-7955",
+  "user_notes_count": 0,
+  "upvotes": 0,
+  "downvotes": 0,
+  "author": {
+    "id": 3708312,
+    "username": "zettatron",
+    "public_email": "",
+    "name": "Seth Allen",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/3708312/avatar.png",
+    "web_url": "https://gitlab.com/zettatron"
+  },
+  "assignees": [
+    {
+      "id": 3708312,
+      "username": "zettatron",
+      "public_email": "",
+      "name": "Seth Allen",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/3708312/avatar.png",
+      "web_url": "https://gitlab.com/zettatron"
+    }
+  ],
+  "assignee": {
+    "id": 3708312,
+    "username": "zettatron",
+    "public_email": "",
+    "name": "Seth Allen",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/3708312/avatar.png",
+    "web_url": "https://gitlab.com/zettatron"
+  },
+  "reviewers": [],
+  "source_project_id": 18874145,
+  "target_project_id": 18874145,
+  "labels": [],
+  "draft": false,
+  "imported": false,
+  "imported_from": "none",
+  "work_in_progress": false,
+  "milestone": null,
+  "merge_when_pipeline_succeeds": true,
+  "merge_status": "can_be_merged",
+  "detailed_merge_status": "not_approved",
+  "merge_after": null,
+  "sha": "9c34bdf5a1343a9c6441d03d7d727697c09e0b51",
+  "merge_commit_sha": null,
+  "squash_commit_sha": null,
+  "discussion_locked": null,
+  "should_remove_source_branch": true,
+  "force_remove_source_branch": true,
+  "prepared_at": "2026-04-02T19:05:18.459Z",
+  "reference": "!575",
+  "references": {
+    "short": "!575",
+    "relative": "!575",
+    "full": "abacusinsights/seiji/seiji-orchestrator!575"
+  },
+  "web_url": "https://gitlab.com/abacusinsights/seiji/seiji-orchestrator/-/merge_requests/575",
+  "time_stats": {
+    "time_estimate": 0,
+    "total_time_spent": 0,
+    "human_time_estimate": null,
+    "human_total_time_spent": null
+  },
+  "squash": false,
+  "squash_on_merge": false,
+  "task_completion_status": {
+    "count": 0,
+    "completed_count": 0
+  },
+  "has_conflicts": false,
+  "blocking_discussions_resolved": true,
+  "approvals_before_merge": null,
+  "subscribed": true,
+  "changes_count": "3",
+  "latest_build_started_at": null,
+  "latest_build_finished_at": null,
+  "first_deployed_to_production_at": null,
+  "pipeline": null,
+  "head_pipeline": {
+    "id": 2415399183,
+    "iid": 4191,
+    "project_id": 18874145,
+    "sha": "9c34bdf5a1343a9c6441d03d7d727697c09e0b51",
+    "ref": "DSP-7955",
+    "status": "success",
+    "source": "push",
+    "created_at": "2026-03-28T15:36:39.849Z",
+    "updated_at": "2026-03-28T15:49:40.231Z",
+    "web_url": "https://gitlab.com/abacusinsights/seiji/seiji-orchestrator/-/pipelines/2415399183",
+    "before_sha": "551e1b611ae98d727f98872eb4027c47a0809a0a",
+    "tag": false,
+    "yaml_errors": null,
+    "user": {
+      "id": 3708312,
+      "username": "zettatron",
+      "public_email": "",
+      "name": "Seth Allen",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/3708312/avatar.png",
+      "web_url": "https://gitlab.com/zettatron"
+    },
+    "started_at": "2026-03-28T15:36:42.315Z",
+    "finished_at": "2026-03-28T15:49:40.220Z",
+    "committed_at": null,
+    "duration": 761,
+    "queued_duration": 2,
+    "coverage": "59.00",
+    "detailed_status": {
+      "icon": "status_success",
+      "text": "Passed",
+      "label": "passed",
+      "group": "success",
+      "tooltip": "passed",
+      "has_details": true,
+      "details_path": "/abacusinsights/seiji/seiji-orchestrator/-/pipelines/2415399183",
+      "illustration": null,
+      "favicon": "/assets/ci_favicons/favicon_status_success-8451333011eee8ce9f2ab25dc487fe24a8758c694827a582f17f42b0a90446a2.png"
+    },
+    "archived": false
+  },
+  "diff_refs": {
+    "base_sha": "225739ef7588b8280716a9a02b68fc35ffbb8ff3",
+    "head_sha": "9c34bdf5a1343a9c6441d03d7d727697c09e0b51",
+    "start_sha": "225739ef7588b8280716a9a02b68fc35ffbb8ff3"
+  },
+  "merge_error": null,
+  "first_contribution": false,
+  "user": {
+    "can_merge": true
+  },
+  "diffs": [
+    {
+      "diff": "@@ -21,6 +21,7 @@ airflow_deploy_trigger_template = \"\"\"\n     \"seiji_config_update\": {{ seiji_config_update | default('') | tojson }}{% endif %}{% if terraform_cache_lock %},\n     \"terraform_cache_lock\": {{ terraform_cache_lock | default('') | tojson }}{% endif %},\n     \"refresh_deployed\": {{ refresh_deployed | default('false') | tojson }},\n-    \"operation\": {{ operation | default('run') | tojson }}\n+    \"operation\": {{ operation | default('run') | tojson }},\n+    \"fix_dag_cycle\": {{ fix_dag_cycle | default(false) | tojson }}\n }\n \"\"\"\n",
+      "collapsed": false,
+      "too_large": false,
+      "new_path": "seiji_orchestrator/core/adt.py",
+      "old_path": "seiji_orchestrator/core/adt.py",
+      "a_mode": "100644",
+      "b_mode": "100644",
+      "new_file": false,
+      "renamed_file": false,
+      "deleted_file": false,
+      "generated_file": false
+    },
+    {
+      "diff": "@@ -87,6 +87,7 @@ class SeijiDeploymentAirflow(object):\n     refresh_deployed: bool = attr.ib(default=False, kw_only=True)\n     operation: str = attr.ib(default='run', kw_only=True)\n     timestamps: bool = attr.ib(default=False, kw_only=True)\n+    fix_dag_cycle: bool = attr.ib(default=False, kw_only=True)\n \n     @property\n     def show_timestamps(self) -> bool:\n@@ -270,6 +271,7 @@ class SeijiDeploymentAirflow(object):\n             terraform_cache_lock=self.terraform_cache_lock,\n             refresh_deployed=self.refresh_deployed,\n             operation=self.operation,\n+            fix_dag_cycle=self.fix_dag_cycle,\n         )\n \n         if self.debug:\n@@ -336,6 +338,17 @@ class SeijiDeploymentAirflow(object):\n             LOGGER.info(f\"Error retrieving deployment status from DynamoDB: {str(e)}\")\n             return None\n \n+    def check_deployment_details(self):\n+        dynamodb_client = self.get_dynamodb_client()\n+        table_name = f\"{self.label}-adt-event-state\"\n+        try:\n+            response = dynamodb_client.get_item(TableName=table_name, Key={'event_uuid': {'S': self.event_uuid}})\n+            if 'Item' in response and 'details' in response['Item']:\n+                return response['Item']['details']['S']\n+        except ClientError as e:\n+            LOGGER.debug(f\"Error retrieving deployment details: {e}\")\n+        return None\n+\n     def delete_dynamodb_entry(self):\n         \"\"\"Delete an entry from the DynamoDB table based on event_uuid.\"\"\"\n         dynamodb_client = self.get_dynamodb_client()\n@@ -432,11 +445,14 @@ class SeijiDeploymentAirflow(object):\n \n         signal.signal(signal.SIGINT, signal_handler)\n \n+        self.deployment_status = None\n+\n         with yaspin(text=\"Looking for logs ...\", color=\"cyan\") as spinner:\n             spinner_ref = spinner\n             while not deployment_complete and (time.time() - start_time < timeout) and not panic:\n                 status = self.check_deployment_status()\n-                if status in [\"SUCCESS\", \"FAILED_MAX_RETRIES\", \"EXCLUDED\"]:\n+                if status in [\"SUCCESS\", \"FAILED\", \"FAILED_MAX_RETRIES\", \"DAG_CYCLE\", \"EXCLUDED\"]:\n+                    self.deployment_status = status\n                     if status == \"EXCLUDED\":\n                         self.excluded = True\n                     deployment_complete = True\n@@ -451,6 +467,9 @@ class SeijiDeploymentAirflow(object):\n                     if logs_active:\n                         logs_active = False\n \n+            if not deployment_complete:\n+                self.deployment_status = 'TIMEOUT'\n+\n             signal.signal(signal.SIGINT, signal.SIG_DFL)\n \n     def get_ready_pods(self, v1, namespace, label_selector):\n@@ -627,6 +646,20 @@ class SeijiDeploymentAirflow(object):\n                 LOGGER.info(f'\\033[91m\\nRecommended Actions: \\n{failed_components_formatted}\\033[0m')\n         elif self.excluded:\n             self.print_in_box('All components in event are excluded via airflow_cd.exclusions', color_code=\"\\033[33m\")\n+        elif getattr(self, 'deployment_status', None) == 'DAG_CYCLE':\n+            self.deployment_status_code = 1\n+            details = self.check_deployment_details()\n+            self.print_in_box(\"DAG failed to register \u2014 dependency cycle detected\", color_code=\"\\033[91m\")\n+            if details:\n+                LOGGER.info(f'\\033[91m{details}\\033[0m')\n+            LOGGER.info('\\033[33mFix the luna-dependencies.yaml in the packages above to remove the '\n+                        'circular reference.\\033[0m')\n+        elif getattr(self, 'deployment_status', None) == 'FAILED':\n+            self.deployment_status_code = 1\n+            self.print_in_box(\"DAG failed to register \u2014 check Slack for details\", color_code=\"\\033[91m\")\n+        elif getattr(self, 'deployment_status', None) == 'TIMEOUT':\n+            self.deployment_status_code = 1\n+            self.print_in_box(\"Deployment timed out waiting for status\", color_code=\"\\033[91m\")\n         else:\n             self.print_in_box(\"All components deployed successfully!\", color_code=\"\\033[92m\")\n \n",
+      "collapsed": false,
+      "too_large": false,
+      "new_path": "seiji_orchestrator/core/airflow.py",
+      "old_path": "seiji_orchestrator/core/airflow.py",
+      "a_mode": "100644",
+      "b_mode": "100644",
+      "new_file": false,
+      "renamed_file": false,
+      "deleted_file": false,
+      "generated_file": false
+    },
+    {
+      "diff": "@@ -208,6 +208,13 @@ NO_CACHE_OPTION = typer.Option(\n     show_default=True\n )\n \n+FIX_DAG_CYCLE_OPTION = typer.Option(\n+    False,\n+    '--fix-dag-cycle',\n+    help='Break dependency cycle edges instead of failing DAG registration',\n+    show_default=True\n+)\n+\n CLEANUP_OPTION = typer.Option(\n     True,\n     '--cleanup/--no-cleanup',\n@@ -516,7 +523,8 @@ def apply(\n     debug_logging: bool = DEBUG_LOGGING_OPTION,\n     airflow_debug: bool = AIRFLOW_DEBUG_OPTION,\n     airflow_timestamps: bool = AIRFLOW_TIMESTAMPS_OPTION,\n-    no_cache: bool = NO_CACHE_OPTION\n+    no_cache: bool = NO_CACHE_OPTION,\n+    fix_dag_cycle: bool = FIX_DAG_CYCLE_OPTION\n ):\n \n     # check principal early to get original AWS username and carry over across executions\n@@ -603,6 +611,7 @@ def run(\n     airflow_debug: bool = AIRFLOW_DEBUG_OPTION,\n     airflow_timestamps: bool = AIRFLOW_TIMESTAMPS_OPTION,\n     no_cache: bool = NO_CACHE_OPTION,\n+    fix_dag_cycle: bool = FIX_DAG_CYCLE_OPTION,\n     cleanup: bool = CLEANUP_OPTION,\n     use_dev_cluster: bool = KUBERNETES_DEVELOPMENT_CLUSTER_OPTION,\n     skip_lightswitch_check: bool = SKIP_LIGHTSWITCH_CHECK_OPTION,\n@@ -787,6 +796,7 @@ def deployer_execute(\n     airflow_debug: bool = False,\n     airflow_timestamps: bool = False,\n     no_cache: bool = False,\n+    fix_dag_cycle: bool = False,\n     cleanup: bool = True,\n     kubernetes_dev_path: Path = None,\n     use_dev_cluster: bool = False,\n@@ -827,6 +837,7 @@ def deployer_execute(\n                               'airflow_debug': '--airflow-debug',\n                               'airflow_timestamps': '--timestamps',\n                               'no_cache': '--no-cache',\n+                              'fix_dag_cycle': '--fix-dag-cycle',\n                               'cleanup': '--cleanup/--no-cleanup',\n                               'refresh_deployed': '--refresh-deployed',\n                               'script_retries': '--script-retries'}\n@@ -881,7 +892,8 @@ def deployer_execute(\n                                                   refresh_deployed=refresh_deployed,\n                                                   script_retries=script_retries,\n                                                   operation=operation,\n-                                                  timestamps=airflow_timestamps)\n+                                                  timestamps=airflow_timestamps,\n+                                                  fix_dag_cycle=fix_dag_cycle)\n \n         deployment_status_code = airflow_executor.deploy_airflow()\n \n",
+      "collapsed": false,
+      "too_large": false,
+      "new_path": "seiji_orchestrator/core/commands.py",
+      "old_path": "seiji_orchestrator/core/commands.py",
+      "a_mode": "100644",
+      "b_mode": "100644",
+      "new_file": false,
+      "renamed_file": false,
+      "deleted_file": false,
+      "generated_file": false
+    }
+  ],
+  "discussions": [
+    {
+      "id": "571698bbd5d20c3e39841733fd82fb87dbb16961",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3218199602,
+          "type": null,
+          "body": "assigned to @zettatron",
+          "author": {
+            "id": 3708312,
+            "username": "zettatron",
+            "public_email": "",
+            "name": "Seth Allen",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/3708312/avatar.png",
+            "web_url": "https://gitlab.com/zettatron"
+          },
+          "created_at": "2026-04-02T19:05:15.335Z",
+          "updated_at": "2026-04-02T19:05:15.340Z",
+          "system": true,
+          "noteable_id": 470129130,
+          "noteable_type": "MergeRequest",
+          "project_id": 18874145,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 575,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "a95644eb72e2dfa3b2b4eb066c4819a4af40534f",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3218207561,
+          "type": null,
+          "body": "enabled an automatic merge when all merge checks for 9c34bdf5a1343a9c6441d03d7d727697c09e0b51 pass",
+          "author": {
+            "id": 3708312,
+            "username": "zettatron",
+            "public_email": "",
+            "name": "Seth Allen",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/3708312/avatar.png",
+            "web_url": "https://gitlab.com/zettatron"
+          },
+          "created_at": "2026-04-02T19:09:25.782Z",
+          "updated_at": "2026-04-02T19:09:25.785Z",
+          "system": true,
+          "noteable_id": 470129130,
+          "noteable_type": "MergeRequest",
+          "project_id": 18874145,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 575,
+          "commands_changes": {}
+        }
+      ]
+    }
+  ],
+  "approvals": {
+    "id": 470129130,
+    "iid": 575,
+    "project_id": 18874145,
+    "title": "[DSP-7955 1/2] Implement DAG cycle detection/resolution, additional context for error messages",
+    "description": "There are a few other miscellaneous small fixes here:\n\n* prevent timeouts/failed jobs from showing PASSED status\n* add failure reason metadata to dynamodb events table to pass that context back to the cli\n\nExample new notifications:\n\nmultiple cycles:\n\n![Screenshot 2026-04-02 at 11.18.31\u202fAM.png](/uploads/a67bff4d147a36b9377951a2711857ad/Screenshot_2026-04-02_at_11.18.31_AM.png){width=620 height=101}\n\nsingle cycle:\n\n![Screenshot 2026-04-02 at 11.17.34\u202fAM.png](/uploads/266bc1bf6df3ea89863a5bdf0ac7e8fd/Screenshot_2026-04-02_at_11.17.34_AM.png){width=467 height=83}\n\nDAG registration failure (rare, but could be caused by any number of reasons)\n\n![Screenshot 2026-04-02 at 11.18.09\u202fAM.png](/uploads/03178871eaa5c28d8d8bd38b9f3d4bbb/Screenshot_2026-04-02_at_11.18.09_AM.png){width=468 height=57}\n\nCloses DSP-7955",
+    "state": "opened",
+    "created_at": "2026-04-02T19:05:15.110Z",
+    "updated_at": "2026-04-02T19:09:25.819Z",
+    "merge_status": "can_be_merged",
+    "approved": false,
+    "approvals_required": 1,
+    "approvals_left": 1,
+    "require_password_to_approve": false,
+    "approved_by": [],
+    "suggested_approvers": [
+      {
+        "id": 5938765,
+        "username": "srosenfeld",
+        "public_email": "",
+        "name": "Steve Rosenfeld",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/25c818116c8ce2c185043ca59ff2a1e141a9f8211eeb4dd1248b9dc41b734527?s=80&d=identicon",
+        "web_url": "https://gitlab.com/srosenfeld"
+      },
+      {
+        "id": 6248994,
+        "username": "alex_ai",
+        "public_email": "",
+        "name": "Alex Deng",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/6248994/avatar.png",
+        "web_url": "https://gitlab.com/alex_ai"
+      },
+      {
+        "id": 15119047,
+        "username": "sumit_13",
+        "public_email": null,
+        "name": "Sumit Luitel",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/2001f885b245c0918a5b0cf1325057712d6fab3bb3477d1b42a816d5d045fa14?s=80&d=identicon",
+        "web_url": "https://gitlab.com/sumit_13"
+      },
+      {
+        "id": 20761640,
+        "username": "mahendra-gautam",
+        "public_email": null,
+        "name": "Mahendra Gautam",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/058676a8c658492092816411b22515e6ec9ce614b21d75e493198a9fe3f42a1c?s=80&d=identicon",
+        "web_url": "https://gitlab.com/mahendra-gautam"
+      },
+      {
+        "id": 25756645,
+        "username": "inderjit.bassi",
+        "public_email": null,
+        "name": "Inderjit Bassi",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/82965ba9db48a279a6b1dad30a61c3bc2bf24c6b6d7114716b620e714a4c5ea4?s=80&d=identicon",
+        "web_url": "https://gitlab.com/inderjit.bassi"
+      },
+      {
+        "id": 27540410,
+        "username": "Rivlin.pereira",
+        "public_email": null,
+        "name": "Rivlin Pereira",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/e60c1edac688cb16a84f813ca373e584d8de9ecf21e2d356666008bd45719184?s=80&d=identicon",
+        "web_url": "https://gitlab.com/Rivlin.pereira"
+      },
+      {
+        "id": 30753158,
+        "username": "andrew.huddleston1",
+        "public_email": "",
+        "name": "Andrew Huddleston",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/30753158/avatar.png",
+        "web_url": "https://gitlab.com/andrew.huddleston1"
+      },
+      {
+        "id": 32024399,
+        "username": "gordon.marx",
+        "public_email": "",
+        "name": "Gordon Marx",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/32024399/avatar.png",
+        "web_url": "https://gitlab.com/gordon.marx"
+      },
+      {
+        "id": 34702854,
+        "username": "eric.shtivelberg",
+        "public_email": "",
+        "name": "Shtiv",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+        "web_url": "https://gitlab.com/eric.shtivelberg"
+      },
+      {
+        "id": 4971219,
+        "username": "overfl0wd",
+        "public_email": "",
+        "name": "dana taylor",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/4971219/avatar.png",
+        "web_url": "https://gitlab.com/overfl0wd"
+      },
+      {
+        "id": 5622501,
+        "username": "luisanevers",
+        "public_email": "",
+        "name": "Luisa Nevers",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/5622501/avatar.png",
+        "web_url": "https://gitlab.com/luisanevers"
+      },
+      {
+        "id": 5631801,
+        "username": "aitom",
+        "public_email": "",
+        "name": "Tom",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/5631801/avatar.png",
+        "web_url": "https://gitlab.com/aitom"
+      },
+      {
+        "id": 6729997,
+        "username": "matt_donaghey",
+        "public_email": "",
+        "name": "Matt Donaghey",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/c6cbcc03abbcff4ddd6a3b9848e2f56667ba177a287c5718a95cee4ed5b78cd5?s=80&d=identicon",
+        "web_url": "https://gitlab.com/matt_donaghey"
+      },
+      {
+        "id": 12171540,
+        "username": "bhuffman-sec",
+        "public_email": "",
+        "name": "Brad Huffman",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/12171540/avatar.png",
+        "web_url": "https://gitlab.com/bhuffman-sec"
+      },
+      {
+        "id": 14469776,
+        "username": "larry.king",
+        "public_email": "",
+        "name": "Larry King",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/14469776/avatar.png",
+        "web_url": "https://gitlab.com/larry.king"
+      }
+    ],
+    "approvers": [],
+    "approver_groups": [],
+    "user_has_approved": false,
+    "user_can_approve": false,
+    "approval_rules_left": [
+      {
+        "id": 50329725,
+        "name": "team-dispatch",
+        "rule_type": "regular"
+      }
+    ],
+    "has_approval_rules": true,
+    "merge_request_approvers_available": true,
+    "multiple_approval_rules_available": true,
+    "invalid_approvers_rules": []
+  }
+}

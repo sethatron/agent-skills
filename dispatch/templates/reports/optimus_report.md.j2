@@ -1,0 +1,57 @@
+---
+period_start: {{ period_start }}
+period_end: {{ period_end }}
+tasks_reviewed: {{ tasks_reviewed }}
+total_findings: {{ total_findings }}
+findings_by_category:
+  tooling: {{ findings_tooling }}
+  process: {{ findings_process }}
+  automation: {{ findings_automation }}
+  mcp_integration: {{ findings_mcp }}
+  workflow_gap: {{ findings_workflow }}
+generated_at: {{ generated_at }}
+---
+
+## Executive Summary
+
+{{ executive_summary }}
+
+## Observed Patterns
+
+{% for pattern in patterns %}
+- [OBSERVED] {{ pattern }}
+{% endfor %}
+
+## Findings
+
+{% for finding in findings %}
+### [FINDING-{{ "%03d" | format(loop.index) }}] {{ finding.title }}
+
+Category: {{ finding.category }}
+Severity: {{ finding.severity }}
+Evidence: {{ finding.evidence }}
+Recommendation: {{ finding.recommendation }}
+Implementation path: {{ finding.implementation }}
+{% if finding.external_ref %}External reference: {{ finding.external_ref }}{% endif %}
+
+{% endfor %}
+
+## Suggested Cron Jobs
+
+{% for cron in suggested_crons %}
+- `{{ cron.expression }}` — {{ cron.rationale }}
+{% endfor %}
+
+## Suggested workflow.yaml Changes
+
+{% for change in workflow_changes %}
+{{ change }}
+{% endfor %}
+
+## Suggested New Tools
+
+{% for tool in suggested_tools %}
+- **{{ tool.name }}**: {{ tool.purpose }}
+  Install: `{{ tool.install }}`
+  Integration: {{ tool.integration }}
+{% endfor %}

@@ -1,0 +1,17 @@
+#!/bin/bash
+
+set -euE -o pipefail
+
+source scripts/terraform/deploy_functions.sh
+
+cd $(dirname $(dirname ${BASH_SOURCE[0]}))
+
+init_terraform
+
+if echo $* | grep -e "--auto-approve"; then
+  echo "[INFO] Running Terraform destroy with auto-approve"
+  terraform destroy --auto-approve
+else
+  echo "[INFO] Running Terraform destroy with manual approval required"
+  terraform destroy
+fi

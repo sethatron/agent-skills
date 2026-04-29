@@ -1,0 +1,14 @@
+---
+name: "Task Context"
+description: "Query triggered on /dispatch task start if task has tags"
+default_timeout: 30
+queries:
+  - id: tc_task_context
+    name: "Task Context"
+    question: "What relevant patterns, prior blockers, or framework context exists for tasks tagged '<task_tags>'? Include Optimus findings or session summaries."
+    timeout_seconds: 30
+    cache_hours: 20
+    output_section: task_context
+    runtime_substitutions:
+      - placeholder: "<task_tags>"
+        source: "task.tags"

@@ -1,0 +1,57 @@
+---
+date: {{ date }}
+type: daily
+---
+
+# Daily Dispatch Report — {{ date }}
+
+## Day Summary
+
+| Metric | Value |
+|--------|-------|
+| Tasks started | {{ tasks_started }} |
+| Tasks closed | {{ tasks_closed }} |
+| Tasks deferred | {{ tasks_deferred }} |
+| Steps completed | {{ steps_completed }} |
+| Steps failed | {{ steps_failed }} |
+| Bottlenecks detected | {{ bottleneck_count }} |
+| Slack messages sent | {{ slack_count }} |
+| Bash commands | {{ bash_count }} |
+
+## Task Disposition
+
+| Task | Status | Duration | Priority |
+|------|--------|----------|----------|
+{% for task in tasks %}
+| {{ task.task_id }} | {{ task.status }} | {{ task.duration }} | P{{ task.priority }} |
+{% endfor %}
+
+## Bottleneck Analysis
+
+{% for b in bottlenecks %}
+### {{ b.severity }}: {{ b.type }}
+- Resource: {{ b.resource_id }}
+- Detected: {{ b.detected_at }}
+- Resolved: {{ b.resolved_at or "Unresolved" }}
+{% endfor %}
+
+## Step Performance
+
+{% for step in steps %}
+- **{{ step.name }}**: {{ step.duration }} — {{ step.status }}{% if step.artifact_path %} → {{ step.artifact_path }}{% endif %}
+
+{% endfor %}
+
+## Carry-Forward
+
+{% for task in carry_forward %}
+- {{ task.task_id }}: {{ task.title }} ({{ task.status }})
+{% endfor %}
+
+{% if optimus_highlights %}
+## Optimus Highlights
+
+{% for finding in optimus_highlights %}
+- [{{ finding.severity }}] {{ finding.title }}
+{% endfor %}
+{% endif %}

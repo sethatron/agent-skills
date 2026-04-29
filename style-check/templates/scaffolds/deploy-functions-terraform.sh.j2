@@ -1,0 +1,87 @@
+#!/bin/bash
+
+function generate_backend_tfvars() {
+  local aws_region=$(aws ec2 describe-availability-zones --output text --query 'AvailabilityZones[0].[RegionName]')
+
+  if [ "$aws_region" == "us-east-1" ]; then
+    bucket_name="abacus-tfstate-$1"
+  else
+    bucket_name="abacus-tfstate-$1-${aws_region}"
+  fi
+
+  cat <<EOF > backend.tfvars
+bucket = "${bucket_name}"
+dynamodb_table = "tfstate-lock-$1"
+encrypt = true
+region = "${aws_region}"
+EOF
+}
+
+function check_mac_version() {
+  if ! command -v m1-terraform-provider-helper &>/dev/null; then
+    mac_arch=$(uname -m)
+    if [[ "$mac_arch" == "arm64" ]]; then
+      echo "You are running macOS on an arm64 architecture (likely M1 or M2)."
+      echo "Some Terraform providers are not supported on M1 and M2 Macs."
+      echo "Please install: https://github.com/kreuzwerker/m1-terraform-provider-helper"
+      exit 1
+    fi
+  fi
+}
+
+function check_sha256sum_available() {
+  if ! command -v sha256sum &> /dev/null; then
+      echo "[ERROR] sha256sum not found. Install coreutils: brew install coreutils"
+      exit 1
+  fi
+}
+
+function init_terraform() {
+  if ! which tfenv > /dev/null; then
+    echo '[ERROR] Please install `tfenv` to continue.'
+    exit 1
+  fi
+
+  local aws_region=$(aws ec2 describe-availability-zones --output text --query 'AvailabilityZones[0].[RegionName]')
+  local aws_account_id=$(aws sts get-caller-identity --output text --query Account)
+  local airflow_deployment=${AIRFLOW_DEPLOYMENT:=0}
+
+  if [[ ! $AIRFLOW_DEPLOYMENT == "1" ]]; then
+    echo '[INFO] Installing Terraform if it is not already installed'
+    tfenv install
+  fi
+
+  echo '[INFO] Setting up the plugin cache'
+  export TF_PLUGIN_CACHE_DIR="$HOME/.terraform.d/plugin-cache"
+  mkdir -p $TF_PLUGIN_CACHE_DIR
+
+  echo '[INFO] Generating a backend configuration file'
+  generate_backend_tfvars $aws_account_id
+
+  echo '[INFO] Initializing Terraform and switching workspaces'
+  if [[ ! ${AIRFLOW_DEPLOYMENT:-} == "1" ]]; then
+    terraform init -upgrade -reconfigure -backend-config=backend.tfvars
+  else
+    terraform init -upgrade -reconfigure -backend-config=backend.tfvars -plugin-dir=$TF_PLUGIN_CACHE_DIR
+  fi
+
+  local workspace="${aws_account_id}::${LABEL}"
+  terraform workspace new $workspace || terraform workspace select $workspace
+
+  echo '[INFO] Getting Seiji config variables'
+  seiji config generate tfvars --spec-path deploy/luna-config-spec.yaml
+}
+
+function get_ssm_parameter_value() {
+  aws ssm get-parameter \
+    --name "$1" \
+    --output text \
+    --query Parameter.Value
+}
+
+function delete_key_from_ssm() {
+  if aws ssm get-parameter --name $1 > /dev/null 2>&1; then
+    echo "Removing deprecated SSM parameter $1"
+    aws ssm delete-parameter --name $1
+  fi
+}

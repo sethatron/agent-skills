@@ -1,0 +1,552 @@
+{
+  "id": 465661462,
+  "iid": 1,
+  "project_id": 77647090,
+  "title": "[DSP-7413] Bump genesis version",
+  "description": "Closes DSP-7413",
+  "state": "opened",
+  "created_at": "2026-03-19T17:28:34.848Z",
+  "updated_at": "2026-03-24T20:34:53.056Z",
+  "merged_by": null,
+  "merge_user": {
+    "id": 3708312,
+    "username": "zettatron",
+    "public_email": "",
+    "name": "Seth Allen",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/3708312/avatar.png",
+    "web_url": "https://gitlab.com/zettatron"
+  },
+  "merged_at": null,
+  "closed_by": null,
+  "closed_at": null,
+  "target_branch": "master",
+  "source_branch": "DSP-7413",
+  "user_notes_count": 3,
+  "upvotes": 0,
+  "downvotes": 0,
+  "author": {
+    "id": 3708312,
+    "username": "zettatron",
+    "public_email": "",
+    "name": "Seth Allen",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/3708312/avatar.png",
+    "web_url": "https://gitlab.com/zettatron"
+  },
+  "assignees": [
+    {
+      "id": 3708312,
+      "username": "zettatron",
+      "public_email": "",
+      "name": "Seth Allen",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/3708312/avatar.png",
+      "web_url": "https://gitlab.com/zettatron"
+    }
+  ],
+  "assignee": {
+    "id": 3708312,
+    "username": "zettatron",
+    "public_email": "",
+    "name": "Seth Allen",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/3708312/avatar.png",
+    "web_url": "https://gitlab.com/zettatron"
+  },
+  "reviewers": [],
+  "source_project_id": 77647090,
+  "target_project_id": 77647090,
+  "labels": [],
+  "draft": false,
+  "imported": false,
+  "imported_from": "none",
+  "work_in_progress": false,
+  "milestone": null,
+  "merge_when_pipeline_succeeds": true,
+  "merge_status": "can_be_merged",
+  "detailed_merge_status": "not_approved",
+  "merge_after": null,
+  "sha": "39f4ca6bacf13a992a543d013172133fcbc7b12a",
+  "merge_commit_sha": null,
+  "squash_commit_sha": null,
+  "discussion_locked": null,
+  "should_remove_source_branch": true,
+  "force_remove_source_branch": true,
+  "prepared_at": "2026-03-19T17:28:38.142Z",
+  "reference": "!1",
+  "references": {
+    "short": "!1",
+    "relative": "!1",
+    "full": "abacusinsights/abacus-v2/next-gen-platform/genesis/genesis!1"
+  },
+  "web_url": "https://gitlab.com/abacusinsights/abacus-v2/next-gen-platform/genesis/genesis/-/merge_requests/1",
+  "time_stats": {
+    "time_estimate": 0,
+    "total_time_spent": 0,
+    "human_time_estimate": null,
+    "human_total_time_spent": null
+  },
+  "squash": false,
+  "squash_on_merge": false,
+  "task_completion_status": {
+    "count": 0,
+    "completed_count": 0
+  },
+  "has_conflicts": false,
+  "blocking_discussions_resolved": true,
+  "approvals_before_merge": null,
+  "subscribed": true,
+  "changes_count": "2",
+  "latest_build_started_at": null,
+  "latest_build_finished_at": null,
+  "first_deployed_to_production_at": null,
+  "pipeline": null,
+  "head_pipeline": {
+    "id": 2379819945,
+    "iid": 120,
+    "project_id": 77647090,
+    "sha": "39f4ca6bacf13a992a543d013172133fcbc7b12a",
+    "ref": "DSP-7413",
+    "status": "success",
+    "source": "push",
+    "created_at": "2026-03-12T01:24:24.466Z",
+    "updated_at": "2026-03-12T01:39:46.896Z",
+    "web_url": "https://gitlab.com/abacusinsights/abacus-v2/next-gen-platform/genesis/genesis/-/pipelines/2379819945",
+    "before_sha": "540ae6c1d833bca8235d53f1cdd8790968bbcc5e",
+    "tag": false,
+    "yaml_errors": null,
+    "user": {
+      "id": 3708312,
+      "username": "zettatron",
+      "public_email": "",
+      "name": "Seth Allen",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/3708312/avatar.png",
+      "web_url": "https://gitlab.com/zettatron"
+    },
+    "started_at": "2026-03-12T01:24:32.526Z",
+    "finished_at": "2026-03-12T01:39:46.885Z",
+    "committed_at": null,
+    "duration": 896,
+    "queued_duration": 8,
+    "coverage": null,
+    "detailed_status": {
+      "icon": "status_warning",
+      "text": "Warning",
+      "label": "passed with warnings",
+      "group": "success-with-warnings",
+      "tooltip": "passed with warnings",
+      "has_details": true,
+      "details_path": "/abacusinsights/abacus-v2/next-gen-platform/genesis/genesis/-/pipelines/2379819945",
+      "illustration": null,
+      "favicon": "/assets/ci_favicons/favicon_status_success-8451333011eee8ce9f2ab25dc487fe24a8758c694827a582f17f42b0a90446a2.png"
+    },
+    "archived": false
+  },
+  "diff_refs": {
+    "base_sha": "88fd9a9240e3b00db2ddaf71da30b072cf89f417",
+    "head_sha": "39f4ca6bacf13a992a543d013172133fcbc7b12a",
+    "start_sha": "88fd9a9240e3b00db2ddaf71da30b072cf89f417"
+  },
+  "merge_error": null,
+  "first_contribution": true,
+  "user": {
+    "can_merge": true
+  },
+  "diffs": [
+    {
+      "diff": "@@ -0,0 +1,11 @@\n+variables:\n+  SOUSCHEF_VERSION: &_SOUSCHEF_VERSION \"master\"\n+  SOUSCHEF_VARIANT: \"terraform1.1.7-py3.10\"\n+\n+include:\n+  - project: \"abacusinsights/lunatic-dove/kitchen-souschef\"\n+    file: \"/gitlab_templates/base/all.yml\"\n+    ref: *_SOUSCHEF_VERSION\n+  - project: 'abacusinsights/lunatic-dove/kitchen-souschef'\n+    file: '/gitlab_templates/kaniko/all.yml'\n+    ref: *_SOUSCHEF_VERSION\n",
+      "collapsed": false,
+      "too_large": false,
+      "new_path": ".gitlab-ci.yml",
+      "old_path": ".gitlab-ci.yml",
+      "a_mode": "0",
+      "b_mode": "100644",
+      "new_file": true,
+      "renamed_file": false,
+      "deleted_file": false,
+      "generated_file": false
+    },
+    {
+      "diff": "@@ -0,0 +1,30 @@\n+FROM ghcr.io/genesis-computing-ai/genesis:v1.12.0-rc.1\n+\n+# Strip setuid/setgid bits to prevent privilege-escalation via suid binaries\n+RUN find / -xdev -perm /6000 -type f -exec chmod a-s {} + 2>/dev/null || true \\\n+# Remove package managers to block runtime software installation\n+    && rm -f /usr/bin/apt* /usr/bin/dpkg* /usr/sbin/dpkg* \\\n+    && rm -rf /var/lib/apt /var/lib/dpkg /var/cache/apt /etc/apt \\\n+    && rm -f /usr/local/bin/pip /usr/local/bin/pip3 \\\n+             /usr/bin/pip /usr/bin/pip3 \\\n+    && rm -f /usr/local/bin/npm /usr/local/bin/yarn \\\n+             /usr/bin/npm /usr/bin/yarn \\\n+    && rm -rf /usr/local/lib/node_modules/npm \\\n+              /usr/local/share/.config/yarn \\\n+    && ln -sf /bin/bash /bin/sh \\\n+# Create non-root user (UID 10001) to run the app\n+    && groupadd -g 10001 genesis \\\n+    && useradd -u 10001 -g 10001 -s /bin/bash -d /app genesis \\\n+    && chown -R genesis:genesis /app /opt/genesis \\\n+    && mkdir -p /tmp && chmod 1777 /tmp \\\n+# Purge caches and docs to reduce attack surface\n+    && rm -rf /var/cache/* /var/log/* /var/lib/apt/lists/* \\\n+              /root/.cache /root/.npm /root/.config /root/.local \\\n+              /usr/share/doc /usr/share/man /usr/share/info \\\n+              /usr/share/lintian 2>/dev/null || true\n+\n+ENV HOME=/app\n+\n+USER 10001\n+\n+EXPOSE 8080 8082 8501\n",
+      "collapsed": false,
+      "too_large": false,
+      "new_path": "Dockerfile",
+      "old_path": "Dockerfile",
+      "a_mode": "0",
+      "b_mode": "100644",
+      "new_file": true,
+      "renamed_file": false,
+      "deleted_file": false,
+      "generated_file": false
+    }
+  ],
+  "discussions": [
+    {
+      "id": "9dc26750a082fb7496f792426e09b3396289905f",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3175141127,
+          "type": null,
+          "body": "assigned to @zettatron",
+          "author": {
+            "id": 3708312,
+            "username": "zettatron",
+            "public_email": "",
+            "name": "Seth Allen",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/3708312/avatar.png",
+            "web_url": "https://gitlab.com/zettatron"
+          },
+          "created_at": "2026-03-19T17:28:35.123Z",
+          "updated_at": "2026-03-19T17:28:35.130Z",
+          "system": true,
+          "noteable_id": 465661462,
+          "noteable_type": "MergeRequest",
+          "project_id": 77647090,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 1,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "d27ecad6f727403fa4a76497c0e5416a7268f1b2",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3175141356,
+          "type": null,
+          "body": "enabled an automatic merge when all merge checks for 39f4ca6bacf13a992a543d013172133fcbc7b12a pass",
+          "author": {
+            "id": 3708312,
+            "username": "zettatron",
+            "public_email": "",
+            "name": "Seth Allen",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/3708312/avatar.png",
+            "web_url": "https://gitlab.com/zettatron"
+          },
+          "created_at": "2026-03-19T17:28:40.696Z",
+          "updated_at": "2026-03-19T17:28:40.701Z",
+          "system": true,
+          "noteable_id": 465661462,
+          "noteable_type": "MergeRequest",
+          "project_id": 77647090,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 1,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "a0712c9bbfb1e6ad1eaa55ffd5d36b108f4d1322",
+      "individual_note": false,
+      "resolvable": true,
+      "resolved": false,
+      "notes": [
+        {
+          "id": 3187174876,
+          "type": "DiffNote",
+          "body": "Do we want to remove other package managers as well? (`wget`, `yum`, `gem`, etc.)",
+          "author": {
+            "id": 25756645,
+            "username": "inderjit.bassi",
+            "public_email": null,
+            "name": "Inderjit Bassi",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://secure.gravatar.com/avatar/82965ba9db48a279a6b1dad30a61c3bc2bf24c6b6d7114716b620e714a4c5ea4?s=80&d=identicon",
+            "web_url": "https://gitlab.com/inderjit.bassi"
+          },
+          "created_at": "2026-03-24T14:18:45.930Z",
+          "updated_at": "2026-03-24T14:18:45.930Z",
+          "system": false,
+          "noteable_id": 465661462,
+          "noteable_type": "MergeRequest",
+          "project_id": 77647090,
+          "commit_id": null,
+          "position": {
+            "base_sha": "88fd9a9240e3b00db2ddaf71da30b072cf89f417",
+            "start_sha": "88fd9a9240e3b00db2ddaf71da30b072cf89f417",
+            "head_sha": "39f4ca6bacf13a992a543d013172133fcbc7b12a",
+            "old_path": "Dockerfile",
+            "new_path": "Dockerfile",
+            "position_type": "text",
+            "old_line": null,
+            "new_line": 13,
+            "line_range": {
+              "start": {
+                "line_code": "6651ddff6eb82c840ced7c1dddee15c6e1913dd4_0_6",
+                "type": "new",
+                "old_line": null,
+                "new_line": 6
+              },
+              "end": {
+                "line_code": "6651ddff6eb82c840ced7c1dddee15c6e1913dd4_0_13",
+                "type": "new",
+                "old_line": null,
+                "new_line": 13
+              }
+            }
+          },
+          "resolvable": true,
+          "resolved": false,
+          "resolved_by": null,
+          "resolved_at": null,
+          "suggestions": [],
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 1,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "996bea810bb77f4f1e9dabc84865351d401302f6",
+      "individual_note": false,
+      "resolvable": true,
+      "resolved": false,
+      "notes": [
+        {
+          "id": 3187182635,
+          "type": "DiffNote",
+          "body": "Feel free to ignore but is there current work to use py3.11?",
+          "author": {
+            "id": 25756645,
+            "username": "inderjit.bassi",
+            "public_email": null,
+            "name": "Inderjit Bassi",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://secure.gravatar.com/avatar/82965ba9db48a279a6b1dad30a61c3bc2bf24c6b6d7114716b620e714a4c5ea4?s=80&d=identicon",
+            "web_url": "https://gitlab.com/inderjit.bassi"
+          },
+          "created_at": "2026-03-24T14:20:11.064Z",
+          "updated_at": "2026-03-24T14:20:11.064Z",
+          "system": false,
+          "noteable_id": 465661462,
+          "noteable_type": "MergeRequest",
+          "project_id": 77647090,
+          "commit_id": null,
+          "position": {
+            "base_sha": "88fd9a9240e3b00db2ddaf71da30b072cf89f417",
+            "start_sha": "88fd9a9240e3b00db2ddaf71da30b072cf89f417",
+            "head_sha": "39f4ca6bacf13a992a543d013172133fcbc7b12a",
+            "old_path": ".gitlab-ci.yml",
+            "new_path": ".gitlab-ci.yml",
+            "position_type": "text",
+            "old_line": null,
+            "new_line": 3,
+            "line_range": {
+              "start": {
+                "line_code": "587d266bb27a4dc3022bbed44dfa19849df3044c_0_3",
+                "type": "new",
+                "old_line": null,
+                "new_line": 3
+              },
+              "end": {
+                "line_code": "587d266bb27a4dc3022bbed44dfa19849df3044c_0_3",
+                "type": "new",
+                "old_line": null,
+                "new_line": 3
+              }
+            }
+          },
+          "resolvable": true,
+          "resolved": false,
+          "resolved_by": null,
+          "resolved_at": null,
+          "suggestions": [],
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 1,
+          "commands_changes": {}
+        },
+        {
+          "id": 3188482616,
+          "type": "DiffNote",
+          "body": "I think we have all the way up to py314",
+          "author": {
+            "id": 34702854,
+            "username": "eric.shtivelberg",
+            "public_email": "",
+            "name": "Shtiv",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+            "web_url": "https://gitlab.com/eric.shtivelberg"
+          },
+          "created_at": "2026-03-24T20:34:53.028Z",
+          "updated_at": "2026-03-24T20:34:53.028Z",
+          "system": false,
+          "noteable_id": 465661462,
+          "noteable_type": "MergeRequest",
+          "project_id": 77647090,
+          "commit_id": null,
+          "position": {
+            "base_sha": "88fd9a9240e3b00db2ddaf71da30b072cf89f417",
+            "start_sha": "88fd9a9240e3b00db2ddaf71da30b072cf89f417",
+            "head_sha": "39f4ca6bacf13a992a543d013172133fcbc7b12a",
+            "old_path": ".gitlab-ci.yml",
+            "new_path": ".gitlab-ci.yml",
+            "position_type": "text",
+            "old_line": null,
+            "new_line": 3,
+            "line_range": {
+              "start": {
+                "line_code": "587d266bb27a4dc3022bbed44dfa19849df3044c_0_3",
+                "type": "new",
+                "old_line": null,
+                "new_line": 3
+              },
+              "end": {
+                "line_code": "587d266bb27a4dc3022bbed44dfa19849df3044c_0_3",
+                "type": "new",
+                "old_line": null,
+                "new_line": 3
+              }
+            }
+          },
+          "resolvable": true,
+          "resolved": false,
+          "resolved_by": null,
+          "resolved_at": null,
+          "suggestions": [],
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 1,
+          "commands_changes": {}
+        }
+      ]
+    }
+  ],
+  "approvals": {
+    "id": 465661462,
+    "iid": 1,
+    "project_id": 77647090,
+    "title": "[DSP-7413] Bump genesis version",
+    "description": "Closes DSP-7413",
+    "state": "opened",
+    "created_at": "2026-03-19T17:28:34.848Z",
+    "updated_at": "2026-03-24T20:34:53.056Z",
+    "merge_status": "can_be_merged",
+    "approved": false,
+    "approvals_required": 1,
+    "approvals_left": 1,
+    "require_password_to_approve": false,
+    "approved_by": [],
+    "suggested_approvers": [
+      {
+        "id": 4971219,
+        "username": "overfl0wd",
+        "public_email": "",
+        "name": "dana taylor",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/4971219/avatar.png",
+        "web_url": "https://gitlab.com/overfl0wd"
+      },
+      {
+        "id": 5622501,
+        "username": "luisanevers",
+        "public_email": "",
+        "name": "Luisa Nevers",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/5622501/avatar.png",
+        "web_url": "https://gitlab.com/luisanevers"
+      },
+      {
+        "id": 5631801,
+        "username": "aitom",
+        "public_email": "",
+        "name": "Tom",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/5631801/avatar.png",
+        "web_url": "https://gitlab.com/aitom"
+      },
+      {
+        "id": 5938765,
+        "username": "srosenfeld",
+        "public_email": "",
+        "name": "Steve Rosenfeld",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/25c818116c8ce2c185043ca59ff2a1e141a9f8211eeb4dd1248b9dc41b734527?s=80&d=identicon",
+        "web_url": "https://gitlab.com/srosenfeld"
+      },
+      {
+        "id": 6729997,
+        "username": "matt_donaghey",
+        "public_email": "",
+        "name": "Matt Donaghey",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/c6cbcc03abbcff4ddd6a3b9848e2f56667ba177a287c5718a95cee4ed5b78cd5?s=80&d=identicon",
+        "web_url": "https://gitlab.com/matt_donaghey"
+      },
+      {
+        "id": 12171540,
+        "username": "bhuffman-sec",
+        "public_email": "",
+        "name": "Brad Huffman",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/12171540/avatar.png",
+        "web_url": "https://gitlab.com/bhuffman-sec"
+      },
+      {
+        "id": 14469776,
+        "username": "larry.king",
+        "public_email": "",
+        "name": "Larry King",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/14469776/avatar.png",
+        "web_url": "https://gitlab.com/larry.king"
+      }
+    ],
+    "approvers": [],
+    "approver_groups": [],
+    "user_has_approved": false,
+    "user_can_approve": false,
+    "approval_rules_left": [
+      {
+        "id": 73918761,
+        "name": "All Members",
+        "rule_type": "any_approver"
+      }
+    ],
+    "has_approval_rules": true,
+    "merge_request_approvers_available": true,
+    "multiple_approval_rules_available": true,
+    "invalid_approvers_rules": []
+  }
+}

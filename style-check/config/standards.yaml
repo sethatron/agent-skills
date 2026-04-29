@@ -1,0 +1,167 @@
+seiji:
+  coordinate_pattern: "^[\\w]+\\.[\\w]+\\.[\\w]+$"
+  known_products:
+    - nextgen
+    - secops
+    - luna
+    - kitchen
+  known_subsystems:
+    - airbyte
+    - airflow
+    - airflow_cd
+    - asg_updater
+    - base
+    - data_copier_api
+    - data_ingestion_api
+    - databricks
+    - databricks_continuous_deployment
+    - datacopier
+    - eks
+    - file_receipt_notification
+    - genesis
+    - gitlab
+    - governance
+    - irdm_consumer
+    - irdm_producer
+    - kafka
+    - landing_decrypt_service
+    - mdp_gateway
+    - nasco_api
+    - network
+    - ng_landing_decrypt
+    - onyx
+    - orchestration_service
+    - payment_integrity
+    - point_click_care
+    - prime_api
+    - prime_api_mock
+    - reltio
+    - salesforce
+    - security
+    - sendgrid
+    - sftp
+    - sftp_service
+    - snowflake
+    - ssh_service
+    - storage
+    - test_jump_server
+    - auth0
+  known_operations:
+    - provision
+    - deploy
+    - init
+    - bridge
+    - proxy
+    - configurations
+    - tokens
+    - roles
+    - policies
+    - storage
+    - common
+    - apps
+    - irsa
+    - epa
+    - cdn
+    - monitor
+    - healthlake
+    - fite
+    - slap
+    - mdp
+    - payer
+    - sla_dashboard
+    - insights
+    - network
+    - databricks_secrets
+    - config_poller
+    - connector_deployer
+    - manifest_file_processor
+    - mdm
+    - permissions
+    - data_profiling
+    - data_spike
+    - enterprise_dq_rule_index
+    - lineage
+    - reconciliation
+    - referential_integrity
+    - bastionhost
+    - tunnel_manager
+    - db_migrate
+    - test_server
+    - mock
+    - outbound
+    - idm
+    - job_metadata_db
+  executor_image: "473376902650.dkr.ecr.us-east-1.amazonaws.com/seiji-orchestrator"
+  executor_tags:
+    - "latest-terraform1.1.7-py3.10"
+
+packaging:
+  required_hooks:
+    - create
+    - destroy
+  optional_hooks:
+    - migrate
+    - verify
+  default_create_path: "deploy/create.sh"
+  default_destroy_path: "deploy/destroy.sh"
+
+config_spec:
+  valid_types:
+    - str
+    - int
+    - bool
+    - list
+    - map
+  required_fields:
+    - type
+    - required
+  optional_fields:
+    - default
+    - description
+    - tfvar
+    - secret
+
+terraform:
+  allowed_module_source_prefixes:
+    - "git::ssh://git@gitlab.com"
+    - "http://localhost:"
+    - "../"
+    - "./"
+  variable_naming: lower_snake_case
+  layer_path_pattern: "terraform/layers/{domain}/{function}/"
+  backend_workspace_format: "${aws_account_id}::${LABEL}"
+  backend_bucket_format: "abacus-tfstate-{account_id}"
+  backend_lock_table_format: "tfstate-lock-{account_id}"
+
+helmsman:
+  helm_repos:
+    abacus: "s3://abacus-artifacts-kitchen/helm"
+    bitnami: "https://charts.bitnami.com/bitnami"
+    dapr: "https://dapr.github.io/helm-charts"
+  required_desired_state_fields:
+    - context
+    - helmRepos
+    - apps
+  required_app_fields:
+    - name
+    - chart
+    - version
+    - namespace
+  optional_app_fields:
+    - group
+    - description
+    - enabled
+    - wait
+    - timeout
+    - valuesFiles
+    - priority
+
+manifest:
+  version_anchor_pattern: "{repo-name}-version"
+  shared_vars_protocol: spack
+  manifest_version: "0.2"
+
+ssm:
+  config_path: "/${LABEL}/config/{component}/{variable}"
+  secret_path: "/${LABEL}/secrets/{component}/{variable}"
+  json_suffix: "/json"

@@ -1,0 +1,849 @@
+================================================================================
+SKILL SPECIFICATION: gitlab-mr-review
+================================================================================
+
+Use /skill-creator to implement the gitlab-mr-review skill. This document is
+the complete, authoritative specification. Follow every requirement exactly.
+Do not invent requirements not stated here. Do not omit stated constraints.
+Where a best practice is implied but not explicitly stated, apply the current
+industry standard for the relevant domain (e.g., GitLab API pagination, Python
+scripting conventions, code review methodology).
+
+Skill path:  /Users/sethallen/agent-skills/gitlab-mr-review/
+Symlink:     ~/.claude/skills/gitlab-mr-review -> above path
+
+--------------------------------------------------------------------------------
+SECTION 1: SKILL IDENTITY & TRIGGER
+--------------------------------------------------------------------------------
+
+Skill name:    gitlab-mr-review
+Trigger paths: /mr-review team
+               /mr-review personal
+               /mr-review personal investigate
+               /mr-review team directory: <path>
+               /mr-review personal directory: <path>
+               /mr-review <gitlab-mr-url> [<gitlab-mr-url> ...]
+               /mr-review <gitlab-mr-url> directory: <path>
+               /mr-review <gitlab-mr-url> investigate
+
+The skill MUST be triggered by these invocation patterns. The SKILL.md
+description field must be written to reliably trigger on all variants,
+including shorthand and natural-language equivalents such as:
+  "review my team's MRs"
+  "check open merge requests for my team"
+  "investigate MR <id>"
+  "pull my open MRs"
+  "review this MR: <url>"
+  "review these MRs: <url1> <url2>"
+  "look at this merge request: <url>"
+
+--------------------------------------------------------------------------------
+SECTION 1A: DIRECT MR URL INVOCATION MODE
+--------------------------------------------------------------------------------
+
+When one or more GitLab MR URLs are passed directly as arguments, the skill
+operates in Direct Mode. This mode bypasses the team/personal roster lookup
+entirely and reviews only the explicitly specified MRs.
+
+Accepted URL formats:
+
+  https://<gitlab-host>/<namespace>/<project>/-/merge_requests/<iid>
+  https://<gitlab-host>/<group>/<subgroup>/<project>/-/merge_requests/<iid>
+
+Multiple URLs may be passed in a single invocation, space- or newline-separated.
+The skill must parse all provided URLs before beginning any review work.
+
+Direct Mode behavior:
+
+  1. URL Parsing & Validation
+     - Extract the namespace/project path and MR IID from each URL.
+     - Validate that each URL resolves to an accessible MR via the API before
+       proceeding. If a URL is inaccessible (404, 403, invalid format), surface
+       a clear error for that specific MR and continue processing the remaining
+       URLs; do not abort the entire invocation.
+     - The gitlab_client.py utility must expose a fetch_mr_by_url(url) function
+       that handles URL parsing and single-MR retrieval.
+
+  2. Cache Behavior in Direct Mode
+     - Direct Mode does NOT use or update the team/personal MR list cache.
+     - Individual MR data (diff, comments, metadata) is always fetched fresh
+       in Direct Mode. There is no staleness check or operator prompt for
+       individual MR data.
+     - Fetched MR data is written to a per-MR cache file for debugging:
+         <skill_dir>/cache/direct/<project-path>/<iid>_<YYYYMMDD_HHMMSS>.json
+
+  3. Output Directory
+     - Default output follows the same hierarchy as other modes:
+         ~/.zsh/review/<YYYY>/<MM>/<DD>/<branch-name>/
+     - When a custom directory is specified:
+         <custom_path>/<YYYY>/<MM>/<DD>/<branch-name>/
+     - When multiple MRs are reviewed in a single invocation, each MR gets
+       its own branch-name-scoped subdirectory. A combined index.md is also
+       generated at the top of the date directory listing all reviewed MRs,
+       their verdict summaries, and links to their respective review.md files.
+
+  4. Investigation in Direct Mode
+     - /mr-review <url> investigate is valid. Behavior is identical to
+       /mr-review personal investigate, applied to the specified MR regardless
+       of whether it belongs to the operator or a teammate.
+     - When the MR author is not the operator, the skill must note this
+       prominently in the investigation review.md header:
+         "NOTE: This MR is authored by <author>. Investigation mode is
+          available for any MR regardless of authorship."
+
+  5. Author Detection
+     - In Direct Mode, the skill must retrieve the MR author from the API
+       and include it in the review.md header. No roster filtering is applied.
+     - If the MR author happens to be the operator (@zettatron), the review
+       proceeds identically to personal mode for that MR.
+
+  6. Natural Language URL Detection
+     - If the operator pastes a GitLab URL anywhere in their message (even
+       without the /mr-review prefix), the skill should recognize the URL
+       pattern and confirm whether they want a review initiated:
+         "Detected GitLab MR URL: <url>. Start a Direct Mode review? [Y/n]"
+
+--------------------------------------------------------------------------------
+SECTION 2: TEAM CONFIGURATION
+--------------------------------------------------------------------------------
+
+The skill maintains a static team roster. These are the GitLab usernames whose
+MRs the operator (@zettatron) is responsible for reviewing:
+
+  @Rivlin.pereira
+  @mahendra-gautam
+  @alex_ai
+  @srosenfeld
+  @andrew.huddleston1
+  @eric.shtivelberg
+  @gordon.marx
+
+The operator's own username is: @zettatron
+
+Rules:
+- When invoked as `/mr-review team`, the operator's username MUST be excluded
+  from the list of authors queried. The operator reviews others; they do not
+  review their own MRs in team mode.
+- When invoked as `/mr-review personal`, ONLY the operator's MRs are retrieved.
+- Team roster must be defined as a structured data block in the skill (YAML or
+  similar) so it can be updated without modifying logic.
+
+Draft MR Policy:
+- GitLab marks draft MRs with the title prefix "Draft:" or "[Draft]". These
+  are a distinct state from open, review-ready MRs.
+- Draft MRs MUST be included in all fetch results (team, personal, direct).
+  Excluding them silently would cause the operator to miss pending work.
+- Draft MRs MUST be prominently flagged in the review.md header:
+    ⚠ DRAFT MR — This MR is not marked as ready for review by its author.
+- The review itself proceeds normally, but the Diff Analysis section must
+  note that the implementation may be incomplete and findings should be
+  interpreted as early feedback rather than final review.
+- In team mode, draft MRs authored by teammates are listed separately from
+  ready MRs in the combined index.md, under a "Draft / In Progress" heading.
+- The operator may pass --exclude-drafts to suppress draft MRs from team
+  fetches. This flag must be explicitly documented in check_env.py --help.
+
+--------------------------------------------------------------------------------
+SECTION 3: GITLAB API & CACHING
+--------------------------------------------------------------------------------
+
+3.1 API Interaction Requirements
+
+The skill MUST interact with the GitLab API via a reusable utility script
+(e.g., scripts/gitlab_client.py). This script must:
+
+  - Handle all pagination transparently. GitLab's REST API defaults to 20
+    results per page and caps at 100 per page (use per_page=100). The client
+    MUST follow X-Next-Page headers and accumulate all pages before returning
+    results. Partial result sets are a critical failure mode and must be
+    explicitly guarded against.
+  - Accept the GitLab personal access token from the environment variable
+    GITLAB_TOKEN (never hardcoded).
+  - Accept the GitLab base URL from GITLAB_URL (default: https://gitlab.com).
+  - Expose a clean interface callable from both shell and Python import context.
+  - Include a --dry-run flag for testing without live API calls.
+
+  Token Scope Validation (performed at startup, before any other API call):
+  - The client MUST call GET /api/v4/personal_access_tokens/self to retrieve
+    the token's declared scopes.
+  - Required minimum scopes: read_api, read_repository.
+  - If either scope is absent, the skill MUST exit immediately with a clear
+    actionable error:
+      ERROR: GITLAB_TOKEN is missing required scope '<scope>'.
+      Required scopes: read_api, read_repository.
+      Re-generate your token at: <GITLAB_URL>/-/user_settings/personal_access_tokens
+  - Scope validation result is cached in memory for the duration of the
+    invocation; it must not be re-fetched per MR.
+
+  Per-MR Data Fetched (all fields retrieved in a single enriched fetch):
+  - MR metadata: title, description, state, draft status, source/target branch,
+    author, assignees, reviewers, labels, milestone, created_at, updated_at.
+  - Diff: GET /api/v4/projects/:id/merge_requests/:iid/diffs (paginated).
+  - Comments/threads: GET /api/v4/projects/:id/merge_requests/:iid/discussions.
+  - Pipeline status: retrieved from the head_pipeline field on the MR object.
+    If head_pipeline is null, surface: "No pipeline associated with this MR."
+    Pipeline fields to extract: id, status, web_url, created_at, finished_at,
+    duration, ref, sha.
+  - Approval status: GET /api/v4/projects/:id/merge_requests/:iid/approvals.
+    Extract: approvals_required, approvals_left, approved_by (list of users),
+    approval_rules_left (names of unsatisfied rules).
+  - Merge conflicts: retrieved from the has_conflicts field on the MR object.
+    If true, surface immediately as a blocking flag; see Section 4 for
+    review.md treatment.
+  - Closing issues: parse the MR description for GitLab closing keywords
+    (Closes #N, Fixes #N, Resolves #N). For each referenced issue IID,
+    fetch GET /api/v4/projects/:id/issues/:iid to retrieve title, description,
+    labels, and state. Surface in the review as linked issue context.
+
+3.2 MR Cache
+
+The skill maintains a local MR cache in its skill directory:
+
+  <skill_dir>/cache/mrs/
+
+Cache files are named by a UTC timestamp:
+
+  mrs_<YYYYMMDD_HHMMSS>_<scope>.json
+
+Where <scope> is one of: team, personal.
+
+Cache behavior:
+  - On invocation, the skill checks for an existing cache file for the
+    requested scope.
+  - If the most recent cache file is older than 6 hours, the skill MUST prompt
+    the operator before proceeding:
+      "Cache is X hours old (created <timestamp>). Refresh? [y/N]"
+  - If the operator declines, the existing cache is used as-is.
+  - On a fresh fetch, the new cache file is written and becomes the active
+    cache. Previous cache files are retained (not deleted) for audit/diff
+    purposes. Files older than 30 days may be pruned automatically.
+  - The cache must store the full raw API response, not a subset. Downstream
+    logic filters from the cache; the cache itself is the source of truth.
+
+  Cache Override Flags (for scripted/dispatch-driven invocations):
+  - --force-refresh: Always fetch from the API, bypassing the staleness prompt.
+    Writes a new cache file. Use when invoked by automated workflows that must
+    operate on current data without operator interaction.
+  - --use-cache: Always use the most recent cache file, bypassing the staleness
+    prompt even if the cache is older than 6 hours. If no cache file exists,
+    this flag causes an immediate error rather than falling back to a live fetch.
+    Use to guarantee reproducible behavior in testing or dry-run scenarios.
+  - These flags are mutually exclusive. Passing both must produce an error.
+
+3.3 Utility Scripts
+
+The skill MUST prefer reusable scripts over inline logic wherever operations
+are deterministic or repetitive. Required utility scripts:
+
+  scripts/gitlab_client.py   — Paginated GitLab REST API client. Must expose:
+                               fetch_mrs_by_authors(usernames, state="opened")
+                               fetch_mr_by_url(url) → single MR with diff + comments
+                               fetch_mr_comments(project_id, mr_iid)
+                               All methods handle pagination transparently.
+  scripts/cache_manager.py   — Cache read/write/expiry/prompt logic
+  scripts/review_writer.py   — review.md generation and formatting
+  scripts/git_utils.py       — Clone, branch creation, repo management
+  scripts/check_env.py       — Environment pre-validation (see Section 3A)
+
+Each script must be independently executable from the CLI with --help output,
+and importable as a Python module. Scripts must use argparse for CLI interfaces.
+Logging must go to stderr; structured output to stdout.
+
+--------------------------------------------------------------------------------
+SECTION 3A: ENVIRONMENT PRE-VALIDATION
+--------------------------------------------------------------------------------
+
+check_env.py MUST be the first script executed on every skill invocation,
+before any API call, git operation, or file I/O. It validates all preconditions
+and must exit with a non-zero code and actionable error messages on any failure.
+
+Checks performed, in order:
+
+  1. Python version >= 3.10
+       ERROR: Python 3.10+ required. Found: <version>
+
+  2. Required Python packages present (importable):
+       requests, jinja2, gitpython
+       ERROR: Missing package '<pkg>'. Install with: pip install <pkg>
+
+  3. git binary available on PATH:
+       ERROR: git not found on PATH. Install git and ensure it is executable.
+
+  4. GITLAB_TOKEN environment variable set (non-empty):
+       ERROR: GITLAB_TOKEN is not set. Set it with: export GITLAB_TOKEN=<your-token>
+
+  5. GITLAB_URL environment variable set or defaulting to https://gitlab.com.
+     If set, validate it is a reachable URL (HTTP 200 or 302 on GET /):
+       ERROR: GITLAB_URL '<value>' is not reachable. Check network and URL.
+
+  6. GitLab token scope validation (calls GET /api/v4/personal_access_tokens/self):
+       Required: read_api, read_repository
+       ERROR: GITLAB_TOKEN is missing scope '<scope>'. (see Section 3.1)
+
+  7. Skill cache directory writable:
+       ERROR: Cache directory is not writable: <path>
+
+  8. Default review output directory creatable:
+       ERROR: Cannot create review output directory: <path>
+
+On success, outputs a single line to stdout:
+  ENV OK — all preconditions satisfied.
+
+Must be independently executable:
+  python scripts/check_env.py [--verbose] [--json]
+  --verbose: print each check result as it runs
+  --json:    emit results as a structured JSON object (for dispatch consumption)
+
+--------------------------------------------------------------------------------
+SECTION 4: REVIEW OUTPUT STRUCTURE
+--------------------------------------------------------------------------------
+
+4.1 Default Output Location
+
+  ~/.zsh/review/<YYYY>/<MM>/<DD>/<branch-name>/
+
+4.2 Custom Output Location (when --directory or `directory:` flag is passed)
+
+  <custom_path>/<YYYY>/<MM>/<DD>/<branch-name>/
+
+The date hierarchy is always appended regardless of whether a custom directory
+is specified. The branch name used for the directory must be the source branch
+of the MR (not the target), sanitized for filesystem use (replace / with -,
+strip special characters).
+
+4.3 review.md Contents
+
+Every review.md MUST begin with a YAML frontmatter block delimited by ---,
+followed by the human-readable review body. The frontmatter is machine-readable
+and consumed by the dispatch skill without parsing the full document.
+
+FRONTMATTER STABILITY CONTRACT: This schema is a versioned API between
+gitlab-mr-review and the dispatch skill. The generated SKILL.md MUST treat
+it as stable and immutable. Field names, types, and allowed values MUST NOT
+be renamed, retyped, or removed. New fields may be appended at the end.
+Any deviation from this schema will silently break dispatch's artifact
+parser. Treat it as immutable. Do not deviate.
+
+Required frontmatter fields:
+
+  ---
+  mr_id: <integer>
+  mr_iid: <integer>
+  mr_url: <string>
+  project: <string>              # namespace/project-path
+  title: <string>
+  author: <string>               # GitLab username
+  source_branch: <string>
+  target_branch: <string>
+  state: open | draft | merged | closed
+  pipeline_status: passed | failed | running | pending | canceled | none
+  pipeline_url: <string | null>
+  has_conflicts: <bool>
+  approvals_required: <integer>
+  approvals_given: <integer>
+  approved_by: [<username>, ...]
+  verdict_critical: <integer>    # count of CRITICAL findings
+  verdict_major: <integer>
+  verdict_minor: <integer>
+  verdict_suggestion: <integer>
+  linked_issues: [<issue-iid>, ...]
+  review_timestamp: <ISO 8601 UTC>
+  review_path: <absolute filesystem path to this review.md>
+  previous_review_path: <path | null>
+  skill_version: <string>
+  ---
+
+The frontmatter must be populated before the body is written. verdict counts
+must reflect the final tally from the Summary of Recommended Changes section.
+
+The human-readable review body follows the frontmatter and must contain all
+of the following sections, in this order:
+
+  ## MR Summary
+  - MR title, ID, URL, source branch, target branch, author, created date,
+    updated date, MR state (open/draft), and a brief description of the
+    stated intent of the MR.
+
+  ### Pipeline Status Block
+  Always present. Format:
+    Pipeline: <status> | <web_url> | Duration: <Xm Ys> | Finished: <timestamp>
+  If pipeline status is failed or canceled, this block is rendered as:
+    ⛔ PIPELINE FAILURE — Review findings below are based on a branch with a
+    failing CI pipeline. Merge is blocked until the pipeline passes.
+  If no pipeline exists:
+    ⚠ NO PIPELINE — No CI pipeline is associated with this MR.
+
+  ### Merge Conflict Block
+  Always present. If has_conflicts is true:
+    🚫 MERGE CONFLICTS DETECTED — This MR cannot be merged in its current state.
+    Resolve conflicts in the source branch before proceeding with review.
+    (Review continues below for informational purposes only.)
+  If no conflicts:
+    Merge conflicts: None detected.
+
+  ### Approval Status Block
+  Always present. Format:
+    Approvals: <approvals_given>/<approvals_required> required
+    Approved by: <username>, <username> (or "None")
+    Pending rules: <rule name>, <rule name> (or "None")
+
+  ### Linked Issues Block
+  Present only if closing issues are detected. For each linked issue:
+    Issue #<iid>: <title> [<state>]
+    <URL>
+    Summary: <2-3 sentence summary of the issue description>
+  If no closing issues are found:
+    Linked issues: None detected via closing keywords.
+
+  ## Diff Analysis
+  - A file-by-file breakdown of changes. For each changed file:
+    - File path and change type (added/modified/deleted)
+    - Summary of what changed and why it matters
+    - Identified issues (see Section 5 for review criteria)
+    - Code snippets illustrating the issue and the recommended correction,
+      using fenced code blocks with language tags
+
+  ## Existing Review Comments
+  - All current MR thread comments retrieved from the API, grouped by file/line
+    where applicable. For each comment:
+      - Author, timestamp, body
+      - Skill's assessment: [VALID], [INVALID], [SUBOPTIMAL], or [ADDRESSED]
+      - If INVALID or SUBOPTIMAL: explanation and the preferred approach
+    - This section ensures the operator is never duplicating feedback and is
+      aware of incorrect guidance already posted by others.
+
+  ## Cross-Project Context
+  - If the MR touches interfaces (APIs, contracts, shared libraries, config
+    schemas) that have dependencies in other repositories, those repos must be
+    cloned and cross-referenced. Document which external repos were consulted
+    and what was found.
+
+  ## Summary of Recommended Changes
+  - A consolidated, prioritized list of all recommended changes:
+      CRITICAL   — Must fix before merge (breaks functionality, security risk,
+                   violates compliance, breaks existing patterns)
+      MAJOR      — Should fix before merge (significant tech debt, deviates from
+                   established norms, incorrect best practice)
+      MINOR      — Should fix if possible (style, naming, clarity)
+      SUGGESTION — Optional improvement (performance, elegance, future-proofing)
+  - Each item references the specific file and line range.
+
+  ## External References
+  - When a recommendation is non-obvious or the operator may need to justify
+    the change to the MR author, include links to authoritative external
+    resources: official docs, RFCs, OWASP, PEP, Kubernetes documentation,
+    Terraform registry, etc. All references must be directly relevant; do not
+    pad with generic links.
+
+  ## Resolution Paths
+  - For each CRITICAL and MAJOR item, include an explicit description of the
+    steps required to resolve it: which files to change, what the change
+    should look like, and any downstream effects to verify.
+
+  ## Review Metadata
+  - Timestamp of review generation
+  - Cache file used (path and age at time of review)
+  - External repos cloned (paths)
+  - Skill version
+
+  ## Review Delta (present only when a previous review exists for this branch)
+  - Path to the previous review.md
+  - Previous review timestamp
+  - Changes since last review:
+      - New findings not present in the previous review
+      - Findings from the previous review that are now resolved (diff confirms fix)
+      - Findings from the previous review that remain unresolved
+      - Net change in verdict counts (e.g., "CRITICAL: 3 → 1, MAJOR: 5 → 4")
+  - How to determine a previous review exists:
+      Search <review_base>/**/<branch-name-sanitized>/review.md for files with
+      a review_timestamp earlier than the current invocation. Use the most
+      recent prior file. If none exists, omit this section entirely and set
+      previous_review_path to null in frontmatter.
+  - The delta section is strictly informational. It does not suppress or modify
+    findings in other sections of the current review.
+
+--------------------------------------------------------------------------------
+SECTION 5: CODE REVIEW METHODOLOGY
+--------------------------------------------------------------------------------
+
+The review methodology must be explicitly defined in the SKILL.md. The
+following principles are authoritative and non-negotiable:
+
+5.0 File Exclusion Policy
+
+Before any diff analysis begins, the skill MUST filter the MR diff to remove
+files that produce noise without adding review value. The exclusion list is
+defined in config/team.yaml under the key excluded_patterns and must be
+configurable without modifying skill logic.
+
+Default excluded patterns (applied as glob matches against file paths):
+
+  Lock files (always exclude from analysis, note their presence only):
+    **/package-lock.json
+    **/yarn.lock
+    **/poetry.lock
+    **/Pipfile.lock
+    **/Gemfile.lock
+    **/*.lock
+
+  Generated files (exclude unless the generator config itself changed):
+    **/dist/**
+    **/build/**
+    **/.next/**
+    **/__pycache__/**
+    **/*.pyc
+    **/*.min.js
+    **/*.min.css
+    **/generated/**
+    **/*_pb2.py          (protobuf generated)
+    **/*.pb.go
+
+  Vendored dependencies (exclude entirely):
+    **/vendor/**
+    **/node_modules/**
+    **/.terraform/**     (Terraform provider cache)
+
+  Binary and media files (exclude entirely):
+    **/*.png, **/*.jpg, **/*.gif, **/*.ico, **/*.woff, **/*.woff2
+
+Behavior for excluded files:
+  - Excluded files are NOT analyzed in the Diff Analysis section.
+  - Their presence in the diff IS noted in the MR Summary under a
+    "Excluded from analysis" subsection, with a count by category:
+      Excluded: 3 lock files, 12 generated files, 0 vendored files.
+  - If a lock file change is the ONLY change in the MR (e.g., a dependency
+    bump PR), the skill must note this explicitly and skip the Diff Analysis
+    section with:
+      This MR contains only lock file changes. No code analysis performed.
+  - The operator may pass --include-generated or --include-vendor to override
+    specific exclusion categories for a given invocation.
+
+5.1 Depth Over Surface
+
+The codebase is largely AI-generated. Surface-level style feedback is
+insufficient. The review must prioritize:
+
+  - Pattern Consistency: Does the change follow the patterns established in
+    adjacent or related code? If not, is there a documented reason?
+  - Behavioral Correctness: Does the change do what the MR description claims?
+    Run the code mentally or actually execute it in the review branch if needed.
+  - Regression Risk: Does the change modify shared utilities, base classes,
+    middleware, or config in ways that could silently break other functionality?
+  - API Contract Fidelity: If the change modifies an interface (function
+    signature, REST endpoint, event schema, env variable), are all consumers
+    of that interface accounted for?
+  - Idempotency & Safety: For infrastructure and migration code, is the change
+    safe to apply multiple times? Does it have rollback considerations?
+
+5.2 Security Review Criteria
+
+Every MR must be evaluated against the following, with any finding documented:
+
+  - Secrets and credentials: No hardcoded tokens, passwords, or keys.
+  - Input validation: All externally sourced data is validated before use.
+  - Least privilege: IAM roles, RBAC configurations, and service accounts do
+    not over-grant permissions.
+  - Injection vectors: No unsanitized data reaches SQL, shell, or template
+    contexts.
+  - Dependency risk: New third-party dependencies are noted; known CVEs must
+    be flagged (use pip-audit or npm audit where applicable).
+
+5.3 Infrastructure-Specific Criteria (Terraform, Kubernetes, Helm)
+
+  - Terraform: State locking considerations, resource destruction risk (flag
+    any resource that will be destroyed or replaced), variable hygiene,
+    provider version pinning.
+  - Kubernetes: Resource limits and requests defined on all workloads, RBAC
+    correctness, image tag pinning (no :latest), liveness/readiness probe
+    presence, secret management (no plaintext secrets in manifests).
+  - Helm: Values override hygiene, chart version pinning, templating
+    correctness.
+
+5.4 Existing MR Comments Policy
+
+  - All existing comments MUST be retrieved via API and incorporated into the
+    review before the skill generates its own analysis.
+  - The skill must never echo or endorse a comment it has assessed as INVALID
+    or SUBOPTIMAL without explicit correction.
+  - Comments marked ADDRESSED must not generate duplicate recommendations.
+
+5.5 External Research
+
+  - For any recommendation where the rationale is not self-evident from the
+    code alone, the skill MUST search for and link to an authoritative external
+    resource. Prefer: official language/framework documentation, CNCF docs,
+    OWASP, NIST, RFCs. Avoid: blog posts without clear authority, Stack
+    Overflow answers without corroboration.
+
+--------------------------------------------------------------------------------
+SECTION 6: GIT OPERATIONS
+--------------------------------------------------------------------------------
+
+6.1 Permitted Git Operations
+
+The skill is authorized to perform the following git operations:
+
+  - git clone (read-only, into a scoped review directory)
+  - git checkout (switching to the MR source branch in the cloned repo)
+  - git fetch
+  - git diff (for local diff generation)
+  - git log
+
+All clones must target the review output directory. Clones must never be
+created inside an existing working repository.
+
+For review, the convention is:
+
+  <review_dir>/<branch-name-sanitized>/   ← review.md lives here
+  <review_dir>/<branch-name-sanitized>/repo/  ← cloned repository
+
+6.2 Review Branch Convention
+
+When a local clone is needed for analysis, the skill creates a branch named:
+
+  <source-branch>-review
+
+This branch is never pushed. It exists solely for local analysis.
+
+6.3 Strictly Prohibited Git Operations
+
+The following operations are ABSOLUTELY PROHIBITED under all circumstances,
+with no exceptions:
+
+  git add
+  git commit
+  git push
+  git push --force
+  Any operation that modifies the remote GitLab repository
+
+--------------------------------------------------------------------------------
+SECTION 7: GITLAB WRITE PROHIBITION
+--------------------------------------------------------------------------------
+
+The skill MUST NEVER perform any write operation against the GitLab instance.
+This prohibition is unconditional and applies to:
+
+  - Posting MR comments (under any identity: user, anonymous, bot, Claude, etc.)
+  - Approving or requesting changes on an MR
+  - Modifying MR titles, descriptions, labels, or assignees
+  - Closing or merging an MR
+  - Creating or modifying issues
+  - Any other mutating API call (POST, PUT, PATCH, DELETE against GitLab)
+
+The human operator retains full control over all GitLab interactions. The
+skill's role is to produce analysis and artifacts; the operator decides what
+to act on and how.
+
+--------------------------------------------------------------------------------
+SECTION 8: PERSONAL MR — INVESTIGATION MODE
+--------------------------------------------------------------------------------
+
+Triggered by: /mr-review personal investigate
+
+This mode is for resolving issues on the operator's own MRs. Behavior:
+
+8.1 Project Directory Selection
+
+The skill must present the operator with two options:
+
+  [1] Use existing local project directory
+      → Prompt: "Enter the path to your existing project directory:"
+      → Validate that the path exists and contains a .git directory
+      → Validate that the current branch or a local branch matches the MR
+        source branch
+
+  [2] Fresh investigation environment
+      → Clone the project into:
+        <review_dir>/<branch-name>/investigation/repo/
+      → Check out the MR source branch
+
+8.2 Comment-Driven Investigation
+
+  - Retrieve all open MR comments via API
+  - For each unresolved comment thread:
+      - Assess whether the comment is VALID, INVALID, or SUBOPTIMAL
+      - If VALID: document the issue and the proposed fix
+      - If INVALID/SUBOPTIMAL: document the reasoning and decline to act on it
+  - Only VALID issues drive code changes in investigation mode
+  - Changes are applied iteratively; after each fix, the skill re-analyzes
+    the affected code to confirm the fix does not introduce new issues
+
+8.3 Critical Evaluation of Comments
+
+  The skill must never apply a change solely because a comment requests it.
+  Every suggested change must be evaluated on merit:
+    - Does this change improve correctness, security, performance, or clarity?
+    - Does this change align with the established patterns in the codebase?
+    - Does the commenter demonstrate a correct understanding of the code?
+  If the answer to any of these is no, the comment must be flagged as
+  INVALID or SUBOPTIMAL with a documented explanation.
+
+8.4 Investigation review.md
+
+  In addition to the standard review.md sections, the investigation review.md
+  must include:
+
+  ## Investigation Log
+  - Path to the project directory used
+  - For each change made:
+      - The comment that prompted the change (or "self-identified issue")
+      - The file(s) modified
+      - A before/after diff (fenced code block)
+      - Confirmation that the change was validated (how)
+
+  ## Resolution Status
+  - A table mapping each open comment to: ADDRESSED / DECLINED / DEFERRED
+  - For DECLINED: the reason
+  - For DEFERRED: the blocking dependency or condition
+
+  The operator is solely responsible for committing, pushing, and responding
+  to comments. The skill produces the analysis and modified files only.
+
+--------------------------------------------------------------------------------
+SECTION 9: OPERATIONAL GUARDRAILS SUMMARY
+--------------------------------------------------------------------------------
+
+Include this section verbatim as a guardrail block at the top of the SKILL.md
+body, clearly formatted as a warning:
+
+  ┌─────────────────────────── OPERATIONAL GUARDRAILS ───────────────────────────┐
+  │  PROHIBITED — NO EXCEPTIONS                                                  │
+  │    • git add / git commit / git push (any variant)                           │
+  │    • Any write operation to GitLab (comments, approvals, edits, merges)      │
+  │    • Posting under any identity (user, bot, anonymous, Claude, etc.)         │
+  │                                                                              │
+  │  OPERATOR-ONLY ACTIONS                                                       │
+  │    • Committing and pushing changes                                          │
+  │    • Responding to or resolving MR comments                                  │
+  │    • Approving, merging, or closing MRs                                      │
+  └──────────────────────────────────────────────────────────────────────────────┘
+
+--------------------------------------------------------------------------------
+SECTION 10: SKILL STRUCTURE & FILE LAYOUT
+--------------------------------------------------------------------------------
+
+The generated skill must conform to the following directory layout:
+
+  gitlab-mr-review/
+  ├── SKILL.md
+  ├── config/
+  │   └── team.yaml              — Team roster, operator username, defaults,
+  │                                excluded_patterns, draft policy
+  ├── scripts/
+  │   ├── check_env.py           — Environment pre-validation (run first)
+  │   ├── gitlab_client.py       — Paginated GitLab API client (CLI + module)
+  │   ├── cache_manager.py       — Cache lifecycle management
+  │   ├── review_writer.py       — review.md + frontmatter generation
+  │   └── git_utils.py           — Clone, branch, diff operations
+  ├── cache/
+  │   ├── mrs/                   — Team/personal MR list cache (gitignored)
+  │   └── direct/                — Per-MR direct-mode cache (gitignored)
+  ├── templates/
+  │   └── review.md.j2           — Jinja2 template for review.md
+  ├── tests/
+  │   └── fixtures/
+  │       ├── mr_open.json       — Mock GitLab MR object (open, no conflicts)
+  │       ├── mr_draft.json      — Mock GitLab MR object (draft state)
+  │       ├── mr_conflicts.json  — Mock GitLab MR object (has_conflicts: true)
+  │       ├── mr_failed_pipeline.json — Mock MR with failed head_pipeline
+  │       ├── discussions.json   — Mock MR discussions/comments response
+  │       ├── approvals.json     — Mock approvals API response
+  │       └── token_scopes.json  — Mock personal_access_tokens/self response
+  └── references/
+      ├── review-criteria.md     — Extended review methodology reference
+      └── gitlab-api-notes.md    — Pagination, rate limits, token scopes
+
+The SKILL.md must reference each of these files with explicit guidance on when
+to load or execute them. Scripts must be loadable without the SKILL.md body
+being fully loaded (progressive disclosure principle).
+
+--------------------------------------------------------------------------------
+SECTION 11: PROMPT ENGINEERING REQUIREMENTS FOR THE GENERATED SKILL.MD
+--------------------------------------------------------------------------------
+
+The generated SKILL.md must adhere to the following prompt quality standards:
+
+11.1 Precision Over Brevity
+  - Every behavioral rule must be stated explicitly. Do not rely on implication.
+  - Use imperative mood for all instructions ("The skill MUST...", "Never...",
+    "Always...").
+  - Ambiguous terms must be defined on first use.
+
+11.2 Constraint Hierarchy
+  - Hard constraints (security, write prohibition, secret handling) must be
+    stated before operational instructions, not buried in body text.
+  - Use visual separators (horizontal rules, box-drawing characters) to
+    delineate guardrail sections from operational sections.
+
+11.3 Failure Mode Specification
+  - For each major operation, specify the expected behavior on failure:
+      - API unavailable: use cache if available, surface clear error if not
+      - Cache corrupted: delete and re-fetch with operator confirmation
+      - Clone fails: document in review.md, continue review with API data only
+      - Rate limit hit: implement exponential backoff, surface wait time
+
+11.4 Idempotency
+  - All skill invocations must be safe to re-run. Re-running on the same MR
+    must produce a new review.md with a new timestamp, not overwrite the
+    previous one. Previous review artifacts must be preserved.
+
+11.5 No Hallucination Guardrails
+  - The skill must instruct Claude to base all review commentary strictly on
+    observed diff content, retrieved API data, cloned repository content, and
+    retrieved external sources. Speculation about intent or behavior that
+    cannot be grounded in one of these sources must be labeled as
+    [UNVERIFIED INFERENCE] in the review.md.
+
+--------------------------------------------------------------------------------
+IMPLEMENTATION REQUIREMENTS
+--------------------------------------------------------------------------------
+
+Create all of the following files inside the skill directory. Follow the
+/skill-creator workflow: draft, test against the invocation patterns in
+Section 1, and iterate until the skill reliably triggers and produces correct
+output. All files must be complete and immediately functional.
+
+=== FILE: SKILL.md ===
+=== FILE: config/team.yaml ===
+=== FILE: scripts/check_env.py ===
+=== FILE: scripts/gitlab_client.py ===
+=== FILE: scripts/cache_manager.py ===
+=== FILE: scripts/review_writer.py ===
+=== FILE: scripts/git_utils.py ===
+
+Requirements for each file:
+
+SKILL.md:
+  - Valid YAML frontmatter with name and description fields.
+  - DESCRIPTION FIELD: Must be written to be "pushy" — it should actively
+    encourage triggering. It must enumerate specific invocation phrases,
+    URL patterns, and contexts so Claude Code triggers this skill reliably
+    even when the operator uses shorthand or natural language. Undertriggering
+    is a known failure mode; the description is the primary defense against it.
+    Example style: "Use this skill whenever the user mentions MR review, merge
+    requests, GitLab review, team review, /mr-review, pastes a GitLab URL, or
+    asks about open PRs or code review. Also trigger when the user says things
+    like 'review my team', 'check the queue', or 'what needs reviewing'."
+  - OPERATIONAL GUARDRAILS block immediately after frontmatter.
+  - H2/H3 Markdown structure covering all sections.
+  - Inline code blocks for all script interfaces (argparse --help format,
+    example API response structures, example review.md output with frontmatter).
+  - Body under 500 lines; overflow into references/ with explicit load guidance.
+  - Explicit note: "The review.md frontmatter schema defined in Section 4.3
+    is a stable API contract with the dispatch skill. Do not deviate from it."
+
+config/team.yaml:
+  - Complete team roster, operator username, excluded_patterns, draft policy,
+    and all defaults referenced in the SKILL.md.
+
+scripts/check_env.py through scripts/git_utils.py:
+  - All five scripts as stubs with complete docstrings and argparse interfaces.
+  - Function signatures and return types fully defined.
+  - Implementation bodies outlined (not fully implemented), but all interfaces
+    must be complete and unambiguous.
+  - check_env.py is the exception: its validation logic should be fully
+    implemented since it is safety-critical and short.
+
+All files must be immediately usable by Claude Code without further
+clarification. Do not invent requirements not present in Sections 1–11.
+================================================================================

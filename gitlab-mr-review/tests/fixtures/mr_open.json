@@ -1,0 +1,34 @@
+{
+  "id": 501234,
+  "iid": 42,
+  "title": "Add retry logic for S3 ingestion failures",
+  "description": "Closes #15\n\nAdds exponential backoff retry to the S3 ingestion pipeline.",
+  "state": "opened",
+  "draft": false,
+  "source_branch": "feature/s3-retry",
+  "target_branch": "main",
+  "author": {"username": "zettatron", "name": "Seth Allen"},
+  "assignees": [{"username": "srosenfeld"}],
+  "reviewers": [{"username": "alex_ai"}],
+  "labels": ["backend", "pipeline"],
+  "milestone": {"title": "v2.5"},
+  "created_at": "2026-03-28T10:00:00.000Z",
+  "updated_at": "2026-03-31T14:30:00.000Z",
+  "web_url": "https://gitlab.com/abacusinsights/abacus-v2/next-gen-platform/ng-data-pipeline/-/merge_requests/42",
+  "has_conflicts": false,
+  "head_pipeline": {
+    "id": 99001,
+    "status": "passed",
+    "web_url": "https://gitlab.com/abacusinsights/abacus-v2/next-gen-platform/ng-data-pipeline/-/pipelines/99001",
+    "created_at": "2026-03-31T14:00:00.000Z",
+    "finished_at": "2026-03-31T14:15:00.000Z",
+    "duration": 900,
+    "ref": "feature/s3-retry",
+    "sha": "abc123def456"
+  },
+  "diff_refs": {
+    "base_sha": "111aaa",
+    "head_sha": "abc123def456",
+    "start_sha": "111aaa"
+  }
+}

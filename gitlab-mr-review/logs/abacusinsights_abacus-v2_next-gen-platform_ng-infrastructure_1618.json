@@ -1,0 +1,2502 @@
+{
+  "id": 464502857,
+  "iid": 1618,
+  "project_id": 40355636,
+  "title": "DSP-7709: add account-level Databricks budgets and budget policies",
+  "description": "## Summary\n\n- **`databricks_budget`** \u2014 one account-level budget per workspace in `workspaces`, with monthly threshold **`budget_monthly_threshold_usd`** (Luna default `1000` USD). Alerts use framework tag filters + **`budget_alert_email`** / **`budget_time_period`** (Terraform defaults unless overridden via tfvars).\n- **`databricks_budget_policy`** \u2014 **one** account-level serverless policy, **`{label}-serverless-budget-policy`**, with **`binding_workspace_ids`** = all managed workspaces and framework **`custom_tags`**. This replaces per-workspace policy resources so we avoid parallel account API creates that returned misleading **Duplicate policy name found** errors ([terraform-provider-databricks#4600](https://github.com/databricks/terraform-provider-databricks/issues/4600)).\n- Budget controls are **always on** for configured workspaces (no separate feature flag variable).\n- **Provision (minimal):** deployer **`roles/billing.admin`** alongside CloudZero on the default account rule set (`cloudzero.tf`); Databricks provider **`>=1.112.0, <2.0`** in provision and aligned layers/modules.\n- **Metastore / provider alignment:** metastore zip bumps where consumed; JDBC SP module uses `configuration_aliases` for `databricks.account`.\n\n## Outputs\n\n- `budget_configuration_ids` \u2014 per-workspace budget configuration ids  \n- `budget_policy_id` \u2014 single shared serverless budget policy id (or null if no workspaces)\n\n## Diff vs `origin/qa` (high level)\n\n**32 files**, ~208 insertions / ~43 deletions.\n\n| Area | Files |\n|------|--------|\n| Budgets + policy | `configurations/budgeting.tf`, `variables.tf`, `outputs.tf`, `deploy/luna-config-spec.yaml` |\n| Provision (scoped) | `provision/cloudzero.tf`, `provision/versions.tf`, `provision/unity.tf` |\n| Other Databricks layers/modules | `connector_deployer`, `mdm`, `object_permission`, `tokens`, workflows, `unity_catalog`, `workspace_configurations`, `jdbc_sp_configurations`, etc. |\n| Metastore consumers | `storage/common/s3.tf`, `security/roles|policies/metastore.tf`, `job_metadata_db` |\n| Docs | `README.md` |\n\n## Test plan\n\n- [x] Deploy `nextgen.databricks.provision` then `nextgen.databricks.configurations` via Seiji; apply succeeds.\n- [x] Account console: budgets and **one** serverless budget policy as expected.\n- [ ] Confirm FinOps / alert email receives budget notifications if thresholds are exceeded (as applicable).\n\n## Rollout / cleanup\n\nIf earlier failed applies left **per-workspace** serverless policy names (`{label}-{workspace}-serverless-budget-policy`) in the account without state, remove them in the Account console (or import) so they do not confuse operators; the managed policy name is **`{label}-serverless-budget-policy`** only.",
+  "state": "opened",
+  "created_at": "2026-03-16T16:52:30.225Z",
+  "updated_at": "2026-04-02T13:21:18.388Z",
+  "merged_by": null,
+  "merge_user": null,
+  "merged_at": null,
+  "closed_by": null,
+  "closed_at": null,
+  "target_branch": "qa",
+  "source_branch": "add_budget_policies_DSP-7709",
+  "user_notes_count": 7,
+  "upvotes": 0,
+  "downvotes": 0,
+  "author": {
+    "id": 34702854,
+    "username": "eric.shtivelberg",
+    "public_email": "",
+    "name": "Shtiv",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+    "web_url": "https://gitlab.com/eric.shtivelberg"
+  },
+  "assignees": [],
+  "assignee": null,
+  "reviewers": [],
+  "source_project_id": 40355636,
+  "target_project_id": 40355636,
+  "labels": [],
+  "draft": false,
+  "imported": false,
+  "imported_from": "none",
+  "work_in_progress": false,
+  "milestone": null,
+  "merge_when_pipeline_succeeds": false,
+  "merge_status": "checking",
+  "detailed_merge_status": "checking",
+  "merge_after": null,
+  "sha": "1917c96f9d942d4c569651791ed18ceed331e816",
+  "merge_commit_sha": null,
+  "squash_commit_sha": null,
+  "discussion_locked": null,
+  "should_remove_source_branch": null,
+  "force_remove_source_branch": true,
+  "prepared_at": "2026-03-16T16:52:32.550Z",
+  "reference": "!1618",
+  "references": {
+    "short": "!1618",
+    "relative": "!1618",
+    "full": "abacusinsights/abacus-v2/next-gen-platform/ng-infrastructure!1618"
+  },
+  "web_url": "https://gitlab.com/abacusinsights/abacus-v2/next-gen-platform/ng-infrastructure/-/merge_requests/1618",
+  "time_stats": {
+    "time_estimate": 0,
+    "total_time_spent": 0,
+    "human_time_estimate": null,
+    "human_total_time_spent": null
+  },
+  "squash": false,
+  "squash_on_merge": false,
+  "task_completion_status": {
+    "count": 3,
+    "completed_count": 2
+  },
+  "has_conflicts": false,
+  "blocking_discussions_resolved": true,
+  "approvals_before_merge": null,
+  "subscribed": false,
+  "changes_count": "35",
+  "latest_build_started_at": "2026-04-02T13:21:27.468Z",
+  "latest_build_finished_at": "2026-04-02T13:37:21.138Z",
+  "first_deployed_to_production_at": null,
+  "pipeline": {
+    "id": 2426075332,
+    "iid": 10600,
+    "project_id": 40355636,
+    "sha": "1917c96f9d942d4c569651791ed18ceed331e816",
+    "ref": "add_budget_policies_DSP-7709",
+    "status": "success",
+    "source": "push",
+    "created_at": "2026-04-02T13:21:18.911Z",
+    "updated_at": "2026-04-02T13:37:21.152Z",
+    "web_url": "https://gitlab.com/abacusinsights/abacus-v2/next-gen-platform/ng-infrastructure/-/pipelines/2426075332"
+  },
+  "head_pipeline": {
+    "id": 2426075332,
+    "iid": 10600,
+    "project_id": 40355636,
+    "sha": "1917c96f9d942d4c569651791ed18ceed331e816",
+    "ref": "add_budget_policies_DSP-7709",
+    "status": "success",
+    "source": "push",
+    "created_at": "2026-04-02T13:21:18.911Z",
+    "updated_at": "2026-04-02T13:37:21.152Z",
+    "web_url": "https://gitlab.com/abacusinsights/abacus-v2/next-gen-platform/ng-infrastructure/-/pipelines/2426075332",
+    "before_sha": "379b653be051cccfcbdf0a105ea252021e3fb67a",
+    "tag": false,
+    "yaml_errors": null,
+    "user": {
+      "id": 34702854,
+      "username": "eric.shtivelberg",
+      "public_email": "",
+      "name": "Shtiv",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+      "web_url": "https://gitlab.com/eric.shtivelberg"
+    },
+    "started_at": "2026-04-02T13:21:27.468Z",
+    "finished_at": "2026-04-02T13:37:21.138Z",
+    "committed_at": null,
+    "duration": 939,
+    "queued_duration": 8,
+    "coverage": null,
+    "detailed_status": {
+      "icon": "status_warning",
+      "text": "Warning",
+      "label": "passed with warnings",
+      "group": "success-with-warnings",
+      "tooltip": "passed with warnings",
+      "has_details": true,
+      "details_path": "/abacusinsights/abacus-v2/next-gen-platform/ng-infrastructure/-/pipelines/2426075332",
+      "illustration": null,
+      "favicon": "/assets/ci_favicons/favicon_status_success-8451333011eee8ce9f2ab25dc487fe24a8758c694827a582f17f42b0a90446a2.png"
+    },
+    "archived": false
+  },
+  "diff_refs": {
+    "base_sha": "fba4a60a1a3d6aa22ee3ce0df8a1d4aaf3f9859b",
+    "head_sha": "1917c96f9d942d4c569651791ed18ceed331e816",
+    "start_sha": "fba4a60a1a3d6aa22ee3ce0df8a1d4aaf3f9859b"
+  },
+  "merge_error": null,
+  "first_contribution": false,
+  "user": {
+    "can_merge": true
+  },
+  "diffs": [
+    {
+      "diff": "@@ -0,0 +1,10 @@\n+#!/bin/bash\n+set -euo pipefail\n+\n+# Compatibility migration.\n+# Seiji migration DB for some tenants already references this filename.\n+# Keep this script present and idempotent so migration initialization does not fail\n+# when older deploy attempts registered 013 in the DB.\n+\n+echo \"[INFO] 013-remove-budget-policy: no-op compatibility migration\"\n+echo \"[INFO] Nothing to migrate; preserving script for migration DB continuity.\"\n",
+      "collapsed": false,
+      "too_large": false,
+      "new_path": "terraform/layers/databricks/configurations/deploy/migrations/013-remove-budget-policy.sh",
+      "old_path": "terraform/layers/databricks/configurations/deploy/migrations/013-remove-budget-policy.sh",
+      "a_mode": "0",
+      "b_mode": "100644",
+      "new_file": true,
+      "renamed_file": false,
+      "deleted_file": false,
+      "generated_file": false
+    },
+    {
+      "diff": "@@ -123,6 +123,24 @@ config:\n       required: true\n       tfvar: true\n       type: str\n+    databricks_partner_end_customer:\n+      default: \"Abacus Insights\"\n+      description: \"The customer on whose behalf we are bricking that sweet, sweet data.\"\n+      required: false\n+      tfvar: true\n+      type: str\n+    databricks_partner_end_customer_id:\n+      default: \"internal\"\n+      description: \"The ID corresponding to databricks_partner_end_customer.\"\n+      required: false\n+      tfvar: true\n+      type: str\n+    budget_monthly_threshold_usd:\n+      default: 1000\n+      description: \"Monthly Databricks account budget threshold in USD (list price) for each workspace budget.\"\n+      required: false\n+      tfvar: true\n+      type: int\n     workspace_to_gitlab_branch:\n       default:\n         dev: develop\n",
+      "collapsed": false,
+      "too_large": false,
+      "new_path": "terraform/layers/databricks/configurations/deploy/luna-config-spec.yaml",
+      "old_path": "terraform/layers/databricks/configurations/deploy/luna-config-spec.yaml",
+      "a_mode": "100644",
+      "b_mode": "100644",
+      "new_file": false,
+      "renamed_file": false,
+      "deleted_file": false,
+      "generated_file": false
+    },
+    {
+      "diff": "@@ -0,0 +1,89 @@\n+locals {\n+  budget_managed_workspaces = var.workspaces\n+\n+  budget_framework_tags = [\n+    {\n+      key   = \"databricks_partner\"\n+      value = \"Abacus Insights\"\n+    },\n+    {\n+      key   = \"databricks_partner_end_customer\"\n+      value = var.databricks_partner_end_customer\n+    },\n+    {\n+      key   = \"databricks_partner_end_customer_id\"\n+      value = var.databricks_partner_end_customer_id\n+    }\n+  ]\n+}\n+\n+resource \"databricks_budget\" \"workspace\" {\n+  for_each = local.budget_managed_workspaces\n+\n+  display_name = format(\n+    \"%s-%s-monthly-budget-usd\",\n+    local.label,\n+    each.value,\n+  )\n+\n+  alert_configurations {\n+    time_period        = var.budget_time_period\n+    trigger_type       = \"CUMULATIVE_SPENDING_EXCEEDED\"\n+    quantity_type      = \"LIST_PRICE_DOLLARS_USD\"\n+    quantity_threshold = tostring(var.budget_monthly_threshold_usd)\n+\n+    action_configurations {\n+      action_type = \"EMAIL_NOTIFICATION\"\n+      target      = var.budget_alert_email\n+    }\n+  }\n+\n+  filter {\n+    workspace_id {\n+      operator = \"IN\"\n+      values = [\n+        tostring(data.terraform_remote_state.databricks_provision.outputs.workspace_ids[each.value])\n+      ]\n+    }\n+\n+    tags {\n+      key = \"databricks_partner\"\n+      value {\n+        operator = \"IN\"\n+        values   = [\"Abacus Insights\"]\n+      }\n+    }\n+\n+    tags {\n+      key = \"databricks_partner_end_customer\"\n+      value {\n+        operator = \"IN\"\n+        values   = [var.databricks_partner_end_customer]\n+      }\n+    }\n+\n+    tags {\n+      key = \"databricks_partner_end_customer_id\"\n+      value {\n+        operator = \"IN\"\n+        values   = [var.databricks_partner_end_customer_id]\n+      }\n+    }\n+  }\n+}\n+\n+# Single account-level serverless budget policy for the tenant (all workspace IDs).\n+resource \"databricks_budget_policy\" \"serverless\" {\n+  count = length(local.budget_managed_workspaces) > 0 ? 1 : 0\n+\n+  policy_name = \"${local.label}-serverless-budget-policy\"\n+\n+  custom_tags = local.budget_framework_tags\n+\n+  binding_workspace_ids = [\n+    for ws in sort(tolist(local.budget_managed_workspaces)) :\n+    data.terraform_remote_state.databricks_provision.outputs.workspace_ids[ws]\n+  ]\n+\n+  depends_on = [databricks_budget.workspace]\n+}\n",
+      "collapsed": false,
+      "too_large": false,
+      "new_path": "terraform/layers/databricks/configurations/budgeting.tf",
+      "old_path": "terraform/layers/databricks/configurations/budgeting.tf",
+      "a_mode": "0",
+      "b_mode": "100644",
+      "new_file": true,
+      "renamed_file": false,
+      "deleted_file": false,
+      "generated_file": false
+    },
+    {
+      "diff": "@@ -7,11 +7,21 @@ output \"database_names\" {\n \n output \"databricks_principal_internal_names\" {\n   value = {\n-    \"admin\" = local.databricks_data_admin_principal_internal_names\n-    \"editor\" = local.databricks_editor_principal_internal_names\n-    \"implementer\" = local.databricks_implementer_principal_internal_names\n-    \"metadata_only\" = local.databricks_metadata_only_principal_internal_names\n-    \"reader\" = local.databricks_reader_principal_internal_names\n+    \"admin\"           = local.databricks_data_admin_principal_internal_names\n+    \"editor\"          = local.databricks_editor_principal_internal_names\n+    \"implementer\"     = local.databricks_implementer_principal_internal_names\n+    \"metadata_only\"   = local.databricks_metadata_only_principal_internal_names\n+    \"reader\"          = local.databricks_reader_principal_internal_names\n     \"workspace_admin\" = local.databricks_workspace_admin_principal_internal_names\n   }\n }\n+\n+output \"budget_configuration_ids\" {\n+  description = \"Map of workspace name to Databricks budget configuration id.\"\n+  value       = { for ws, b in databricks_budget.workspace : ws => b.budget_configuration_id }\n+}\n+\n+output \"budget_policy_id\" {\n+  description = \"Shared account-level serverless budget policy id; null when there are no workspaces.\"\n+  value       = length(databricks_budget_policy.serverless) > 0 ? databricks_budget_policy.serverless[0].policy_id : null\n+}\n",
+      "collapsed": false,
+      "too_large": false,
+      "new_path": "terraform/layers/databricks/configurations/outputs.tf",
+      "old_path": "terraform/layers/databricks/configurations/outputs.tf",
+      "a_mode": "100644",
+      "b_mode": "100644",
+      "new_file": false,
+      "renamed_file": false,
+      "deleted_file": false,
+      "generated_file": false
+    },
+    {
+      "diff": "@@ -1,5 +1,5 @@\n provider \"databricks\" {\n-  alias = \"workspace-managing-data-access\"\n+  alias   = \"workspace-managing-data-access\"\n   profile = \"${local.label}-${var.workspace_managing_data_access}\"\n }\n \n@@ -16,8 +16,8 @@ resource \"databricks_grant\" \"system_catalog_queries\" {\n   for_each = toset(local.principals_with_system_access)\n   provider = databricks.workspace-managing-data-access\n \n-  catalog   = \"system\"\n-  principal = each.value\n+  catalog    = \"system\"\n+  principal  = each.value\n   privileges = [\"USE_CATALOG\", \"USE_SCHEMA\", \"SELECT\"]\n }\n \n@@ -25,8 +25,8 @@ resource \"databricks_grant\" \"system_catalog_uses\" {\n   for_each = toset(local.principals_with_no_system_access)\n   provider = \"databricks.workspace-managing-data-access\"\n \n-  catalog   = \"system\"\n-  principal = each.value\n+  catalog    = \"system\"\n+  principal  = each.value\n   privileges = [\"USE_CATALOG\"]\n }\n \n@@ -36,6 +36,6 @@ resource \"databricks_grant\" \"system_catalog_uses\" {\n resource \"databricks_system_schema\" \"system_schema\" {\n   for_each = var.system_schemas_enabled\n   provider = \"databricks.workspace-managing-data-access\"\n-  schema = each.value\n+  schema   = each.value\n \n }\n",
+      "collapsed": false,
+      "too_large": false,
+      "new_path": "terraform/layers/databricks/configurations/system_catalog.tf",
+      "old_path": "terraform/layers/databricks/configurations/system_catalog.tf",
+      "a_mode": "100644",
+      "b_mode": "100644",
+      "new_file": false,
+      "renamed_file": false,
+      "deleted_file": false,
+      "generated_file": false
+    },
+    {
+      "diff": "@@ -12,7 +12,7 @@ variable \"jdbc_connection_cidrs\" {\n variable \"auth0_ips\" {\n   description = \"List of IPs for Abacus Auth0 connection\"\n   type        = list(string)\n-  default     = [\n+  default = [\n     \"3.132.122.145/32\",\n     \"18.116.121.139/32\",\n     \"3.133.239.104/32\",\n@@ -79,14 +79,41 @@ variable \"workspaces\" {\n   description = \"A list of workspaces that will run in this environment.\"\n }\n \n+variable \"databricks_partner_end_customer\" {\n+  description = \"Client-specific human-readable ID\"\n+  type        = string\n+}\n+\n+variable \"databricks_partner_end_customer_id\" {\n+  description = \"Client-specific Databricks ID\"\n+  type        = string\n+}\n+\n+variable \"budget_monthly_threshold_usd\" {\n+  type        = number\n+  description = \"Monthly Databricks account budget threshold in USD (list price) for each workspace budget.\"\n+}\n+\n+variable \"budget_alert_email\" {\n+  type        = string\n+  description = \"E-mail target for Databricks budget alert notifications.\"\n+  default     = \"finops-aaaai4ctf4pcm7wmrmmovfxsmi@grid-abacus-insights.org.slack.com\"\n+}\n+\n+variable \"budget_time_period\" {\n+  type        = string\n+  description = \"Budget alert time period (e.g. MONTH, QUARTER).\"\n+  default     = \"MONTH\"\n+}\n+\n variable \"workspace_managing_data_access\" {\n   description = \"The name of the workspace which is managing access to Unity Catalog.\"\n-  type = string\n+  type        = string\n }\n \n variable \"tenant_managing_data_access\" {\n   description = \"The name of the tenant which is managing access to Unity Catalog, for multi-tenant scenarios.\"\n-  type = string\n+  type        = string\n }\n \n variable \"connector_promotion_secret_scope\" {\n",
+      "collapsed": false,
+      "too_large": false,
+      "new_path": "terraform/layers/databricks/configurations/variables.tf",
+      "old_path": "terraform/layers/databricks/configurations/variables.tf",
+      "a_mode": "100644",
+      "b_mode": "100644",
+      "new_file": false,
+      "renamed_file": false,
+      "deleted_file": false,
+      "generated_file": false
+    },
+    {
+      "diff": "@@ -6,7 +6,7 @@ terraform {\n     }\n     databricks = {\n       source  = \"databricks/databricks\"\n-      version = \"1.63.0\"\n+      version = \">=1.112.0, <2.0\"\n     }\n     gitlab = {\n       source  = \"gitlabhq/gitlab\"\n",
+      "collapsed": false,
+      "too_large": false,
+      "new_path": "terraform/layers/databricks/configurations/versions.tf",
+      "old_path": "terraform/layers/databricks/configurations/versions.tf",
+      "a_mode": "100644",
+      "b_mode": "100644",
+      "new_file": false,
+      "renamed_file": false,
+      "deleted_file": false,
+      "generated_file": false
+    },
+    {
+      "diff": "@@ -6,7 +6,7 @@ terraform {\n     }\n     databricks = {\n       source  = \"databricks/databricks\"\n-      version = \"1.63.0\"\n+      version = \">=1.112.0, <2.0\"\n     }\n   }\n }\n",
+      "collapsed": false,
+      "too_large": false,
+      "new_path": "terraform/layers/databricks/connector_deployer/versions.tf",
+      "old_path": "terraform/layers/databricks/connector_deployer/versions.tf",
+      "a_mode": "100644",
+      "b_mode": "100644",
+      "new_file": false,
+      "renamed_file": false,
+      "deleted_file": false,
+      "generated_file": false
+    },
+    {
+      "diff": "@@ -6,7 +6,7 @@ terraform {\n     }\n     databricks = {\n       source  = \"databricks/databricks\"\n-      version = \"1.63.0\"\n+      version = \">=1.112.0, <2.0\"\n     }\n   }\n }\n",
+      "collapsed": false,
+      "too_large": false,
+      "new_path": "terraform/layers/databricks/mdm/versions.tf",
+      "old_path": "terraform/layers/databricks/mdm/versions.tf",
+      "a_mode": "100644",
+      "b_mode": "100644",
+      "new_file": false,
+      "renamed_file": false,
+      "deleted_file": false,
+      "generated_file": false
+    },
+    {
+      "diff": "@@ -6,7 +6,7 @@ terraform {\n     }\n     databricks = {\n       source  = \"databricks/databricks\"\n-      version = \"1.63.0\"\n+      version = \">=1.112.0, <2.0\"\n     }\n   }\n }\n",
+      "collapsed": false,
+      "too_large": false,
+      "new_path": "terraform/layers/databricks/object_permission/versions.tf",
+      "old_path": "terraform/layers/databricks/object_permission/versions.tf",
+      "a_mode": "100644",
+      "b_mode": "100644",
+      "new_file": false,
+      "renamed_file": false,
+      "deleted_file": false,
+      "generated_file": false
+    },
+    {
+      "diff": "@@ -40,4 +40,11 @@ resource \"databricks_access_control_rule_set\" \"cloudzero_billing_admin\" {\n     principals = [databricks_service_principal.cloudzero_billing.acl_principal_id]\n     role       = \"roles/billing.admin\"\n   }\n+\n+  # Budget policy APIs require account-level permissions. Keep this in the same\n+  # authoritative rule set resource so both CloudZero and deployer grants persist.\n+  grant_rules {\n+    principals = [databricks_service_principal.deployer.acl_principal_id]\n+    role       = \"roles/billing.admin\"\n+  }\n }\n",
+      "collapsed": false,
+      "too_large": false,
+      "new_path": "terraform/layers/databricks/provision/cloudzero.tf",
+      "old_path": "terraform/layers/databricks/provision/cloudzero.tf",
+      "a_mode": "100644",
+      "b_mode": "100644",
+      "new_file": false,
+      "renamed_file": false,
+      "deleted_file": false,
+      "generated_file": false
+    },
+    {
+      "diff": "@@ -120,4 +120,3 @@ data \"terraform_remote_state\" \"eks_provision\" {\n     dynamodb_table = \"tfstate-lock-${data.aws_caller_identity.current.account_id}\"\n   }\n }\n-\n",
+      "collapsed": false,
+      "too_large": false,
+      "new_path": "terraform/layers/databricks/provision/data.tf",
+      "old_path": "terraform/layers/databricks/provision/data.tf",
+      "a_mode": "100644",
+      "b_mode": "100644",
+      "new_file": false,
+      "renamed_file": false,
+      "deleted_file": false,
+      "generated_file": false
+    },
+    {
+      "diff": "@@ -163,4 +163,3 @@ resource \"databricks_mws_vpc_endpoint\" \"relay\" {\n     create_before_destroy = true\n   }\n }\n-\n",
+      "collapsed": false,
+      "too_large": false,
+      "new_path": "terraform/layers/databricks/provision/network.tf",
+      "old_path": "terraform/layers/databricks/provision/network.tf",
+      "a_mode": "100644",
+      "b_mode": "100644",
+      "new_file": false,
+      "renamed_file": false,
+      "deleted_file": false,
+      "generated_file": false
+    },
+    {
+      "diff": "@@ -1,6 +1,6 @@\n module \"metastore\" {\n   count                 = var.metastore_id == \"\" ? 1 : 0\n-  source                = \"http://localhost:6422/object/releases/databricks-metastore/databricks-metastore-26.2.0.zip//metastore\"\n+  source                = \"http://localhost:6422/object/releases/databricks-metastore/databricks-metastore-26.3.0.zip//metastore\"\n   customer              = local.customer\n   metastore_bucket_name = data.terraform_remote_state.storage_common.outputs.metastore_bucket_name\n   region                = var.region\n",
+      "collapsed": false,
+      "too_large": false,
+      "new_path": "terraform/layers/databricks/provision/unity.tf",
+      "old_path": "terraform/layers/databricks/provision/unity.tf",
+      "a_mode": "100644",
+      "b_mode": "100644",
+      "new_file": false,
+      "renamed_file": false,
+      "deleted_file": false,
+      "generated_file": false
+    },
+    {
+      "diff": "@@ -6,7 +6,7 @@ terraform {\n     }\n     databricks = {\n       source  = \"databricks/databricks\"\n-      version = \"1.63.0\"\n+      version = \">=1.112.0, <2.0\"\n     }\n   }\n }\n",
+      "collapsed": false,
+      "too_large": false,
+      "new_path": "terraform/layers/databricks/provision/versions.tf",
+      "old_path": "terraform/layers/databricks/provision/versions.tf",
+      "a_mode": "100644",
+      "b_mode": "100644",
+      "new_file": false,
+      "renamed_file": false,
+      "deleted_file": false,
+      "generated_file": false
+    },
+    {
+      "diff": "@@ -2,7 +2,7 @@ terraform {\n   required_providers {\n     databricks = {\n       source  = \"databricks/databricks\"\n-      version = \"1.63.0\"\n+      version = \">=1.112.0, <2.0\"\n     }\n   }\n }\n",
+      "collapsed": false,
+      "too_large": false,
+      "new_path": "terraform/layers/databricks/tokens/workspace_sp_tokens/versions.tf",
+      "old_path": "terraform/layers/databricks/tokens/workspace_sp_tokens/versions.tf",
+      "a_mode": "100644",
+      "b_mode": "100644",
+      "new_file": false,
+      "renamed_file": false,
+      "deleted_file": false,
+      "generated_file": false
+    },
+    {
+      "diff": "@@ -6,7 +6,7 @@ terraform {\n     }\n     databricks = {\n       source  = \"databricks/databricks\"\n-      version = \"1.63.0\"\n+      version = \">=1.112.0, <2.0\"\n     }\n     # Keeping this here temporarily - prior versions of this layer utilized this provider. Removing it before\n     # Terraform has a chance to destroy the old resources seems to be a problem...unsure why at the moment. This issue\n",
+      "collapsed": false,
+      "too_large": false,
+      "new_path": "terraform/layers/databricks/tokens/versions.tf",
+      "old_path": "terraform/layers/databricks/tokens/versions.tf",
+      "a_mode": "100644",
+      "b_mode": "100644",
+      "new_file": false,
+      "renamed_file": false,
+      "deleted_file": false,
+      "generated_file": false
+    },
+    {
+      "diff": "@@ -1,6 +1,6 @@\n module \"metastore\" {\n   count                = var.metastore_id == \"\" ? 1 : 0\n-  source               = \"http://localhost:6422/object/releases/databricks-metastore/databricks-metastore-25.4.0.zip//policies\"\n+  source               = \"http://localhost:6422/object/releases/databricks-metastore/databricks-metastore-26.3.0.zip//policies\"\n   metastore_bucket_arn = data.terraform_remote_state.storage_common.outputs.metastore_bucket_arn\n   metastore_key_arn    = data.terraform_remote_state.storage_common.outputs.metastore_key_arn\n   metastore_role_arn   = data.terraform_remote_state.security_roles.outputs.metastore_role_arn\n",
+      "collapsed": false,
+      "too_large": false,
+      "new_path": "terraform/layers/security/policies/metastore.tf",
+      "old_path": "terraform/layers/security/policies/metastore.tf",
+      "a_mode": "100644",
+      "b_mode": "100644",
+      "new_file": false,
+      "renamed_file": false,
+      "deleted_file": false,
+      "generated_file": false
+    },
+    {
+      "diff": "@@ -1,6 +1,6 @@\n module \"metastore\" {\n   count                 = var.metastore_id == \"\" ? 1 : 0\n-  source                = \"http://localhost:6422/object/releases/databricks-metastore/databricks-metastore-25.4.0.zip//role\"\n+  source                = \"http://localhost:6422/object/releases/databricks-metastore/databricks-metastore-26.3.0.zip//role\"\n   databricks_account_id = var.databricks_account_id\n   label                 = local.label\n   layer_tag_map         = local.layer_tag_map\n",
+      "collapsed": false,
+      "too_large": false,
+      "new_path": "terraform/layers/security/roles/metastore.tf",
+      "old_path": "terraform/layers/security/roles/metastore.tf",
+      "a_mode": "100644",
+      "b_mode": "100644",
+      "new_file": false,
+      "renamed_file": false,
+      "deleted_file": false,
+      "generated_file": false
+    },
+    {
+      "diff": "@@ -386,7 +386,7 @@ resource \"aws_s3_object\" \"adhoc\" {\n \n module \"metastore\" {\n   count                               = var.metastore_id == \"\" ? 1 : 0\n-  source                              = \"http://localhost:6422/object/releases/databricks-metastore/databricks-metastore-25.7.0.zip//bucket\"\n+  source                              = \"http://localhost:6422/object/releases/databricks-metastore/databricks-metastore-26.3.0.zip//bucket\"\n   allowed_cidrs                       = local.admin_plus_databricks_cidrs\n   allowed_databricks_s3_endpoint_vpcs = local.databricks_control_plane_s3_endpoint_vpcs[data.aws_region.current.name]\n \n",
+      "collapsed": false,
+      "too_large": false,
+      "new_path": "terraform/layers/storage/common/s3.tf",
+      "old_path": "terraform/layers/storage/common/s3.tf",
+      "a_mode": "100644",
+      "b_mode": "100644",
+      "new_file": false,
+      "renamed_file": false,
+      "deleted_file": false,
+      "generated_file": false
+    },
+    {
+      "diff": "@@ -2,7 +2,7 @@ terraform {\n   required_providers {\n     databricks = {\n       source  = \"databricks/databricks\"\n-      version = \"1.63.0\"\n+      version = \">=1.112.0, <2.0\"\n     }\n   }\n }\n",
+      "collapsed": false,
+      "too_large": false,
+      "new_path": "terraform/layers/storage/job_metadata_db/password_management/versions.tf",
+      "old_path": "terraform/layers/storage/job_metadata_db/password_management/versions.tf",
+      "a_mode": "100644",
+      "b_mode": "100644",
+      "new_file": false,
+      "renamed_file": false,
+      "deleted_file": false,
+      "generated_file": false
+    },
+    {
+      "diff": "@@ -6,7 +6,7 @@ terraform {\n     }\n     databricks = {\n       source  = \"databricks/databricks\"\n-      version = \"1.63.0\"\n+      version = \">=1.112.0, <2.0\"\n     }\n   }\n }\n",
+      "collapsed": false,
+      "too_large": false,
+      "new_path": "terraform/layers/storage/job_metadata_db/versions.tf",
+      "old_path": "terraform/layers/storage/job_metadata_db/versions.tf",
+      "a_mode": "100644",
+      "b_mode": "100644",
+      "new_file": false,
+      "renamed_file": false,
+      "deleted_file": false,
+      "generated_file": false
+    },
+    {
+      "diff": "@@ -2,7 +2,7 @@ terraform {\n   required_providers {\n     databricks = {\n       source  = \"databricks/databricks\"\n-      version = \"1.63.0\"\n+      version = \">=1.112.0, <2.0\"\n     }\n   }\n }\n",
+      "collapsed": false,
+      "too_large": false,
+      "new_path": "terraform/modules/databricks_ams_workflow/versions.tf",
+      "old_path": "terraform/modules/databricks_ams_workflow/versions.tf",
+      "a_mode": "100644",
+      "b_mode": "100644",
+      "new_file": false,
+      "renamed_file": false,
+      "deleted_file": false,
+      "generated_file": false
+    },
+    {
+      "diff": "@@ -2,7 +2,7 @@ terraform {\n   required_providers {\n     databricks = {\n       source  = \"databricks/databricks\"\n-      version = \"1.63.0\"\n+      version = \">=1.112.0, <2.0\"\n     }\n   }\n }\n",
+      "collapsed": false,
+      "too_large": false,
+      "new_path": "terraform/modules/databricks_configuration_enterprise_dq_rule_index/versions.tf",
+      "old_path": "terraform/modules/databricks_configuration_enterprise_dq_rule_index/versions.tf",
+      "a_mode": "100644",
+      "b_mode": "100644",
+      "new_file": false,
+      "renamed_file": false,
+      "deleted_file": false,
+      "generated_file": false
+    },
+    {
+      "diff": "@@ -2,7 +2,7 @@ terraform {\n   required_providers {\n     databricks = {\n       source  = \"databricks/databricks\"\n-      version = \"1.63.0\"\n+      version = \">=1.112.0, <2.0\"\n     }\n   }\n }\n",
+      "collapsed": false,
+      "too_large": false,
+      "new_path": "terraform/modules/databricks_connector_deployer/versions.tf",
+      "old_path": "terraform/modules/databricks_connector_deployer/versions.tf",
+      "a_mode": "100644",
+      "b_mode": "100644",
+      "new_file": false,
+      "renamed_file": false,
+      "deleted_file": false,
+      "generated_file": false
+    },
+    {
+      "diff": "@@ -1,5 +1 @@\n-# these providers should be configured with a `providers` block on the module call\n-\n-provider \"databricks\" {\n-  alias = \"account\"\n-}\n\\ No newline at end of file\n+# these providers should be configured with a `providers` block on the module call\n\\ No newline at end of file\n",
+      "collapsed": false,
+      "too_large": false,
+      "new_path": "terraform/modules/databricks_jdbc_sp_configurations/main.tf",
+      "old_path": "terraform/modules/databricks_jdbc_sp_configurations/main.tf",
+      "a_mode": "100644",
+      "b_mode": "100644",
+      "new_file": false,
+      "renamed_file": false,
+      "deleted_file": false,
+      "generated_file": false
+    },
+    {
+      "diff": "@@ -2,7 +2,8 @@ terraform {\n   required_providers {\n     databricks = {\n       source  = \"databricks/databricks\"\n-      version = \"1.63.0\"\n+      version = \">=1.112.0, <2.0\"\n+      configuration_aliases = [databricks.account]\n     }\n   }\n }\n",
+      "collapsed": false,
+      "too_large": false,
+      "new_path": "terraform/modules/databricks_jdbc_sp_configurations/versions.tf",
+      "old_path": "terraform/modules/databricks_jdbc_sp_configurations/versions.tf",
+      "a_mode": "100644",
+      "b_mode": "100644",
+      "new_file": false,
+      "renamed_file": false,
+      "deleted_file": false,
+      "generated_file": false
+    },
+    {
+      "diff": "@@ -2,7 +2,7 @@ terraform {\n   required_providers {\n     databricks = {\n       source  = \"databricks/databricks\"\n-      version = \"1.63.0\"\n+      version = \">=1.112.0, <2.0\"\n     }\n   }\n }\n",
+      "collapsed": false,
+      "too_large": false,
+      "new_path": "terraform/modules/databricks_object_permission/versions.tf",
+      "old_path": "terraform/modules/databricks_object_permission/versions.tf",
+      "a_mode": "100644",
+      "b_mode": "100644",
+      "new_file": false,
+      "renamed_file": false,
+      "deleted_file": false,
+      "generated_file": false
+    },
+    {
+      "diff": "@@ -2,7 +2,7 @@ terraform {\n   required_providers {\n     databricks = {\n       source  = \"databricks/databricks\"\n-      version = \"1.63.0\"\n+      version = \">=1.112.0, <2.0\"\n     }\n   }\n }\n",
+      "collapsed": false,
+      "too_large": false,
+      "new_path": "terraform/modules/databricks_reltio_workflow/versions.tf",
+      "old_path": "terraform/modules/databricks_reltio_workflow/versions.tf",
+      "a_mode": "100644",
+      "b_mode": "100644",
+      "new_file": false,
+      "renamed_file": false,
+      "deleted_file": false,
+      "generated_file": false
+    },
+    {
+      "diff": "@@ -2,7 +2,7 @@ terraform {\n   required_providers {\n     databricks = {\n       source  = \"databricks/databricks\"\n-      version = \"1.63.0\"\n+      version = \">=1.112.0, <2.0\"\n     }\n   }\n }\n",
+      "collapsed": false,
+      "too_large": false,
+      "new_path": "terraform/modules/databricks_rhapsody_abc_workflow/versions.tf",
+      "old_path": "terraform/modules/databricks_rhapsody_abc_workflow/versions.tf",
+      "a_mode": "100644",
+      "b_mode": "100644",
+      "new_file": false,
+      "renamed_file": false,
+      "deleted_file": false,
+      "generated_file": false
+    },
+    {
+      "diff": "@@ -2,7 +2,7 @@ terraform {\n   required_providers {\n     databricks = {\n       source  = \"databricks/databricks\"\n-      version = \"1.63.0\"\n+      version = \">=1.112.0, <2.0\"\n     }\n   }\n }\n",
+      "collapsed": false,
+      "too_large": false,
+      "new_path": "terraform/modules/databricks_rhapsody_inbound_workflow/versions.tf",
+      "old_path": "terraform/modules/databricks_rhapsody_inbound_workflow/versions.tf",
+      "a_mode": "100644",
+      "b_mode": "100644",
+      "new_file": false,
+      "renamed_file": false,
+      "deleted_file": false,
+      "generated_file": false
+    },
+    {
+      "diff": "@@ -2,7 +2,7 @@ terraform {\n   required_providers {\n     databricks = {\n       source  = \"databricks/databricks\"\n-      version = \"1.63.0\"\n+      version = \">=1.112.0, <2.0\"\n     }\n   }\n }\n",
+      "collapsed": false,
+      "too_large": false,
+      "new_path": "terraform/modules/databricks_rhapsody_outbound_workflow/versions.tf",
+      "old_path": "terraform/modules/databricks_rhapsody_outbound_workflow/versions.tf",
+      "a_mode": "100644",
+      "b_mode": "100644",
+      "new_file": false,
+      "renamed_file": false,
+      "deleted_file": false,
+      "generated_file": false
+    },
+    {
+      "diff": "@@ -2,7 +2,7 @@ terraform {\n   required_providers {\n     databricks = {\n       source  = \"databricks/databricks\"\n-      version = \"1.63.0\"\n+      version = \">=1.112.0, <2.0\"\n     }\n   }\n }\n",
+      "collapsed": false,
+      "too_large": false,
+      "new_path": "terraform/modules/databricks_unity_catalog/versions.tf",
+      "old_path": "terraform/modules/databricks_unity_catalog/versions.tf",
+      "a_mode": "100644",
+      "b_mode": "100644",
+      "new_file": false,
+      "renamed_file": false,
+      "deleted_file": false,
+      "generated_file": false
+    },
+    {
+      "diff": "@@ -2,7 +2,7 @@ terraform {\n   required_providers {\n     databricks = {\n       source  = \"databricks/databricks\"\n-      version = \"1.63.0\"\n+      version = \">=1.112.0, <2.0\"\n     }\n     time = {\n     source = \"hashicorp/time\"\n",
+      "collapsed": false,
+      "too_large": false,
+      "new_path": "terraform/modules/databricks_workspace_configurations/versions.tf",
+      "old_path": "terraform/modules/databricks_workspace_configurations/versions.tf",
+      "a_mode": "100644",
+      "b_mode": "100644",
+      "new_file": false,
+      "renamed_file": false,
+      "deleted_file": false,
+      "generated_file": false
+    },
+    {
+      "diff": "@@ -120,6 +120,23 @@ example, to change the URL to the repository containing the connector files, the\n         connector_repository_url: \"https://gitlab.com/abacusinsights/abacus-v2/next-gen-pipelines/<some-arbitrary-location>\"\n    ```\n \n+## Databricks budgets and serverless budget policy\n+\n+Defined in `terraform/layers/databricks/configurations/budgeting.tf`:\n+\n+- **`databricks_budget`** \u2014 one monthly budget per workspace in `workspaces`, threshold from **`budget_monthly_threshold_usd`** (Luna default `1000` USD). Alerts use **`budget_alert_email`** / **`budget_time_period`** (Terraform defaults; override via tfvars if needed).\n+- **`databricks_budget_policy`** \u2014 single account policy **`{label}-serverless-budget-policy`** binding all workspace IDs (avoids parallel per-workspace policy API flakes; see [terraform-provider-databricks#4600](https://github.com/databricks/terraform-provider-databricks/issues/4600)).\n+\n+Framework tags on budgets and policy:\n+\n+- `databricks_partner=Abacus Insights`\n+- `databricks_partner_end_customer`\n+- `databricks_partner_end_customer_id`\n+\n+Outputs: **`budget_configuration_ids`**, **`budget_policy_id`**.\n+\n+**Orphans:** old per-workspace policy names from prior attempts may need console cleanup or import if names conflict. If account API flakes return, try a one-off `terraform apply -parallelism=1` locally or reintroduce that flag in `create.sh`.\n+\n ## Naming Conventions\n \n The following conventions should be obeyed when creating new named resources anywhere in\n",
+      "collapsed": false,
+      "too_large": false,
+      "new_path": "README.md",
+      "old_path": "README.md",
+      "a_mode": "100644",
+      "b_mode": "100644",
+      "new_file": false,
+      "renamed_file": false,
+      "deleted_file": false,
+      "generated_file": false
+    }
+  ],
+  "discussions": [
+    {
+      "id": "5fd2a5a37f82e2bdf1a95b32125b95aaacaf478a",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3175743246,
+          "type": null,
+          "body": "added 21 commits\n\n<ul><li>4bb37e9c...b4e71e3c - 20 commits from branch <code>qa</code></li><li>6d966cc9 - DSP-7709: add account-level Databricks budgets and budget policies</li></ul>\n\n[Compare with previous version](/abacusinsights/abacus-v2/next-gen-platform/ng-infrastructure/-/merge_requests/1618/diffs?diff_id=1713539353&start_sha=4bb37e9c7739154e34dbb10e566bb99f256ad668)",
+          "author": {
+            "id": 34702854,
+            "username": "eric.shtivelberg",
+            "public_email": "",
+            "name": "Shtiv",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+            "web_url": "https://gitlab.com/eric.shtivelberg"
+          },
+          "created_at": "2026-03-19T21:57:43.532Z",
+          "updated_at": "2026-03-19T21:57:43.537Z",
+          "system": true,
+          "noteable_id": 464502857,
+          "noteable_type": "MergeRequest",
+          "project_id": 40355636,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 1618,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "b5801e0af72ac4b0c116e505d0c59a9b8032990d",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3175743344,
+          "type": null,
+          "body": "<!-- policy_violation_comment -->\nSecurity policy violations have been resolved.",
+          "author": {
+            "id": 7849066,
+            "username": "GitLab-Security-Bot",
+            "public_email": "",
+            "name": "GitLab Security Bot",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/7849066/security-bot.png",
+            "web_url": "https://gitlab.com/GitLab-Security-Bot"
+          },
+          "created_at": "2026-03-19T21:57:46.437Z",
+          "updated_at": "2026-04-02T13:37:27.880Z",
+          "system": false,
+          "noteable_id": 464502857,
+          "noteable_type": "MergeRequest",
+          "project_id": 40355636,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 1618,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "818e6c28dc2d0ae67fc830ce21ff5e370655255a",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3175749783,
+          "type": null,
+          "body": "added 1 commit\n\n<ul><li>4f91c753 - update tf provider and module</li></ul>\n\n[Compare with previous version](/abacusinsights/abacus-v2/next-gen-platform/ng-infrastructure/-/merge_requests/1618/diffs?diff_id=1713543097&start_sha=6d966cc95e2f50b1d2332df5c012dd12babd4924)",
+          "author": {
+            "id": 34702854,
+            "username": "eric.shtivelberg",
+            "public_email": "",
+            "name": "Shtiv",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+            "web_url": "https://gitlab.com/eric.shtivelberg"
+          },
+          "created_at": "2026-03-19T22:01:21.613Z",
+          "updated_at": "2026-03-19T22:01:21.622Z",
+          "system": true,
+          "noteable_id": 464502857,
+          "noteable_type": "MergeRequest",
+          "project_id": 40355636,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 1618,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "1ccdd2016a0254c53c8d6b63f203239565497db3",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3175792848,
+          "type": null,
+          "body": "added 1 commit\n\n<ul><li>a5842d51 - test matastore module</li></ul>\n\n[Compare with previous version](/abacusinsights/abacus-v2/next-gen-platform/ng-infrastructure/-/merge_requests/1618/diffs?diff_id=1713565410&start_sha=4f91c753da2594d1da5aeb971ed600fa6537601f)",
+          "author": {
+            "id": 34702854,
+            "username": "eric.shtivelberg",
+            "public_email": "",
+            "name": "Shtiv",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+            "web_url": "https://gitlab.com/eric.shtivelberg"
+          },
+          "created_at": "2026-03-19T22:25:03.343Z",
+          "updated_at": "2026-03-19T22:25:03.346Z",
+          "system": true,
+          "noteable_id": 464502857,
+          "noteable_type": "MergeRequest",
+          "project_id": 40355636,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 1618,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "d4319915b2295dd5efdf47fbd1fd2e8257f4a7f4",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3175820190,
+          "type": null,
+          "body": "added 1 commit\n\n<ul><li>02f7f123 - test matastore module</li></ul>\n\n[Compare with previous version](/abacusinsights/abacus-v2/next-gen-platform/ng-infrastructure/-/merge_requests/1618/diffs?diff_id=1713578531&start_sha=a5842d51bc9b754ece07b137acb796c318bd5707)",
+          "author": {
+            "id": 34702854,
+            "username": "eric.shtivelberg",
+            "public_email": "",
+            "name": "Shtiv",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+            "web_url": "https://gitlab.com/eric.shtivelberg"
+          },
+          "created_at": "2026-03-19T22:42:04.734Z",
+          "updated_at": "2026-03-19T22:42:04.738Z",
+          "system": true,
+          "noteable_id": 464502857,
+          "noteable_type": "MergeRequest",
+          "project_id": 40355636,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 1618,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "52e77ce225c35e84033c2ea559b5e3e05cc049d5",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3177489744,
+          "type": null,
+          "body": "added 1 commit\n\n<ul><li>7184b6d4 - test matastore module</li></ul>\n\n[Compare with previous version](/abacusinsights/abacus-v2/next-gen-platform/ng-infrastructure/-/merge_requests/1618/diffs?diff_id=1714480250&start_sha=02f7f1232ba85b71b6aef5111387836986a66576)",
+          "author": {
+            "id": 34702854,
+            "username": "eric.shtivelberg",
+            "public_email": "",
+            "name": "Shtiv",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+            "web_url": "https://gitlab.com/eric.shtivelberg"
+          },
+          "created_at": "2026-03-20T13:44:55.123Z",
+          "updated_at": "2026-03-20T13:44:55.127Z",
+          "system": true,
+          "noteable_id": 464502857,
+          "noteable_type": "MergeRequest",
+          "project_id": 40355636,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 1618,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "81525fe07eb59bc7aced4ccac3f7015da2af5cd7",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3178254326,
+          "type": null,
+          "body": "added 1 commit\n\n<ul><li>7dbc5bf2 - update all databricks provider usage</li></ul>\n\n[Compare with previous version](/abacusinsights/abacus-v2/next-gen-platform/ng-infrastructure/-/merge_requests/1618/diffs?diff_id=1714901269&start_sha=7184b6d4d7f10ed5ca4c80da856fb9bbeff7065d)",
+          "author": {
+            "id": 34702854,
+            "username": "eric.shtivelberg",
+            "public_email": "",
+            "name": "Shtiv",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+            "web_url": "https://gitlab.com/eric.shtivelberg"
+          },
+          "created_at": "2026-03-20T17:51:01.785Z",
+          "updated_at": "2026-03-20T17:51:01.789Z",
+          "system": true,
+          "noteable_id": 464502857,
+          "noteable_type": "MergeRequest",
+          "project_id": 40355636,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 1618,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "58567f48210c9ab54b97025a0df7f02f8625d5a1",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3178284896,
+          "type": null,
+          "body": "added 1 commit\n\n<ul><li>251110ea - update all databricks provider usage</li></ul>\n\n[Compare with previous version](/abacusinsights/abacus-v2/next-gen-platform/ng-infrastructure/-/merge_requests/1618/diffs?diff_id=1714914765&start_sha=7dbc5bf28daa9c36a50c14dc73ad3e49a3b9c0a0)",
+          "author": {
+            "id": 34702854,
+            "username": "eric.shtivelberg",
+            "public_email": "",
+            "name": "Shtiv",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+            "web_url": "https://gitlab.com/eric.shtivelberg"
+          },
+          "created_at": "2026-03-20T18:02:19.214Z",
+          "updated_at": "2026-03-20T18:02:19.217Z",
+          "system": true,
+          "noteable_id": 464502857,
+          "noteable_type": "MergeRequest",
+          "project_id": 40355636,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 1618,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "517f8dbb4eea5bea88aa9b3753eeacb153aa2b35",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3188776197,
+          "type": null,
+          "body": "added 24 commits\n\n<ul><li>251110ea...6bd578e1 - 20 commits from branch <code>qa</code></li><li>8d1df5c4 - DSP-7709: add account-level Databricks budgets and budget policies</li><li>d75135e0 - update tf provider and module</li><li>a2723d0a - test matastore module</li><li>4302ac6d - update all databricks provider usage</li></ul>\n\n[Compare with previous version](/abacusinsights/abacus-v2/next-gen-platform/ng-infrastructure/-/merge_requests/1618/diffs?diff_id=1719746299&start_sha=251110ea29d22707d4377c8648f63c2dc62ad07a)",
+          "author": {
+            "id": 34702854,
+            "username": "eric.shtivelberg",
+            "public_email": "",
+            "name": "Shtiv",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+            "web_url": "https://gitlab.com/eric.shtivelberg"
+          },
+          "created_at": "2026-03-24T22:49:55.904Z",
+          "updated_at": "2026-03-24T22:49:55.907Z",
+          "system": true,
+          "noteable_id": 464502857,
+          "noteable_type": "MergeRequest",
+          "project_id": 40355636,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 1618,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "653d295332fcfaef8502781fd4437773f22aee81",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3191526905,
+          "type": null,
+          "body": "added 1 commit\n\n<ul><li>cef83e22 - add budget policy permissions for airflow executor</li></ul>\n\n[Compare with previous version](/abacusinsights/abacus-v2/next-gen-platform/ng-infrastructure/-/merge_requests/1618/diffs?diff_id=1721247105&start_sha=4302ac6dae78257ae027ba432435f1aa615af86c)",
+          "author": {
+            "id": 34702854,
+            "username": "eric.shtivelberg",
+            "public_email": "",
+            "name": "Shtiv",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+            "web_url": "https://gitlab.com/eric.shtivelberg"
+          },
+          "created_at": "2026-03-25T16:46:59.093Z",
+          "updated_at": "2026-03-25T16:46:59.100Z",
+          "system": true,
+          "noteable_id": 464502857,
+          "noteable_type": "MergeRequest",
+          "project_id": 40355636,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 1618,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "6094832ed54007ed7065bd7ee5f70ee65a4c3bc4",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3191634799,
+          "type": null,
+          "body": "added 1 commit\n\n<ul><li>7660914f - move budget policy to configuration component</li></ul>\n\n[Compare with previous version](/abacusinsights/abacus-v2/next-gen-platform/ng-infrastructure/-/merge_requests/1618/diffs?diff_id=1721287092&start_sha=cef83e2218fc750a37172d4a015a34d2d6ea7189)",
+          "author": {
+            "id": 34702854,
+            "username": "eric.shtivelberg",
+            "public_email": "",
+            "name": "Shtiv",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+            "web_url": "https://gitlab.com/eric.shtivelberg"
+          },
+          "created_at": "2026-03-25T17:08:51.556Z",
+          "updated_at": "2026-03-25T17:08:51.570Z",
+          "system": true,
+          "noteable_id": 464502857,
+          "noteable_type": "MergeRequest",
+          "project_id": 40355636,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 1618,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "93b82ed1e65fc6b363c8219945cb36b374353325",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3191844278,
+          "type": null,
+          "body": "added 1 commit\n\n<ul><li>c592ee3e - revert update to 1.112 for now</li></ul>\n\n[Compare with previous version](/abacusinsights/abacus-v2/next-gen-platform/ng-infrastructure/-/merge_requests/1618/diffs?diff_id=1721393188&start_sha=7660914fa816e72f0b73d5ba11dbb7340d1e8971)",
+          "author": {
+            "id": 34702854,
+            "username": "eric.shtivelberg",
+            "public_email": "",
+            "name": "Shtiv",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+            "web_url": "https://gitlab.com/eric.shtivelberg"
+          },
+          "created_at": "2026-03-25T18:14:46.138Z",
+          "updated_at": "2026-03-25T18:14:46.144Z",
+          "system": true,
+          "noteable_id": 464502857,
+          "noteable_type": "MergeRequest",
+          "project_id": 40355636,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 1618,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "ded97eb50332b7b935658752922ce0adb8734402",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3191909508,
+          "type": null,
+          "body": "added 1 commit\n\n<ul><li>5c769bd5 - resolve missing groups alexwest</li></ul>\n\n[Compare with previous version](/abacusinsights/abacus-v2/next-gen-platform/ng-infrastructure/-/merge_requests/1618/diffs?diff_id=1721426358&start_sha=c592ee3ef57b71350f435c211308783e77b903bd)",
+          "author": {
+            "id": 34702854,
+            "username": "eric.shtivelberg",
+            "public_email": "",
+            "name": "Shtiv",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+            "web_url": "https://gitlab.com/eric.shtivelberg"
+          },
+          "created_at": "2026-03-25T18:39:21.476Z",
+          "updated_at": "2026-03-25T18:39:21.479Z",
+          "system": true,
+          "noteable_id": 464502857,
+          "noteable_type": "MergeRequest",
+          "project_id": 40355636,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 1618,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "cfc98947a385d7627c219751a49e8af953d4db0d",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3191925563,
+          "type": null,
+          "body": "added 1 commit\n\n<ul><li>af817afe - revert back to latest 1.112</li></ul>\n\n[Compare with previous version](/abacusinsights/abacus-v2/next-gen-platform/ng-infrastructure/-/merge_requests/1618/diffs?diff_id=1721433353&start_sha=5c769bd56b2882097893c5ada5a957be7f29f164)",
+          "author": {
+            "id": 34702854,
+            "username": "eric.shtivelberg",
+            "public_email": "",
+            "name": "Shtiv",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+            "web_url": "https://gitlab.com/eric.shtivelberg"
+          },
+          "created_at": "2026-03-25T18:44:35.693Z",
+          "updated_at": "2026-03-25T18:44:35.699Z",
+          "system": true,
+          "noteable_id": 464502857,
+          "noteable_type": "MergeRequest",
+          "project_id": 40355636,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 1618,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "3132e2c21540094645d81be671fdfaa394744697",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3192296066,
+          "type": null,
+          "body": "added 1 commit\n\n<ul><li>a3ce73e3 - add back missing groups that need to be SCIM&#39;d</li></ul>\n\n[Compare with previous version](/abacusinsights/abacus-v2/next-gen-platform/ng-infrastructure/-/merge_requests/1618/diffs?diff_id=1721632079&start_sha=af817afe7eea3441e21e31e2483e906d2af006a5)",
+          "author": {
+            "id": 34702854,
+            "username": "eric.shtivelberg",
+            "public_email": "",
+            "name": "Shtiv",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+            "web_url": "https://gitlab.com/eric.shtivelberg"
+          },
+          "created_at": "2026-03-25T21:20:56.339Z",
+          "updated_at": "2026-03-25T21:20:56.344Z",
+          "system": true,
+          "noteable_id": 464502857,
+          "noteable_type": "MergeRequest",
+          "project_id": 40355636,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 1618,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "ea76e76b1ba4460f1b5425201e3d77adec0cd951",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3195125644,
+          "type": null,
+          "body": "added 12 commits\n\n<ul><li>a3ce73e3...c5111da3 - 2 commits from branch <code>qa</code></li><li>47800027 - DSP-7709: add account-level Databricks budgets and budget policies</li><li>8e88a1cf - update tf provider and module</li><li>a4925ce9 - test matastore module</li><li>3cb09d3d - update all databricks provider usage</li><li>46524b0e - add budget policy permissions for airflow executor</li><li>7079548f - move budget policy to configuration component</li><li>5e33500c - revert update to 1.112 for now</li><li>2af09303 - resolve missing groups alexwest</li><li>82b5bcc1 - revert back to latest 1.112</li><li>88043158 - add back missing groups that need to be SCIM&#39;d</li></ul>\n\n[Compare with previous version](/abacusinsights/abacus-v2/next-gen-platform/ng-infrastructure/-/merge_requests/1618/diffs?diff_id=1723131929&start_sha=a3ce73e33bc8ed4eb13797f044758512f79dc196)",
+          "author": {
+            "id": 34702854,
+            "username": "eric.shtivelberg",
+            "public_email": "",
+            "name": "Shtiv",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+            "web_url": "https://gitlab.com/eric.shtivelberg"
+          },
+          "created_at": "2026-03-26T15:38:55.745Z",
+          "updated_at": "2026-03-26T15:38:55.752Z",
+          "system": true,
+          "noteable_id": 464502857,
+          "noteable_type": "MergeRequest",
+          "project_id": 40355636,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 1618,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "872bf4eff55b6b4527af4a601e96f83d87ce7dc4",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3195267458,
+          "type": null,
+          "body": "added 1 commit\n\n<ul><li>d998f13b - remove bad merge</li></ul>\n\n[Compare with previous version](/abacusinsights/abacus-v2/next-gen-platform/ng-infrastructure/-/merge_requests/1618/diffs?diff_id=1723215928&start_sha=8804315859b83ce2fac8941261e3b8c54c928012)",
+          "author": {
+            "id": 34702854,
+            "username": "eric.shtivelberg",
+            "public_email": "",
+            "name": "Shtiv",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+            "web_url": "https://gitlab.com/eric.shtivelberg"
+          },
+          "created_at": "2026-03-26T16:15:43.051Z",
+          "updated_at": "2026-03-26T16:15:43.057Z",
+          "system": true,
+          "noteable_id": 464502857,
+          "noteable_type": "MergeRequest",
+          "project_id": 40355636,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 1618,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "b7fb568273a846dddf81467aeccd071f69790505",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3195302391,
+          "type": null,
+          "body": "added 1 commit\n\n<ul><li>2e93a63d - limit provision changes to provider and airflow permission</li></ul>\n\n[Compare with previous version](/abacusinsights/abacus-v2/next-gen-platform/ng-infrastructure/-/merge_requests/1618/diffs?diff_id=1723234043&start_sha=d998f13b014e7b6f99ad9074d72de7b99f3af25b)",
+          "author": {
+            "id": 34702854,
+            "username": "eric.shtivelberg",
+            "public_email": "",
+            "name": "Shtiv",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+            "web_url": "https://gitlab.com/eric.shtivelberg"
+          },
+          "created_at": "2026-03-26T16:23:52.359Z",
+          "updated_at": "2026-03-26T16:23:52.368Z",
+          "system": true,
+          "noteable_id": 464502857,
+          "noteable_type": "MergeRequest",
+          "project_id": 40355636,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 1618,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "f1e3cfbe30396cf7a2c79a60412a157d2911d8f7",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3195323525,
+          "type": null,
+          "body": "added 1 commit\n\n<ul><li>12fad154 - remove unrelated provision diffs from budget MR</li></ul>\n\n[Compare with previous version](/abacusinsights/abacus-v2/next-gen-platform/ng-infrastructure/-/merge_requests/1618/diffs?diff_id=1723247852&start_sha=2e93a63dc4d85cd939d0b31bd5a1547d236088c1)",
+          "author": {
+            "id": 34702854,
+            "username": "eric.shtivelberg",
+            "public_email": "",
+            "name": "Shtiv",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+            "web_url": "https://gitlab.com/eric.shtivelberg"
+          },
+          "created_at": "2026-03-26T16:30:19.261Z",
+          "updated_at": "2026-03-26T16:30:19.269Z",
+          "system": true,
+          "noteable_id": 464502857,
+          "noteable_type": "MergeRequest",
+          "project_id": 40355636,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 1618,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "b79c19ad96b58f5fb0ce6a7d0e387f8ca19729e7",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3195550224,
+          "type": null,
+          "body": "added 1 commit\n\n<ul><li>22a6136d - fix metastore version</li></ul>\n\n[Compare with previous version](/abacusinsights/abacus-v2/next-gen-platform/ng-infrastructure/-/merge_requests/1618/diffs?diff_id=1723383951&start_sha=12fad1542c784a369d2b1be27bc14a3fb35847ee)",
+          "author": {
+            "id": 34702854,
+            "username": "eric.shtivelberg",
+            "public_email": "",
+            "name": "Shtiv",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+            "web_url": "https://gitlab.com/eric.shtivelberg"
+          },
+          "created_at": "2026-03-26T17:47:47.529Z",
+          "updated_at": "2026-03-26T17:47:47.532Z",
+          "system": true,
+          "noteable_id": 464502857,
+          "noteable_type": "MergeRequest",
+          "project_id": 40355636,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 1618,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "261192358c9538af1a3766b04e84f8c7f482eedc",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3195956574,
+          "type": null,
+          "body": "added 16 commits\n\n<ul><li>22a6136d...971416dd - 2 commits from branch <code>qa</code></li><li>971416dd...07d62853 - 4 earlier commits</li><li>55645100 - add budget policy permissions for airflow executor</li><li>39002a75 - move budget policy to configuration component</li><li>ec700e9c - revert update to 1.112 for now</li><li>56129ba7 - resolve missing groups alexwest</li><li>bde4c324 - revert back to latest 1.112</li><li>58bc5bba - add back missing groups that need to be SCIM&#39;d</li><li>3ed6512c - remove bad merge</li><li>658fda0e - limit provision changes to provider and airflow permission</li><li>1cd42aa4 - remove unrelated provision diffs from budget MR</li><li>1abd0573 - fix metastore version</li></ul>\n\n[Compare with previous version](/abacusinsights/abacus-v2/next-gen-platform/ng-infrastructure/-/merge_requests/1618/diffs?diff_id=1723607945&start_sha=22a6136d5763faa91ad26914be92972723789fb3)",
+          "author": {
+            "id": 34702854,
+            "username": "eric.shtivelberg",
+            "public_email": "",
+            "name": "Shtiv",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+            "web_url": "https://gitlab.com/eric.shtivelberg"
+          },
+          "created_at": "2026-03-26T20:33:53.815Z",
+          "updated_at": "2026-03-26T20:33:53.819Z",
+          "system": true,
+          "noteable_id": 464502857,
+          "noteable_type": "MergeRequest",
+          "project_id": 40355636,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 1618,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "df1e02e499fd95952c6af4423b97f75d68e7deca",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3196042863,
+          "type": null,
+          "body": "marked this merge request as **ready**",
+          "author": {
+            "id": 34702854,
+            "username": "eric.shtivelberg",
+            "public_email": "",
+            "name": "Shtiv",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+            "web_url": "https://gitlab.com/eric.shtivelberg"
+          },
+          "created_at": "2026-03-26T21:09:15.285Z",
+          "updated_at": "2026-03-26T21:09:15.290Z",
+          "system": true,
+          "noteable_id": 464502857,
+          "noteable_type": "MergeRequest",
+          "project_id": 40355636,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 1618,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "c6b2b1264431c67ba69266cb846579881d704ae5",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3196042865,
+          "type": null,
+          "body": "changed the description",
+          "author": {
+            "id": 34702854,
+            "username": "eric.shtivelberg",
+            "public_email": "",
+            "name": "Shtiv",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+            "web_url": "https://gitlab.com/eric.shtivelberg"
+          },
+          "created_at": "2026-03-26T21:09:15.333Z",
+          "updated_at": "2026-03-26T21:09:15.338Z",
+          "system": true,
+          "noteable_id": 464502857,
+          "noteable_type": "MergeRequest",
+          "project_id": 40355636,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 1618,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "d6dab1a34425f73d1e1050556e147ae30680b1e9",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3196046239,
+          "type": null,
+          "body": "marked the checklist item **Deploy nextgen\\.databricks\\.provision then nextgen\\.databricks\\.configurations \\(or per dependency order\\) via Seiji; confirm apply succeeds\\.** as completed",
+          "author": {
+            "id": 34702854,
+            "username": "eric.shtivelberg",
+            "public_email": "",
+            "name": "Shtiv",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+            "web_url": "https://gitlab.com/eric.shtivelberg"
+          },
+          "created_at": "2026-03-26T21:10:13.322Z",
+          "updated_at": "2026-03-26T21:10:13.325Z",
+          "system": true,
+          "noteable_id": 464502857,
+          "noteable_type": "MergeRequest",
+          "project_id": 40355636,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 1618,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "2e86707b3ef381d2d5ea1ea1e45bae0d65892154",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3196050486,
+          "type": null,
+          "body": "I have been able to deploy this correctly, but I don't seem to have the correct account level permissions to see the account console in dev. I only have workspace level admin permissions afaict.",
+          "author": {
+            "id": 34702854,
+            "username": "eric.shtivelberg",
+            "public_email": "",
+            "name": "Shtiv",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+            "web_url": "https://gitlab.com/eric.shtivelberg"
+          },
+          "created_at": "2026-03-26T21:11:46.929Z",
+          "updated_at": "2026-03-26T21:11:46.929Z",
+          "system": false,
+          "noteable_id": 464502857,
+          "noteable_type": "MergeRequest",
+          "project_id": 40355636,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 1618,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "22328a5b58ebe51f91971e24931300a02e3a53d3",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3196059082,
+          "type": null,
+          "body": "[2026-03-26-20-51-51.log](/uploads/3a97b0b83cf3a01aa9c1dc82c4660193/2026-03-26-20-51-51.log) is the log of my successful deploy with the buget policies in the output, but cannot seem to get access to budget policy page in the account console UI.",
+          "author": {
+            "id": 34702854,
+            "username": "eric.shtivelberg",
+            "public_email": "",
+            "name": "Shtiv",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+            "web_url": "https://gitlab.com/eric.shtivelberg"
+          },
+          "created_at": "2026-03-26T21:16:13.408Z",
+          "updated_at": "2026-03-26T21:16:13.408Z",
+          "system": false,
+          "noteable_id": 464502857,
+          "noteable_type": "MergeRequest",
+          "project_id": 40355636,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 1618,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "127bbf5bb4d113ce491a0c46a54d8b2e5ee95403",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3203174775,
+          "type": null,
+          "body": "added 21 commits\n\n<ul><li>1abd0573...3aff03bc - 7 commits from branch <code>qa</code></li><li>3aff03bc...c5b5836c - 4 earlier commits</li><li>1b7352ee - add budget policy permissions for airflow executor</li><li>cf11e566 - move budget policy to configuration component</li><li>b48521a1 - revert update to 1.112 for now</li><li>cea92be5 - resolve missing groups alexwest</li><li>790703c5 - revert back to latest 1.112</li><li>10dd9243 - add back missing groups that need to be SCIM&#39;d</li><li>dc35adeb - remove bad merge</li><li>a39789fa - limit provision changes to provider and airflow permission</li><li>bd2744fa - remove unrelated provision diffs from budget MR</li><li>d0db1f74 - fix metastore version</li></ul>\n\n[Compare with previous version](/abacusinsights/abacus-v2/next-gen-platform/ng-infrastructure/-/merge_requests/1618/diffs?diff_id=1727534520&start_sha=1abd0573144fc000be187cd995dc3af3760c14ab)",
+          "author": {
+            "id": 34702854,
+            "username": "eric.shtivelberg",
+            "public_email": "",
+            "name": "Shtiv",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+            "web_url": "https://gitlab.com/eric.shtivelberg"
+          },
+          "created_at": "2026-03-30T15:32:51.570Z",
+          "updated_at": "2026-03-30T15:32:51.583Z",
+          "system": true,
+          "noteable_id": 464502857,
+          "noteable_type": "MergeRequest",
+          "project_id": 40355636,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 1618,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "e85179457cd59bb7fc22fca3a7300d9bf4e2403d",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3203348117,
+          "type": null,
+          "body": "added 1 commit\n\n<ul><li>c6b8b683 - potential fix for budget policy parallel create issues</li></ul>\n\n[Compare with previous version](/abacusinsights/abacus-v2/next-gen-platform/ng-infrastructure/-/merge_requests/1618/diffs?diff_id=1727634139&start_sha=d0db1f7478e3d993eff25c0acbf07b4b685820e8)",
+          "author": {
+            "id": 34702854,
+            "username": "eric.shtivelberg",
+            "public_email": "",
+            "name": "Shtiv",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+            "web_url": "https://gitlab.com/eric.shtivelberg"
+          },
+          "created_at": "2026-03-30T16:26:26.517Z",
+          "updated_at": "2026-03-30T16:26:26.531Z",
+          "system": true,
+          "noteable_id": 464502857,
+          "noteable_type": "MergeRequest",
+          "project_id": 40355636,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 1618,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "77b5ac21d26be5310a51b0353db70c9d280d2f59",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3203410164,
+          "type": null,
+          "body": "changed the description",
+          "author": {
+            "id": 34702854,
+            "username": "eric.shtivelberg",
+            "public_email": "",
+            "name": "Shtiv",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+            "web_url": "https://gitlab.com/eric.shtivelberg"
+          },
+          "created_at": "2026-03-30T16:49:30.146Z",
+          "updated_at": "2026-03-30T16:49:30.151Z",
+          "system": true,
+          "noteable_id": 464502857,
+          "noteable_type": "MergeRequest",
+          "project_id": 40355636,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 1618,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "25ed429fd47c7a77456e4de70152783b53c32569",
+      "individual_note": false,
+      "resolvable": true,
+      "resolved": true,
+      "notes": [
+        {
+          "id": 3203916731,
+          "type": "DiffNote",
+          "body": "Few questions:\n\n1. Is this supposed be a feature flag controlled option or is the intended behaviour supposed to just be enabled everywhere?\n2. Since this is also defined in `luna-config-spec` and has the default value already, we don't need to have the `default = true` here",
+          "author": {
+            "id": 25756645,
+            "username": "inderjit.bassi",
+            "public_email": null,
+            "name": "Inderjit Bassi",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://secure.gravatar.com/avatar/82965ba9db48a279a6b1dad30a61c3bc2bf24c6b6d7114716b620e714a4c5ea4?s=80&d=identicon",
+            "web_url": "https://gitlab.com/inderjit.bassi"
+          },
+          "created_at": "2026-03-30T18:35:35.543Z",
+          "updated_at": "2026-04-01T12:54:50.904Z",
+          "system": false,
+          "noteable_id": 464502857,
+          "noteable_type": "MergeRequest",
+          "project_id": 40355636,
+          "commit_id": null,
+          "position": {
+            "base_sha": "6f32054123caa875af4fc257cfb4549e28631e3a",
+            "start_sha": "6f32054123caa875af4fc257cfb4549e28631e3a",
+            "head_sha": "ad3f147360ecec73e87c0e0f7140300baa25b549",
+            "old_path": "terraform/layers/databricks/configurations/variables.tf",
+            "new_path": "terraform/layers/databricks/configurations/variables.tf",
+            "position_type": "text",
+            "old_line": null,
+            "new_line": 96,
+            "line_range": {
+              "start": {
+                "line_code": "e55c062406b562b2aba31d53c6cc83c984fe438a_82_92",
+                "type": "new",
+                "old_line": null,
+                "new_line": 92
+              },
+              "end": {
+                "line_code": "e55c062406b562b2aba31d53c6cc83c984fe438a_82_96",
+                "type": "new",
+                "old_line": null,
+                "new_line": 96
+              }
+            }
+          },
+          "resolvable": true,
+          "resolved": true,
+          "resolved_by": {
+            "id": 34702854,
+            "username": "eric.shtivelberg",
+            "public_email": "",
+            "name": "Shtiv",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+            "web_url": "https://gitlab.com/eric.shtivelberg"
+          },
+          "resolved_at": "2026-04-01T12:54:50.904Z",
+          "suggestions": [],
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 1618,
+          "commands_changes": {}
+        },
+        {
+          "id": 3203952861,
+          "type": "DiffNote",
+          "body": "I think this should be on by default, but we can use a feature flag/config value to manage the \u201cper account\u201d budget. Then FinOps can set that value themselves per tenant.\n\nAnd heard re: not repeating the value from luna-config-spec",
+          "author": {
+            "id": 34702854,
+            "username": "eric.shtivelberg",
+            "public_email": "",
+            "name": "Shtiv",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+            "web_url": "https://gitlab.com/eric.shtivelberg"
+          },
+          "created_at": "2026-03-30T18:42:09.977Z",
+          "updated_at": "2026-04-01T12:54:50.904Z",
+          "system": false,
+          "noteable_id": 464502857,
+          "noteable_type": "MergeRequest",
+          "project_id": 40355636,
+          "commit_id": null,
+          "position": {
+            "base_sha": "6f32054123caa875af4fc257cfb4549e28631e3a",
+            "start_sha": "6f32054123caa875af4fc257cfb4549e28631e3a",
+            "head_sha": "ad3f147360ecec73e87c0e0f7140300baa25b549",
+            "old_path": "terraform/layers/databricks/configurations/variables.tf",
+            "new_path": "terraform/layers/databricks/configurations/variables.tf",
+            "position_type": "text",
+            "old_line": null,
+            "new_line": 96,
+            "line_range": {
+              "start": {
+                "line_code": "e55c062406b562b2aba31d53c6cc83c984fe438a_82_92",
+                "type": "new",
+                "old_line": null,
+                "new_line": 92
+              },
+              "end": {
+                "line_code": "e55c062406b562b2aba31d53c6cc83c984fe438a_82_96",
+                "type": "new",
+                "old_line": null,
+                "new_line": 96
+              }
+            }
+          },
+          "resolvable": true,
+          "resolved": true,
+          "resolved_by": {
+            "id": 34702854,
+            "username": "eric.shtivelberg",
+            "public_email": "",
+            "name": "Shtiv",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+            "web_url": "https://gitlab.com/eric.shtivelberg"
+          },
+          "resolved_at": "2026-04-01T12:54:50.904Z",
+          "suggestions": [],
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 1618,
+          "commands_changes": {}
+        },
+        {
+          "id": 3203978341,
+          "type": "DiffNote",
+          "body": "Yeah, my next follow up was going to ask about this:\n `budget_managed_workspaces = var.budget_controls_enabled ? var.workspaces : toset([])`\n\nThe way it is setup is suited for feature flags otherwise with a default true it applies to every workspace",
+          "author": {
+            "id": 25756645,
+            "username": "inderjit.bassi",
+            "public_email": null,
+            "name": "Inderjit Bassi",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://secure.gravatar.com/avatar/82965ba9db48a279a6b1dad30a61c3bc2bf24c6b6d7114716b620e714a4c5ea4?s=80&d=identicon",
+            "web_url": "https://gitlab.com/inderjit.bassi"
+          },
+          "created_at": "2026-03-30T18:45:39.697Z",
+          "updated_at": "2026-04-01T12:54:50.904Z",
+          "system": false,
+          "noteable_id": 464502857,
+          "noteable_type": "MergeRequest",
+          "project_id": 40355636,
+          "commit_id": null,
+          "position": {
+            "base_sha": "6f32054123caa875af4fc257cfb4549e28631e3a",
+            "start_sha": "6f32054123caa875af4fc257cfb4549e28631e3a",
+            "head_sha": "ad3f147360ecec73e87c0e0f7140300baa25b549",
+            "old_path": "terraform/layers/databricks/configurations/variables.tf",
+            "new_path": "terraform/layers/databricks/configurations/variables.tf",
+            "position_type": "text",
+            "old_line": null,
+            "new_line": 96,
+            "line_range": {
+              "start": {
+                "line_code": "e55c062406b562b2aba31d53c6cc83c984fe438a_82_92",
+                "type": "new",
+                "old_line": null,
+                "new_line": 92
+              },
+              "end": {
+                "line_code": "e55c062406b562b2aba31d53c6cc83c984fe438a_82_96",
+                "type": "new",
+                "old_line": null,
+                "new_line": 96
+              }
+            }
+          },
+          "resolvable": true,
+          "resolved": true,
+          "resolved_by": {
+            "id": 34702854,
+            "username": "eric.shtivelberg",
+            "public_email": "",
+            "name": "Shtiv",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+            "web_url": "https://gitlab.com/eric.shtivelberg"
+          },
+          "resolved_at": "2026-04-01T12:54:50.904Z",
+          "suggestions": [],
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 1618,
+          "commands_changes": {}
+        },
+        {
+          "id": 3205374218,
+          "type": "DiffNote",
+          "body": "changed this line in [version 25 of the diff](/abacusinsights/abacus-v2/next-gen-platform/ng-infrastructure/-/merge_requests/1618/diffs?diff_id=1728274603&start_sha=ad3f147360ecec73e87c0e0f7140300baa25b549#e55c062406b562b2aba31d53c6cc83c984fe438a_96_92)",
+          "author": {
+            "id": 34702854,
+            "username": "eric.shtivelberg",
+            "public_email": "",
+            "name": "Shtiv",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+            "web_url": "https://gitlab.com/eric.shtivelberg"
+          },
+          "created_at": "2026-03-30T22:44:30.367Z",
+          "updated_at": "2026-03-30T22:44:30.367Z",
+          "system": true,
+          "noteable_id": 464502857,
+          "noteable_type": "MergeRequest",
+          "project_id": 40355636,
+          "commit_id": null,
+          "position": {
+            "base_sha": "6f32054123caa875af4fc257cfb4549e28631e3a",
+            "start_sha": "6f32054123caa875af4fc257cfb4549e28631e3a",
+            "head_sha": "ad3f147360ecec73e87c0e0f7140300baa25b549",
+            "old_path": "terraform/layers/databricks/configurations/variables.tf",
+            "new_path": "terraform/layers/databricks/configurations/variables.tf",
+            "position_type": "text",
+            "old_line": null,
+            "new_line": 96,
+            "line_range": {
+              "start": {
+                "line_code": "e55c062406b562b2aba31d53c6cc83c984fe438a_82_92",
+                "type": "new",
+                "old_line": null,
+                "new_line": 92
+              },
+              "end": {
+                "line_code": "e55c062406b562b2aba31d53c6cc83c984fe438a_82_96",
+                "type": "new",
+                "old_line": null,
+                "new_line": 96
+              }
+            }
+          },
+          "resolvable": false,
+          "suggestions": [],
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 1618,
+          "commands_changes": {}
+        },
+        {
+          "id": 3209315583,
+          "type": "DiffNote",
+          "body": "@inderjit.bassi I have updated the luna config + variables to only allow us to manage the budget per account, and turned on these budget policies by default in all our tenants.\n\nAFAICT, this is only adding more monitoring around our Databricks usage, which IMO is a good to have wherever we're running databricks: https://docs.databricks.com/aws/en/admin/usage/budget-policies",
+          "author": {
+            "id": 34702854,
+            "username": "eric.shtivelberg",
+            "public_email": "",
+            "name": "Shtiv",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+            "web_url": "https://gitlab.com/eric.shtivelberg"
+          },
+          "created_at": "2026-03-31T13:37:07.391Z",
+          "updated_at": "2026-04-01T12:54:50.904Z",
+          "system": false,
+          "noteable_id": 464502857,
+          "noteable_type": "MergeRequest",
+          "project_id": 40355636,
+          "commit_id": null,
+          "position": {
+            "base_sha": "6f32054123caa875af4fc257cfb4549e28631e3a",
+            "start_sha": "6f32054123caa875af4fc257cfb4549e28631e3a",
+            "head_sha": "ad3f147360ecec73e87c0e0f7140300baa25b549",
+            "old_path": "terraform/layers/databricks/configurations/variables.tf",
+            "new_path": "terraform/layers/databricks/configurations/variables.tf",
+            "position_type": "text",
+            "old_line": null,
+            "new_line": 96,
+            "line_range": {
+              "start": {
+                "line_code": "e55c062406b562b2aba31d53c6cc83c984fe438a_82_92",
+                "type": "new",
+                "old_line": null,
+                "new_line": 92
+              },
+              "end": {
+                "line_code": "e55c062406b562b2aba31d53c6cc83c984fe438a_82_96",
+                "type": "new",
+                "old_line": null,
+                "new_line": 96
+              }
+            }
+          },
+          "resolvable": true,
+          "resolved": true,
+          "resolved_by": {
+            "id": 34702854,
+            "username": "eric.shtivelberg",
+            "public_email": "",
+            "name": "Shtiv",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+            "web_url": "https://gitlab.com/eric.shtivelberg"
+          },
+          "resolved_at": "2026-04-01T12:54:50.904Z",
+          "suggestions": [],
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 1618,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "7b855080e1a785e611a0380d77bacc17970a8a21",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3204501941,
+          "type": null,
+          "body": "added 19 commits\n\n<ul><li>c6b8b683...6f320541 - 4 commits from branch <code>qa</code></li><li>6f320541...b29162ba - 5 earlier commits</li><li>b5817b47 - move budget policy to configuration component</li><li>2e6ec688 - revert update to 1.112 for now</li><li>a9786c5c - resolve missing groups alexwest</li><li>1f767d84 - revert back to latest 1.112</li><li>c30362bb - add back missing groups that need to be SCIM&#39;d</li><li>a0a5d4e2 - remove bad merge</li><li>6b06a590 - limit provision changes to provider and airflow permission</li><li>179b6d2e - remove unrelated provision diffs from budget MR</li><li>03558a8d - fix metastore version</li><li>ad3f1473 - potential fix for budget policy parallel create issues</li></ul>\n\n[Compare with previous version](/abacusinsights/abacus-v2/next-gen-platform/ng-infrastructure/-/merge_requests/1618/diffs?diff_id=1728011125&start_sha=c6b8b68350fa4a5e700f379a7e5b527cd9d315fc)",
+          "author": {
+            "id": 34702854,
+            "username": "eric.shtivelberg",
+            "public_email": "",
+            "name": "Shtiv",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+            "web_url": "https://gitlab.com/eric.shtivelberg"
+          },
+          "created_at": "2026-03-30T20:03:45.881Z",
+          "updated_at": "2026-03-30T20:03:45.886Z",
+          "system": true,
+          "noteable_id": 464502857,
+          "noteable_type": "MergeRequest",
+          "project_id": 40355636,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 1618,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "959902a0a0dbc53826eaaaa908081e6fb410ee46",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3205290530,
+          "type": null,
+          "body": "marked this merge request as **draft**",
+          "author": {
+            "id": 34702854,
+            "username": "eric.shtivelberg",
+            "public_email": "",
+            "name": "Shtiv",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+            "web_url": "https://gitlab.com/eric.shtivelberg"
+          },
+          "created_at": "2026-03-30T22:33:21.156Z",
+          "updated_at": "2026-03-30T22:33:21.162Z",
+          "system": true,
+          "noteable_id": 464502857,
+          "noteable_type": "MergeRequest",
+          "project_id": 40355636,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 1618,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "2a89bc42df82bb53b945fa46ccab0b2a7ba26182",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3205374297,
+          "type": null,
+          "body": "added 1 commit\n\n<ul><li>bcf65169 - DSP-7709: single serverless budget policy, budgets always on with USD var</li></ul>\n\n[Compare with previous version](/abacusinsights/abacus-v2/next-gen-platform/ng-infrastructure/-/merge_requests/1618/diffs?diff_id=1728274603&start_sha=ad3f147360ecec73e87c0e0f7140300baa25b549)",
+          "author": {
+            "id": 34702854,
+            "username": "eric.shtivelberg",
+            "public_email": "",
+            "name": "Shtiv",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+            "web_url": "https://gitlab.com/eric.shtivelberg"
+          },
+          "created_at": "2026-03-30T22:44:30.621Z",
+          "updated_at": "2026-03-30T22:44:30.627Z",
+          "system": true,
+          "noteable_id": 464502857,
+          "noteable_type": "MergeRequest",
+          "project_id": 40355636,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 1618,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "c2a349984f9a437d15dfc81d851a8094236c68d0",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3209151586,
+          "type": null,
+          "body": "added 18 commits\n\n<ul><li>bcf65169...9710c31e - 2 commits from branch <code>qa</code></li><li>9710c31e...91f701df - 6 earlier commits</li><li>0672e560 - revert update to 1.112 for now</li><li>ff7f3214 - resolve missing groups alexwest</li><li>3a9f03d6 - revert back to latest 1.112</li><li>8887a957 - add back missing groups that need to be SCIM&#39;d</li><li>aa043491 - remove bad merge</li><li>1077de52 - limit provision changes to provider and airflow permission</li><li>7e7b576b - remove unrelated provision diffs from budget MR</li><li>c48f12ed - fix metastore version</li><li>329c6bab - potential fix for budget policy parallel create issues</li><li>7e62031d - DSP-7709: single serverless budget policy, budgets always on with USD var</li></ul>\n\n[Compare with previous version](/abacusinsights/abacus-v2/next-gen-platform/ng-infrastructure/-/merge_requests/1618/diffs?diff_id=1729604972&start_sha=bcf651696a576089abf87cac787caff5e88ec591)",
+          "author": {
+            "id": 34702854,
+            "username": "eric.shtivelberg",
+            "public_email": "",
+            "name": "Shtiv",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+            "web_url": "https://gitlab.com/eric.shtivelberg"
+          },
+          "created_at": "2026-03-31T12:56:37.066Z",
+          "updated_at": "2026-03-31T12:56:37.070Z",
+          "system": true,
+          "noteable_id": 464502857,
+          "noteable_type": "MergeRequest",
+          "project_id": 40355636,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 1618,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "787c4716754f2fe316dc46e28aee02787d02ca86",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3209297697,
+          "type": null,
+          "body": "marked the checklist item **Account Console \u2192 Usage \u2192 Budgets: policies present per workspace\\.** as completed",
+          "author": {
+            "id": 34702854,
+            "username": "eric.shtivelberg",
+            "public_email": "",
+            "name": "Shtiv",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+            "web_url": "https://gitlab.com/eric.shtivelberg"
+          },
+          "created_at": "2026-03-31T13:32:29.467Z",
+          "updated_at": "2026-03-31T13:32:29.471Z",
+          "system": true,
+          "noteable_id": 464502857,
+          "noteable_type": "MergeRequest",
+          "project_id": 40355636,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 1618,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "c34a6e52e2edcde2a904ae68ea5adfd7ac100e5c",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3209297827,
+          "type": null,
+          "body": "marked the checklist item **Verify budget policies bound to expected workspace IDs and framework tags\\.** as completed",
+          "author": {
+            "id": 34702854,
+            "username": "eric.shtivelberg",
+            "public_email": "",
+            "name": "Shtiv",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+            "web_url": "https://gitlab.com/eric.shtivelberg"
+          },
+          "created_at": "2026-03-31T13:32:31.033Z",
+          "updated_at": "2026-03-31T13:32:31.038Z",
+          "system": true,
+          "noteable_id": 464502857,
+          "noteable_type": "MergeRequest",
+          "project_id": 40355636,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 1618,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "8aa0eea87a8b0d299fb85c51e89142dc2c8162d3",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3209306290,
+          "type": null,
+          "body": "marked this merge request as **ready**",
+          "author": {
+            "id": 34702854,
+            "username": "eric.shtivelberg",
+            "public_email": "",
+            "name": "Shtiv",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+            "web_url": "https://gitlab.com/eric.shtivelberg"
+          },
+          "created_at": "2026-03-31T13:34:47.187Z",
+          "updated_at": "2026-03-31T13:34:47.191Z",
+          "system": true,
+          "noteable_id": 464502857,
+          "noteable_type": "MergeRequest",
+          "project_id": 40355636,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 1618,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "9f331eb1e4491d7fadac5af99a54ff9d43c30308",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3209315626,
+          "type": null,
+          "body": "left review comments",
+          "author": {
+            "id": 34702854,
+            "username": "eric.shtivelberg",
+            "public_email": "",
+            "name": "Shtiv",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+            "web_url": "https://gitlab.com/eric.shtivelberg"
+          },
+          "created_at": "2026-03-31T13:37:07.875Z",
+          "updated_at": "2026-03-31T13:37:07.877Z",
+          "system": true,
+          "noteable_id": 464502857,
+          "noteable_type": "MergeRequest",
+          "project_id": 40355636,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 1618,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "ce0136217748c3d2f868dae46a2e3ebe0fa32ad9",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3209322097,
+          "type": null,
+          "body": "changed the description",
+          "author": {
+            "id": 34702854,
+            "username": "eric.shtivelberg",
+            "public_email": "",
+            "name": "Shtiv",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+            "web_url": "https://gitlab.com/eric.shtivelberg"
+          },
+          "created_at": "2026-03-31T13:38:30.615Z",
+          "updated_at": "2026-03-31T13:38:30.632Z",
+          "system": true,
+          "noteable_id": 464502857,
+          "noteable_type": "MergeRequest",
+          "project_id": 40355636,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 1618,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "9a768e8d2327623584dc1c11ad5f9fa7d71f5fef",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3213191223,
+          "type": null,
+          "body": "resolved all threads",
+          "author": {
+            "id": 34702854,
+            "username": "eric.shtivelberg",
+            "public_email": "",
+            "name": "Shtiv",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+            "web_url": "https://gitlab.com/eric.shtivelberg"
+          },
+          "created_at": "2026-04-01T12:54:50.970Z",
+          "updated_at": "2026-04-01T12:54:50.974Z",
+          "system": true,
+          "noteable_id": 464502857,
+          "noteable_type": "MergeRequest",
+          "project_id": 40355636,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 1618,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "655df589362c959656fb8360c4dd33e0a4da1b85",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3214146627,
+          "type": null,
+          "body": "added 19 commits\n\n<ul><li>7e62031d...d6656342 - 2 commits from branch <code>qa</code></li><li>d6656342...a1d201fa - 7 earlier commits</li><li>4d0817f3 - resolve missing groups alexwest</li><li>59f471d3 - revert back to latest 1.112</li><li>e1b3084a - add back missing groups that need to be SCIM&#39;d</li><li>c817acf2 - remove bad merge</li><li>a65fb429 - limit provision changes to provider and airflow permission</li><li>a91ba2db - remove unrelated provision diffs from budget MR</li><li>6398a514 - fix metastore version</li><li>122d5b7d - potential fix for budget policy parallel create issues</li><li>4303aef0 - DSP-7709: single serverless budget policy, budgets always on with USD var</li><li>b7406218 - Align PHI PrivateLink provision layer with QA</li></ul>\n\n[Compare with previous version](/abacusinsights/abacus-v2/next-gen-platform/ng-infrastructure/-/merge_requests/1618/diffs?diff_id=1732111050&start_sha=7e62031db0bc18b826af8962207546f8b3eb6960)",
+          "author": {
+            "id": 34702854,
+            "username": "eric.shtivelberg",
+            "public_email": "",
+            "name": "Shtiv",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+            "web_url": "https://gitlab.com/eric.shtivelberg"
+          },
+          "created_at": "2026-04-01T16:53:19.363Z",
+          "updated_at": "2026-04-01T16:53:19.367Z",
+          "system": true,
+          "noteable_id": 464502857,
+          "noteable_type": "MergeRequest",
+          "project_id": 40355636,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 1618,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "3b96f9caaa9fc9471e2db9518453319e827b4191",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3214227140,
+          "type": null,
+          "body": "added 1 commit\n\n<ul><li>379b653b - add placeholder migration script</li></ul>\n\n[Compare with previous version](/abacusinsights/abacus-v2/next-gen-platform/ng-infrastructure/-/merge_requests/1618/diffs?diff_id=1732149403&start_sha=b74062188042cd41eba0f774984ae822645c8a1a)",
+          "author": {
+            "id": 34702854,
+            "username": "eric.shtivelberg",
+            "public_email": "",
+            "name": "Shtiv",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+            "web_url": "https://gitlab.com/eric.shtivelberg"
+          },
+          "created_at": "2026-04-01T17:19:24.784Z",
+          "updated_at": "2026-04-01T17:19:24.790Z",
+          "system": true,
+          "noteable_id": 464502857,
+          "noteable_type": "MergeRequest",
+          "project_id": 40355636,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 1618,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "c05ca05ee90295264248bbd4f6953778c95c8412",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3217056818,
+          "type": null,
+          "body": "added 22 commits\n\n<ul><li>379b653b...fba4a60a - 4 commits from branch <code>qa</code></li><li>fba4a60a...c129eb86 - 8 earlier commits</li><li>c47ef8b0 - revert back to latest 1.112</li><li>2a576159 - add back missing groups that need to be SCIM&#39;d</li><li>dd42c4e4 - remove bad merge</li><li>bed77fdf - limit provision changes to provider and airflow permission</li><li>55e61ef0 - remove unrelated provision diffs from budget MR</li><li>09b2165b - fix metastore version</li><li>e7cbce3b - potential fix for budget policy parallel create issues</li><li>fa4c7fad - DSP-7709: single serverless budget policy, budgets always on with USD var</li><li>2c412fd6 - Align PHI PrivateLink provision layer with QA</li><li>1917c96f - add placeholder migration script</li></ul>\n\n[Compare with previous version](/abacusinsights/abacus-v2/next-gen-platform/ng-infrastructure/-/merge_requests/1618/diffs?diff_id=1733581346&start_sha=379b653be051cccfcbdf0a105ea252021e3fb67a)",
+          "author": {
+            "id": 34702854,
+            "username": "eric.shtivelberg",
+            "public_email": "",
+            "name": "Shtiv",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/34702854/avatar.png",
+            "web_url": "https://gitlab.com/eric.shtivelberg"
+          },
+          "created_at": "2026-04-02T13:21:18.131Z",
+          "updated_at": "2026-04-02T13:21:18.135Z",
+          "system": true,
+          "noteable_id": 464502857,
+          "noteable_type": "MergeRequest",
+          "project_id": 40355636,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 1618,
+          "commands_changes": {}
+        }
+      ]
+    }
+  ],
+  "approvals": {
+    "id": 464502857,
+    "iid": 1618,
+    "project_id": 40355636,
+    "title": "DSP-7709: add account-level Databricks budgets and budget policies",
+    "description": "## Summary\n\n- **`databricks_budget`** \u2014 one account-level budget per workspace in `workspaces`, with monthly threshold **`budget_monthly_threshold_usd`** (Luna default `1000` USD). Alerts use framework tag filters + **`budget_alert_email`** / **`budget_time_period`** (Terraform defaults unless overridden via tfvars).\n- **`databricks_budget_policy`** \u2014 **one** account-level serverless policy, **`{label}-serverless-budget-policy`**, with **`binding_workspace_ids`** = all managed workspaces and framework **`custom_tags`**. This replaces per-workspace policy resources so we avoid parallel account API creates that returned misleading **Duplicate policy name found** errors ([terraform-provider-databricks#4600](https://github.com/databricks/terraform-provider-databricks/issues/4600)).\n- Budget controls are **always on** for configured workspaces (no separate feature flag variable).\n- **Provision (minimal):** deployer **`roles/billing.admin`** alongside CloudZero on the default account rule set (`cloudzero.tf`); Databricks provider **`>=1.112.0, <2.0`** in provision and aligned layers/modules.\n- **Metastore / provider alignment:** metastore zip bumps where consumed; JDBC SP module uses `configuration_aliases` for `databricks.account`.\n\n## Outputs\n\n- `budget_configuration_ids` \u2014 per-workspace budget configuration ids  \n- `budget_policy_id` \u2014 single shared serverless budget policy id (or null if no workspaces)\n\n## Diff vs `origin/qa` (high level)\n\n**32 files**, ~208 insertions / ~43 deletions.\n\n| Area | Files |\n|------|--------|\n| Budgets + policy | `configurations/budgeting.tf`, `variables.tf`, `outputs.tf`, `deploy/luna-config-spec.yaml` |\n| Provision (scoped) | `provision/cloudzero.tf`, `provision/versions.tf`, `provision/unity.tf` |\n| Other Databricks layers/modules | `connector_deployer`, `mdm`, `object_permission`, `tokens`, workflows, `unity_catalog`, `workspace_configurations`, `jdbc_sp_configurations`, etc. |\n| Metastore consumers | `storage/common/s3.tf`, `security/roles|policies/metastore.tf`, `job_metadata_db` |\n| Docs | `README.md` |\n\n## Test plan\n\n- [x] Deploy `nextgen.databricks.provision` then `nextgen.databricks.configurations` via Seiji; apply succeeds.\n- [x] Account console: budgets and **one** serverless budget policy as expected.\n- [ ] Confirm FinOps / alert email receives budget notifications if thresholds are exceeded (as applicable).\n\n## Rollout / cleanup\n\nIf earlier failed applies left **per-workspace** serverless policy names (`{label}-{workspace}-serverless-budget-policy`) in the account without state, remove them in the Account console (or import) so they do not confuse operators; the managed policy name is **`{label}-serverless-budget-policy`** only.",
+    "state": "opened",
+    "created_at": "2026-03-16T16:52:30.225Z",
+    "updated_at": "2026-04-02T13:21:18.388Z",
+    "merge_status": "can_be_merged",
+    "approved": false,
+    "approvals_required": 1,
+    "approvals_left": 1,
+    "require_password_to_approve": false,
+    "approved_by": [],
+    "suggested_approvers": [
+      {
+        "id": 4971219,
+        "username": "overfl0wd",
+        "public_email": "",
+        "name": "dana taylor",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/4971219/avatar.png",
+        "web_url": "https://gitlab.com/overfl0wd"
+      },
+      {
+        "id": 5622501,
+        "username": "luisanevers",
+        "public_email": "",
+        "name": "Luisa Nevers",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/5622501/avatar.png",
+        "web_url": "https://gitlab.com/luisanevers"
+      },
+      {
+        "id": 5631801,
+        "username": "aitom",
+        "public_email": "",
+        "name": "Tom",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/5631801/avatar.png",
+        "web_url": "https://gitlab.com/aitom"
+      },
+      {
+        "id": 5938765,
+        "username": "srosenfeld",
+        "public_email": "",
+        "name": "Steve Rosenfeld",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/25c818116c8ce2c185043ca59ff2a1e141a9f8211eeb4dd1248b9dc41b734527?s=80&d=identicon",
+        "web_url": "https://gitlab.com/srosenfeld"
+      },
+      {
+        "id": 6729997,
+        "username": "matt_donaghey",
+        "public_email": "",
+        "name": "Matt Donaghey",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/c6cbcc03abbcff4ddd6a3b9848e2f56667ba177a287c5718a95cee4ed5b78cd5?s=80&d=identicon",
+        "web_url": "https://gitlab.com/matt_donaghey"
+      },
+      {
+        "id": 12171540,
+        "username": "bhuffman-sec",
+        "public_email": "",
+        "name": "Brad Huffman",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/12171540/avatar.png",
+        "web_url": "https://gitlab.com/bhuffman-sec"
+      },
+      {
+        "id": 14469776,
+        "username": "larry.king",
+        "public_email": "",
+        "name": "Larry King",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/14469776/avatar.png",
+        "web_url": "https://gitlab.com/larry.king"
+      }
+    ],
+    "approvers": [],
+    "approver_groups": [],
+    "user_has_approved": false,
+    "user_can_approve": true,
+    "approval_rules_left": [
+      {
+        "id": 4616946,
+        "name": "All Members",
+        "rule_type": "any_approver"
+      }
+    ],
+    "has_approval_rules": true,
+    "merge_request_approvers_available": true,
+    "multiple_approval_rules_available": true,
+    "invalid_approvers_rules": []
+  }
+}

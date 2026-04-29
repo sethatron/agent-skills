@@ -1,0 +1,32 @@
+# Dispatch skill configuration
+# Separate from workflow.yaml — these are skill-level settings.
+
+paths:
+  state_root: "~/.zsh/dispatch"
+  dispatch_db: "~/.zsh/dispatch/dispatch.db"
+  workflow_yaml: "~/.zsh/dispatch/workflow.yaml"
+  optimus_knowledge: "~/.zsh/dispatch/optimus"
+
+logging:
+  bash_log_summary_threshold: 500        # Lines before auto-summarization
+  max_task_log_lines: 10000
+  verbose: false
+
+context_management:
+  compact_after_step: true               # Run /compact after each workflow step
+  compact_before_subskill: true          # Run /compact before invoking sub-skills
+  compact_before_optimus: true           # Run /compact before Optimus
+
+optimus:
+  model: "claude-opus-4-6"
+  auto_run_on_all_complete: true         # Auto-invoke when all daily tasks complete
+  queue_for_eod: true                    # Queue Optimus for EOD if not all tasks done
+
+slack:
+  dedup_window_minutes: 30               # Don't resend same content_hash within window
+  queue_on_failure: true                 # Queue messages when Slack MCP unavailable
+  fallback_log: true                     # Write slack_queue.yaml on MCP failure
+
+cron:
+  require_approval: true                 # All cron entries need operator approval
+  max_retries_before_disable: 3          # Disable step after N consecutive failures

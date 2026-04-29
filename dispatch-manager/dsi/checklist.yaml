@@ -1,0 +1,82 @@
+---
+version: "1.0"
+requirements:
+  - id: DSI-01
+    name: version_field
+    severity: FAIL
+    types: [A, B, C]
+    check: "frontmatter.version matches semver pattern"
+    validator: frontmatter_version
+
+  - id: DSI-02
+    name: guardrails_block
+    severity: FAIL
+    types: [A, B, C]
+    check: "SKILL.md body contains 'OPERATIONAL GUARDRAILS' or 'GUARDRAILS'"
+    validator: content_pattern
+    params:
+      file: SKILL.md
+      pattern: "GUARDRAILS"
+
+  - id: DSI-03
+    name: check_env_script
+    severity: FAIL
+    types: [A, B, C]
+    check: "file_exists(scripts/check_env.py)"
+    validator: file_exists
+    params:
+      path: scripts/check_env.py
+
+  - id: DSI-04
+    name: caller_identification
+    severity: FAIL
+    types: [A, B, C]
+    check: "if invokes /jira then JIRA_CALLER set to skill slug"
+    validator: caller_identification
+
+  - id: DSI-05
+    name: git_permission_propagation
+    severity: FAIL
+    types: [A, B, C]
+    check: "git write ops guarded by permission check or blanket prohibition"
+    validator: git_permission
+
+  - id: DSI-06
+    name: symlink_convention
+    severity: WARN
+    types: [A, B, C]
+    check: "symlink_exists(~/.claude/skills/<slug>)"
+    validator: symlink_check
+
+  - id: DSI-07
+    name: step_snippet
+    severity: FAIL
+    types: [A, C]
+    check: "file_exists(references/step-snippet.yaml)"
+    validator: file_exists
+    params:
+      path: references/step-snippet.yaml
+
+  - id: DSI-08
+    name: artifact_frontmatter
+    severity: FAIL
+    types: [A, C]
+    check: "artifact-schema.yaml includes required base fields"
+    validator: artifact_schema
+
+  - id: DSI-09
+    name: idempotency_declaration
+    severity: WARN
+    types: [A, B, C]
+    check: "SKILL.md mentions idempotency"
+    validator: content_pattern
+    params:
+      file: SKILL.md
+      pattern: "[Ii]dempoten"
+
+  - id: DSI-10
+    name: failure_mode_documentation
+    severity: WARN
+    types: [A, B, C]
+    check: "failure modes documented in SKILL.md or references/"
+    validator: failure_docs

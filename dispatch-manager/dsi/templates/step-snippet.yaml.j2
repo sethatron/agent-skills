@@ -1,0 +1,18 @@
+  - id: {{ step_id }}
+    name: "{{ name }}"
+{% if skill %}
+    skill: {{ skill }}
+    args: "{{ args }}"
+{% else %}
+    runner: {{ runner }}
+{% endif %}
+    description: "{{ description }}"
+{% if on_blocker %}
+    on_blocker: {{ on_blocker }}
+{% endif %}
+    timeout_minutes: {{ timeout_minutes | default(30) }}
+    tags: {{ tags | tojson }}
+    enabled: {{ enabled | default(true) | lower }}
+{% if blocking is defined %}
+    blocking: {{ blocking | lower }}
+{% endif %}

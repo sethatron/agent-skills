@@ -1,0 +1,59 @@
+# GitLab MR Review — team configuration
+
+operator:
+  username: "@zettatron"
+  gitlab_url: "https://gitlab.com"
+
+team_roster:
+  - "@Rivlin.pereira"
+  - "@mahendra-gautam"
+  - "@alex_ai"
+  - "@srosenfeld"
+  - "@andrew.huddleston1"
+  - "@eric.shtivelberg"
+  - "@gordon.marx"
+
+draft_policy:
+  include_drafts: true                    # Include draft MRs in all fetches
+  flag_prominently: true                  # Mark drafts with warning header
+  exclude_drafts_flag: "--exclude-drafts" # CLI flag to suppress drafts
+
+excluded_patterns:
+  lock_files:
+    - "**/package-lock.json"
+    - "**/yarn.lock"
+    - "**/poetry.lock"
+    - "**/Pipfile.lock"
+    - "**/Gemfile.lock"
+    - "**/*.lock"
+  generated_files:
+    - "**/dist/**"
+    - "**/build/**"
+    - "**/.next/**"
+    - "**/__pycache__/**"
+    - "**/*.pyc"
+    - "**/*.min.js"
+    - "**/*.min.css"
+    - "**/generated/**"
+    - "**/*_pb2.py"
+    - "**/*.pb.go"
+  vendored:
+    - "**/vendor/**"
+    - "**/node_modules/**"
+    - "**/.terraform/**"
+  binary_media:
+    - "**/*.png"
+    - "**/*.jpg"
+    - "**/*.gif"
+    - "**/*.ico"
+    - "**/*.woff"
+    - "**/*.woff2"
+
+defaults:
+  review_output_base: "~/.zsh/review"
+  cache_stale_hours: 6                    # Prompt operator if cache older than this
+  cache_retain_days: 30                   # Prune cache files older than this
+  mr_state_filter: "opened"              # Default MR state filter
+  per_page: 100                          # GitLab API results per page
+  skill_version: "2.0.0"
+  jira_base_url: "https://abacusinsights.atlassian.net"

@@ -1,0 +1,114 @@
+#!/usr/bin/env python3
+"""
+{{ skill_name }} skill environment pre-validation.
+
+Run first on every /{{ skill_name }} invocation.
+
+Usage:
+    python scripts/check_env.py [--verbose] [--json]
+"""
+
+import argparse
+import importlib
+import json
+import os
+import shutil
+import sys
+from pathlib import Path
+
+SKILL_DIR = Path(__file__).resolve().parent.parent
+REQUIRED_PACKAGES = {{ required_packages | tojson }}
+PACKAGE_INSTALL_NAMES = {{ package_install_names | tojson }}
+
+
+def check_python_version(verbose: bool) -> tuple[bool, str]:
+    if sys.version_info >= (3, 10):
+        return True, f"Python {sys.version_info.major}.{sys.version_info.minor}"
+    return False, f"Python >= 3.10 required (found {sys.version_info.major}.{sys.version_info.minor})"
+
+
+def check_packages(verbose: bool) -> tuple[bool, str]:
+    missing = []
+    for pkg in REQUIRED_PACKAGES:
+        try:
+            importlib.import_module(pkg)
+        except ImportError:
+            missing.append(pkg)
+    if missing:
+        install_names = [PACKAGE_INSTALL_NAMES.get(p, p) for p in missing]
+        return False, f"Missing: {', '.join(missing)}. Install: pip install {' '.join(install_names)}"
+    return True, "Required packages present"
+
+{% for check in custom_checks %}
+
+def check_{{ check.name }}(verbose: bool) -> tuple[bool, str]:
+    """{{ check.description }}"""
+    {{ check.body | indent(4) }}
+{% endfor %}
+{% for dir_entry in state_dirs %}
+
+def check_dir_{{ dir_entry.name }}(verbose: bool) -> tuple[bool, str]:
+    d = Path(os.path.expanduser("{{ dir_entry.path }}"))
+    try:
+        d.mkdir(parents=True, exist_ok=True)
+        test_file = d / ".write_test"
+        test_file.write_text("test")
+        test_file.unlink()
+        return True, f"Directory writable: {d}"
+    except Exception as e:
+        return False, f"Directory not writable: {d} ({e})"
+{% endfor %}
+
+
+def run_checks(verbose: bool = False) -> list[dict]:
+    results = []
+
+    def add(name: str, ok: bool, msg: str):
+        results.append({"check": name, "ok": ok, "message": msg})
+        if verbose:
+            prefix = "  OK" if ok else "  FAIL"
+            print(f"{prefix}: {msg}", file=sys.stderr)
+
+    ok, msg = check_python_version(verbose)
+    add("python_version", ok, msg)
+
+    ok, msg = check_packages(verbose)
+    add("packages", ok, msg)
+
+{% for check in custom_checks %}
+    ok, msg = check_{{ check.name }}(verbose)
+    add("{{ check.name }}", ok, msg)
+{% endfor %}
+{% for dir_entry in state_dirs %}
+    ok, msg = check_dir_{{ dir_entry.name }}(verbose)
+    add("dir_{{ dir_entry.name }}", ok, msg)
+{% endfor %}
+
+    return results
+
+
+def main():
+    parser = argparse.ArgumentParser(description="{{ skill_name }} environment validation")
+    parser.add_argument("--verbose", action="store_true")
+    parser.add_argument("--json", action="store_true")
+    args = parser.parse_args()
+
+    results = run_checks(verbose=args.verbose)
+
+    if args.json:
+        print(json.dumps({"checks": results, "all_ok": all(r["ok"] for r in results)}, indent=2))
+    else:
+        failed = [r for r in results if not r["ok"]]
+        if failed:
+            for r in failed:
+                print(f"ERROR: {r['message']}", file=sys.stderr)
+            sys.exit(1)
+        else:
+            print("ENV OK")
+
+    if not all(r["ok"] for r in results):
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()

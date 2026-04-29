@@ -1,0 +1,42 @@
+# {{ skill.name }} Architecture
+
+## Component Map
+
+```
+{{ skill.name }}/
+{%- for f in skill.files %}
+{{ f.tree_line }}
+{%- endfor %}
+```
+
+## Runtime State
+
+{% if skill.runtime_paths %}
+| Path | Purpose |
+|------|---------|
+{%- for p in skill.runtime_paths %}
+| `{{ p.path }}` | {{ p.purpose }} |
+{%- endfor %}
+{% else %}
+No runtime state outside the skill directory.
+{% endif %}
+
+## Data Flow
+
+{% for flow in skill.data_flows %}
+- **{{ flow.source }}** → {{ flow.target }}: {{ flow.description }}
+{%- endfor %}
+
+## Internal Dependencies
+
+{% for dep in skill.internal_deps %}
+- `{{ dep.file }}` {{ dep.relationship }} `{{ dep.target }}`
+{%- endfor %}
+
+{% if skill.design_notes %}
+## Design Notes
+
+{% for note in skill.design_notes %}
+{{ note }}
+{% endfor %}
+{% endif %}

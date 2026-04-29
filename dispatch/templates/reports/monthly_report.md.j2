@@ -1,0 +1,53 @@
+---
+month: {{ month }}
+year: {{ year }}
+type: monthly
+---
+
+# Monthly Dispatch Report — {{ month_name }} {{ year }}
+
+## Month Summary
+
+| Metric | Value |
+|--------|-------|
+| Total tasks | {{ total_tasks }} |
+| Completed | {{ completed }} |
+| Deferred | {{ deferred }} |
+| Abandoned | {{ abandoned }} |
+| Total bottlenecks | {{ total_bottlenecks }} |
+| Optimus runs | {{ optimus_runs }} |
+
+## Weekly Breakdown
+
+{% for week in weeks %}
+### Week {{ week.number }}
+- Tasks: {{ week.tasks_closed }}/{{ week.tasks_total }}
+- Bottlenecks: {{ week.bottlenecks }}
+- Highlights: {{ week.highlights }}
+{% endfor %}
+
+## Recurring Bottleneck Types
+
+{% for type, count in bottleneck_types.items() %}
+- {{ type }}: {{ count }} occurrences
+{% endfor %}
+
+## Workflow Evolution
+
+{% for change in workflow_changes %}
+- {{ change.date }}: {{ change.description }}
+{% endfor %}
+
+## Optimus Improvement Adoption
+
+| Recommendation | Status | Impact |
+|---------------|--------|--------|
+{% for rec in optimus_recommendations %}
+| {{ rec.title }} | {{ rec.status }} | {{ rec.impact }} |
+{% endfor %}
+
+{% if prior_month_delta %}
+## Month-over-Month Delta
+
+{{ prior_month_delta }}
+{% endif %}

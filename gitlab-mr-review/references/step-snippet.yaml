@@ -1,0 +1,10 @@
+- id: mr_review
+  name: MR Review
+  skill: /mr-review
+  description: Review open GitLab merge requests for team and operator
+  on_blocker: log_and_continue
+  timeout_minutes: 10
+  tags:
+    - morning
+    - gitlab-mr-review
+  enabled: true

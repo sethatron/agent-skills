@@ -1,0 +1,23 @@
+{
+  "id": 501237,
+  "iid": 45,
+  "title": "Add FHIR R4 resource validator",
+  "description": "Resolves #22\n\nNew validation module for FHIR R4 resources.",
+  "state": "opened",
+  "draft": false,
+  "source_branch": "feature/fhir-r4-validator",
+  "target_branch": "main",
+  "author": {"username": "eric.shtivelberg", "name": "Eric Shtivelberg"},
+  "has_conflicts": false,
+  "head_pipeline": {
+    "id": 99004,
+    "status": "failed",
+    "web_url": "https://gitlab.com/abacusinsights/abacus-v2/next-gen-platform/ng-fhir/-/pipelines/99004",
+    "created_at": "2026-03-31T12:00:00.000Z",
+    "finished_at": "2026-03-31T12:08:00.000Z",
+    "duration": 480,
+    "ref": "feature/fhir-r4-validator",
+    "sha": "ghi012"
+  },
+  "web_url": "https://gitlab.com/abacusinsights/abacus-v2/next-gen-platform/ng-fhir/-/merge_requests/45"
+}

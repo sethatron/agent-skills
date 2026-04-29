@@ -1,0 +1,26 @@
+---
+scan_target: {{ scan_target }}
+scan_mode: {{ scan_mode }}
+timestamp: {{ timestamp }}
+verdict_critical: {{ verdict_critical }}
+verdict_major: {{ verdict_major }}
+verdict_minor: {{ verdict_minor }}
+verdict_suggestion: {{ verdict_suggestion }}
+dimensions_checked: [{{ dimensions_checked | join(', ') }}]
+overall_compliance: {{ overall_compliance }}
+---
+
+# Style Check Report
+
+**Grade: {{ overall_compliance }}** | {{ verdict_critical }} critical | {{ verdict_major }} major | {{ verdict_minor }} minor | {{ verdict_suggestion }} suggestions
+
+{% for dimension, findings in grouped.items() %}
+## {{ dimension | title }}
+
+{% for f in findings %}
+- {% if f.severity == "CRITICAL" %}🔴{% elif f.severity == "MAJOR" %}🟠{% elif f.severity == "MINOR" %}🟡{% else %}💡{% endif %} **{{ f.severity }}**{% if f.file %} `{{ f.file }}`{% endif %}{% if f.line %} (line {{ f.line }}){% endif %}
+  {{ f.message }}
+  > {{ f.recommendation }}
+
+{% endfor %}
+{% endfor %}

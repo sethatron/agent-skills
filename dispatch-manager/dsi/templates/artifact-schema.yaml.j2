@@ -1,0 +1,45 @@
+---
+skill_name: {{ skill_name }}
+schema_version: "1.0"
+description: "Artifact frontmatter schema for {{ skill_name }}"
+
+required_fields:
+  - name: skill_name
+    type: string
+    description: "Slug of producing skill"
+  - name: skill_version
+    type: string
+    description: "Semver of producing skill"
+  - name: produced_at
+    type: string
+    description: "ISO 8601 UTC timestamp"
+  - name: artifact_path
+    type: string
+    description: "Absolute path to this artifact file"
+  - name: status
+    type: string
+    description: "success | partial | failed"
+    allowed_values: [success, partial, failed]
+
+{% if custom_fields %}
+custom_fields:
+{% for field in custom_fields %}
+  - name: {{ field.name }}
+    type: {{ field.type }}
+{% if field.description %}
+    description: "{{ field.description }}"
+{% endif %}
+{% endfor %}
+{% endif %}
+
+immutable_fields:
+  - skill_name
+  - skill_version
+  - produced_at
+  - artifact_path
+  - status
+{% for field in custom_fields %}
+  - {{ field.name }}
+{% endfor %}
+
+extensible: true

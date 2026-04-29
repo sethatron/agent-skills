@@ -1,0 +1,14 @@
+---
+notebook_alias: dispatch
+tier1_days: null
+tier2_days: 30
+tier3_days: 7
+weekly_report_days: 14
+tier1_max: 17
+tier2_max: 20
+tier3_max: 12
+total_max: 49
+default_timeout_seconds: 180
+cache_hours: 20
+staleness_warning_hours: 48
+max_context_bullets: 5

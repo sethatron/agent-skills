@@ -1,0 +1,64 @@
+---
+skill_name: dispatch-notebook
+schema_version: "1.0"
+
+required_fields:
+  skill_name:
+    type: string
+    description: "Always 'dispatch-notebook'"
+    immutable: true
+  skill_version:
+    type: string
+    description: "Semver of dispatch-notebook at time of update"
+    immutable: true
+  produced_at:
+    type: string
+    description: "ISO 8601 UTC timestamp of update completion"
+    immutable: true
+  artifact_path:
+    type: string
+    description: "Absolute path to this update_log.yaml entry"
+    immutable: true
+  status:
+    type: string
+    description: "success | partial | failed"
+    immutable: true
+
+custom_fields:
+  update_id:
+    type: string
+    description: "UUID for this update run"
+    immutable: true
+  notebook_alias:
+    type: string
+    description: "nlm alias used (always 'dispatch')"
+    immutable: true
+  sources_added:
+    type: integer
+    description: "Number of new sources uploaded"
+  sources_deleted:
+    type: integer
+    description: "Number of expired sources pruned"
+  sources_unchanged:
+    type: integer
+    description: "Number of sources skipped (hash match)"
+  sources_errored:
+    type: integer
+    description: "Number of source operations that failed"
+  tier_summary:
+    type: object
+    description: "Per-tier source counts {tier1: n, tier2: n, tier3: n}"
+  duration_seconds:
+    type: float
+    description: "Total update wall time"
+  queries_executed:
+    type: integer
+    description: "Number of briefing queries run (if briefing generated)"
+  briefing_path:
+    type: string
+    description: "Path to generated morning briefing, if any"
+  errors:
+    type: list
+    description: "List of error strings from failed operations"
+
+extensible: true

@@ -1,0 +1,39 @@
+---
+name: "Morning Briefing"
+description: "Queries run post-Optimus to compose the morning intelligence briefing"
+default_timeout: 180
+queries:
+  - id: mb_recurring_bottlenecks
+    name: "Recurring Bottlenecks"
+    question: "What bottleneck types have recurred more than twice in the Optimus reports? List each type, how many times it appeared, and the most recent suggested resolution. Cite the specific report dates."
+    timeout_seconds: 180
+    cache_hours: 20
+    output_section: recurring_bottlenecks
+
+  - id: mb_pending_improvements
+    name: "Pending Improvements"
+    question: "What workflow improvements have been recommended by Optimus but are marked as PENDING or DEFERRED? List them in priority order with implementation paths."
+    timeout_seconds: 180
+    cache_hours: 20
+    output_section: pending_improvements
+
+  - id: mb_deferred_tasks
+    name: "Deferred Tasks"
+    question: "Which tasks appear most frequently in the deferred lists across session summaries? What reasons are cited for deferral?"
+    timeout_seconds: 180
+    cache_hours: 20
+    output_section: deferred_tasks
+
+  - id: mb_framework_health
+    name: "Framework Health"
+    question: "Based on session summaries and Optimus reports, what is the current health of the dispatch framework? Identify the top 3 friction points and trends."
+    timeout_seconds: 180
+    cache_hours: 20
+    output_section: framework_health
+
+  - id: mb_today_priorities
+    name: "Today's Priorities"
+    question: "Given the pending improvements, recurring bottlenecks, and recent session patterns, what are the 3 most impactful things to address this week? Be specific and cite your sources."
+    timeout_seconds: 180
+    cache_hours: 20
+    output_section: today_priorities

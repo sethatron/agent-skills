@@ -1,0 +1,43 @@
+---
+generated_at: "{{ generated_at }}"
+notebook_alias: "{{ notebook_alias }}"
+sources_count: {{ sources_count }}
+query_ids: [{{ query_ids | join(', ') }}]
+---
+
+# Dispatch Intelligence Briefing — {{ date }}
+
+## Recurring Bottlenecks
+{% if mb_recurring_bottlenecks %}
+{{ mb_recurring_bottlenecks }}
+{% else %}
+No recurring bottleneck patterns identified.
+{% endif %}
+
+## Pending Improvements
+{% if mb_pending_improvements %}
+{{ mb_pending_improvements }}
+{% else %}
+No pending improvements in queue.
+{% endif %}
+
+## Deferred Tasks
+{% if mb_deferred_tasks %}
+{{ mb_deferred_tasks }}
+{% else %}
+No deferred task patterns identified.
+{% endif %}
+
+## Framework Health
+{% if mb_framework_health %}
+{{ mb_framework_health }}
+{% else %}
+Framework health assessment unavailable.
+{% endif %}
+
+## This Week's Priorities
+{% if mb_today_priorities %}
+{{ mb_today_priorities }}
+{% else %}
+Priority assessment unavailable.
+{% endif %}

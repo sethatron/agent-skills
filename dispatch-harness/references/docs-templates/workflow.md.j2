@@ -1,0 +1,46 @@
+# {{ skill.name }} Workflow Integration
+
+## DSI Type
+
+{{ skill.name }} is TYPE {{ skill.dsi_type }}{% if skill.dsi_type == "A" %} (workflow orchestrator){% elif skill.dsi_type == "C" %} (hybrid: workflow + on-demand){% else %} (on-demand){% endif %}.
+
+{% if skill.workflow_steps %}
+## Workflow Steps
+
+| Step ID | Name | Description | Timeout | Tags |
+|---------|------|-------------|---------|------|
+{%- for step in skill.workflow_steps %}
+| {{ step.id }} | {{ step.name }} | {{ step.description }} | {{ step.timeout }} | {{ step.tags | join(", ") }} |
+{%- endfor %}
+
+{% endif %}
+
+{% if skill.hooks %}
+## Hooks
+
+{% for hook in skill.hooks %}
+### {{ hook.name }}
+
+{{ hook.description }}
+
+{% if hook.code %}
+```python
+{{ hook.code }}
+```
+{% endif %}
+{% endfor %}
+{% endif %}
+
+{% if skill.schedule %}
+## Scheduled Jobs
+
+| Job ID | Cron | Command | Approval |
+|--------|------|---------|----------|
+{%- for job in skill.schedule %}
+| {{ job.id }} | {{ job.cron }} | {{ job.command }} | {{ "Required" if job.approval else "No" }} |
+{%- endfor %}
+{% endif %}
+
+{% if not skill.workflow_steps and not skill.hooks and not skill.schedule %}
+This skill has no workflow steps, hooks, or scheduled jobs.
+{% endif %}

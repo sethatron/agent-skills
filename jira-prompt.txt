@@ -1,0 +1,656 @@
+================================================================================
+SKILL SPECIFICATION: jira (jiratui-backed)
+================================================================================
+
+Use /skill-creator to implement the jira skill. This document is the complete,
+authoritative specification. Follow every requirement exactly. Do not invent
+requirements not stated here. Do not omit stated constraints.
+
+Skill path:  /Users/sethallen/agent-skills/jira/
+Symlink:     ~/.claude/skills/jira -> above path
+
+PRIMARY PURPOSE: This skill is a read-only Jira intelligence layer. Its
+intended use is to retrieve issue context, sprint state, user data, and linked
+issue information to support the operator and sibling skills (such as
+gitlab-mr-review). Write operations (create, update, comment, delete) are
+available ONLY as an explicit operator-direct exception, subject to strict
+constraints defined in Section 1A. The skill must be designed so that the
+read-only path is always the default, lowest-friction path, and the write
+path is always a deliberate, guarded exception.
+
+The skill wraps the jiratui CLI tool (https://jiratui.readthedocs.io) and,
+where jiratui does not expose a needed capability, falls back to the Jira
+Cloud REST API v3 directly.
+
+--------------------------------------------------------------------------------
+SECTION 1: SKILL IDENTITY & TRIGGER
+--------------------------------------------------------------------------------
+
+Skill name:    jira
+Trigger paths: /jira <subcommand> [args]
+
+READ-ONLY subcommands (always permitted, including cross-skill invocations):
+
+  /jira search <jql-or-natural-language>
+  /jira issue <issue-key>
+  /jira issue <issue-key> comments
+  /jira my-issues [--status <status>] [--project <key>]
+  /jira sprint [--project <key>] [--board <n>]
+  /jira users search <query>
+  /jira open <issue-key>    — open issue in browser
+  /jira export <jql> [--format md|json|csv] [--output <path>]
+
+WRITE subcommands (operator-direct only — see Section 1A for full constraints):
+
+  /jira create --project <key> --type <type> --summary <text> [options]
+  /jira update <issue-key> [--status <status>] [--assignee <user>] [options]
+  /jira comment add <issue-key> <text>
+  /jira comment delete <issue-key> <comment-id>
+
+Natural-language equivalents that must trigger this skill:
+  READ:  "show my open Jira tickets"
+         "what's in the current sprint?"
+         "search Jira for <query>"
+         "what issues are assigned to me in <project>?"
+         "show me the details on <issue-key>"
+         "export Jira issues to <path>"
+  WRITE: "create a Jira story for <task>"       — operator-direct only
+         "update <issue-key> to In Progress"    — operator-direct only
+         "add a comment to <issue-key>"         — operator-direct only
+
+--------------------------------------------------------------------------------
+SECTION 1A: WRITE OPERATION POLICY — OPERATOR-DIRECT ONLY
+--------------------------------------------------------------------------------
+
+This section is the authoritative definition of when write operations are
+permitted. It overrides all other sections in the event of any conflict.
+
+1A.1 Definition of "Operator-Direct"
+
+A write operation is operator-direct if and only if ALL of the following are
+true simultaneously:
+
+  (a) The invocation originates from the human operator typing into the active
+      Claude Code session — not from an automated workflow, a scheduled task,
+      a script, or another skill invoking the jira skill as a subprocess or
+      tool call.
+
+  (b) The operator has explicitly named a write subcommand (/jira create,
+      /jira update, /jira comment add, /jira comment delete) or phrased a
+      natural-language request that unambiguously expresses intent to mutate
+      Jira state (e.g., "create a ticket for...", "move PROJ-123 to Done").
+
+  (c) The operator has confirmed the specific operation via the interactive
+      confirmation prompt produced by the skill BEFORE any API call is made.
+
+If any of these three conditions is not met, the operation MUST NOT proceed.
+
+1A.2 Cross-Skill Invocation Rule
+
+When the jira skill is invoked by another skill (e.g., gitlab-mr-review
+calling the jira skill to fetch linked issue context), the jira skill operates
+in FORCED READ-ONLY MODE unconditionally. This mode has the following
+properties:
+
+  - ALL write subcommands are blocked. They are not deferred, not queued, and
+    not surfaced as confirmation prompts — they are rejected immediately.
+  - The calling skill CANNOT act as a proxy for operator confirmation. A
+    confirmation prompt generated on behalf of a cross-skill invocation has
+    no legitimate approver and must never be presented.
+  - If a calling skill attempts to invoke a write subcommand, the jira skill
+    MUST NOT execute it and MUST return a structured error:
+        {
+          "error": "WRITE_BLOCKED_CROSS_SKILL",
+          "subcommand": "<attempted subcommand>",
+          "caller": "<JIRA_CALLER value>",
+          "message": "Write operations require direct operator invocation.
+                      This request originated from a cross-skill call and
+                      cannot be approved by the calling skill."
+        }
+  - The calling skill must surface this error to the operator as-is without
+    suppressing, retrying, or reformulating the blocked request.
+
+  Cross-skill invocation detection:
+  All sibling skills (gitlab-mr-review, dispatch, and any future skill) MUST
+  set the environment variable JIRA_CALLER=<skill-name> before invoking the
+  jira skill. The jira skill checks this variable at startup:
+    - JIRA_CALLER unset or JIRA_CALLER=operator  ->  standard mode
+    - JIRA_CALLER=<any other value>              ->  FORCED READ-ONLY MODE
+
+  Unset is treated as operator for backward compatibility but emits a
+  deprecation warning in verbose mode, encouraging callers to set the variable.
+
+1A.3 Write Operation Execution Protocol
+
+When all conditions in 1A.1 are satisfied, the following steps apply in order
+without exception. No step may be skipped.
+
+  Step 1 — Intent confirmation
+    The skill presents a plain-text pre-flight summary before any API call:
+      Operation:  <subcommand>
+      Target:     <issue-key or project>
+      Change:     <field-by-field description of exactly what will change>
+      Reversible: Yes / No / Partial
+    The operator must respond Y or yes (case-insensitive) to proceed.
+    Any other response — including silence, no, or a follow-up question —
+    aborts the operation with no partial execution.
+
+  Step 2 — Pre-execution validation
+    Validate that the operation is still coherent: the target resource exists,
+    the requested transition or field value is valid, and the assignee (if any)
+    is a resolvable user. If validation fails, abort with a clear error message.
+    No partial execution is attempted under any circumstances.
+
+  Step 3 — Execution
+    The API call is made. The full response is captured.
+
+  Step 4 — Result surface
+    On success: surface the resource key, URL, and all changed fields.
+    On failure: surface the full API error body without redaction or summary.
+
+  Step 5 — Cache invalidation
+    Invalidate any cached data for the affected resource immediately.
+
+1A.4 No Implied Write Operations
+
+The skill MUST NOT infer or perform write operations from contextual discussion.
+The following are explicitly forbidden triggers for write operations:
+
+  - The operator makes an observation about a ticket's state while discussing
+    an MR (e.g., "this ticket should be In Progress") — read-only context;
+    not a write instruction.
+  - A review.md recommends a Jira ticket update — a recommendation for the
+    operator to act on; not a trigger for the skill to act autonomously.
+  - A sibling skill identifies a Jira issue as linked to an MR — fetch for
+    context only; never modify.
+  - The operator says "can you handle that?" in a context where "that" could
+    mean a write operation — ambiguous; the skill MUST ask for explicit
+    clarification before treating it as a write instruction.
+
+When intent is ambiguous, the skill asks for explicit clarification. It never
+resolves ambiguity in favor of performing a write.
+--------------------------------------------------------------------------------
+SECTION 2: TOOL INTEGRATION — jiratui CLI
+--------------------------------------------------------------------------------
+
+2.1 Primary Interface
+
+The skill MUST use the jiratui CLI as its primary interface to Jira wherever
+the CLI exposes the required capability. Direct REST API calls are a fallback
+only (see Section 2.3).
+
+jiratui command surface used by this skill:
+
+  jiratui issues search --project-key <KEY> [--jql <expr>] [--output json]
+  jiratui issues update <ISSUE-KEY> [--status <status>] [--assignee <user>]
+                                    [--summary <text>] [--labels <labels>]
+  jiratui issues delete <ISSUE-KEY>  (PROHIBITED — see Section 9)
+  jiratui comments list <ISSUE-KEY> [--output json]
+  jiratui comments add <ISSUE-KEY> --body <text>
+  jiratui comments delete <ISSUE-KEY> <COMMENT-ID>  (PROHIBITED — see Section 9)
+  jiratui users search <query> [--output json]
+  jiratui version
+
+2.2 jiratui Configuration
+
+jiratui reads its configuration from (in order of precedence):
+  $XDG_CONFIG_HOME/jiratui/config.yaml
+  $HOME/.config/jiratui/config.yaml
+
+Required config fields:
+  jira_api_username: <email>
+  jira_api_token:    <PAT or API token>
+  jira_api_base_url: https://<your-instance>.atlassian.net
+
+The skill must NEVER write to or modify the jiratui config file. The config
+is exclusively the operator's responsibility to provision.
+
+The skill MUST clone the jiratui documentation into its own skill directory
+at first run for local reference:
+  <skill_dir>/references/jiratui-docs/
+  Source: https://github.com/whyisdifficult/jiratui (README + docs/)
+  If already present, skip clone. Refresh with --refresh-docs flag only.
+
+2.3 Direct REST API Fallback
+
+When jiratui does not expose a required capability, the skill uses the Jira
+Cloud REST API v3 directly via scripts/jira_client.py. Credentials are sourced
+from the jiratui config file (parsed at runtime, not cached). The REST API is
+used for:
+  - Fetching issue details with linked issues and full field expansion
+  - Fetching sprint data (board/sprint endpoints)
+  - Creating issues (POST /rest/api/3/issue)
+  - Fetching transitions (for status change validation)
+  - Bulk operations not supported by jiratui CLI
+
+2.4 Output Format
+
+All jiratui commands that support --output json MUST use it. The skill parses
+JSON output; it never scrapes human-readable TUI output.
+
+--------------------------------------------------------------------------------
+SECTION 3: ENVIRONMENT PRE-VALIDATION
+--------------------------------------------------------------------------------
+
+scripts/check_env.py MUST be the first script executed on every skill
+invocation. Checks, in order:
+
+  1. jiratui is installed and executable:
+       ERROR: jiratui not found on PATH.
+       Install with: uv tool install jiratui  (or: pip install jiratui)
+
+  2. jiratui config file exists at expected location:
+       ERROR: jiratui config not found at <path>.
+       Create it with the following fields: jira_api_username, jira_api_token,
+       jira_api_base_url.
+
+  3. Config file contains required fields (parsed YAML, not shell grep):
+       ERROR: jiratui config is missing field '<field>'.
+
+  4. Jira instance is reachable (GET /rest/api/3/myself):
+       ERROR: Jira instance at <base_url> is not reachable. Check network/VPN.
+
+  5. API token is valid (HTTP 200 on /myself, not 401/403):
+       ERROR: Jira API token is invalid or expired.
+       Regenerate at: https://id.atlassian.com/manage-profile/security/api-tokens
+
+  6. Python packages required by skill scripts:
+       requests, pyyaml, jinja2
+       ERROR: Missing package '<pkg>'. Install with: pip install <pkg>
+
+  7. Skill output and cache directories are writable.
+
+On success: ENV OK — jiratui and Jira API connectivity confirmed.
+
+Independently executable:
+  python scripts/check_env.py [--verbose] [--json]
+
+--------------------------------------------------------------------------------
+SECTION 4: SKILL CONFIGURATION
+--------------------------------------------------------------------------------
+
+config/jira.yaml contains operator-scoped defaults. All values are optional
+overrides; jiratui config is the authoritative credential source.
+
+  operator_username: <jira-username-or-email>
+  default_project: <PROJECT-KEY>      # used when --project is omitted
+  default_board: <board-name>         # used for /jira sprint without --board
+  my_issues_default_status:           # filter for /jira my-issues
+    - "In Progress"
+    - "To Do"
+    - "In Review"
+  export_default_path: ~/.zsh/jira/exports/
+  cache_ttl_minutes: 30               # for issue list caches
+  max_results_per_query: 100          # cap on search results returned
+
+--------------------------------------------------------------------------------
+SECTION 5: CACHING
+--------------------------------------------------------------------------------
+
+5.1 Cache Location
+
+  <skill_dir>/cache/jira/
+
+Cache files:
+  search_<jql-hash>_<YYYYMMDD_HHMMSS>.json    — search result sets
+  issue_<issue-key>_<YYYYMMDD_HHMMSS>.json    — individual issue detail
+  sprint_<board-id>_<YYYYMMDD_HHMMSS>.json    — sprint data
+
+5.2 Cache Policy
+
+  - Issue detail cache TTL: 30 minutes (configurable in jira.yaml).
+  - Search result cache TTL: 30 minutes.
+  - Sprint cache TTL: 60 minutes.
+  - If a cache file is stale, silently refresh (no prompt needed — Jira data
+    changes frequently and stale data is a real risk).
+  - Cache may be bypassed with --no-cache on any subcommand.
+  - Cache may be force-invalidated with --refresh on any subcommand.
+  - The cache stores full API/jiratui JSON responses; downstream logic filters.
+
+5.3 Cache Limitations
+
+  - Mutation operations (create, update, comment add/delete) MUST invalidate
+    the relevant cache entries after execution.
+  - The cache is read-only from the dispatch skill's perspective; only the
+    jira skill writes to it.
+
+--------------------------------------------------------------------------------
+SECTION 6: SUBCOMMAND SPECIFICATIONS
+--------------------------------------------------------------------------------
+
+6.1 /jira search <query>
+
+  - If <query> is valid JQL, pass it directly to jiratui issues search --jql.
+  - If <query> is natural language, translate to JQL before executing.
+    Document the translated JQL in the output so the operator can reuse it.
+  - Results displayed as a structured Markdown table:
+      | Key | Summary | Status | Assignee | Updated |
+  - Maximum results: config.max_results_per_query (default 100).
+  - Pagination is handled transparently; all pages accumulated before display.
+
+6.2 /jira issue <issue-key>
+
+  Retrieve and display full issue detail:
+  - Summary, description (rendered from Atlassian Document Format to Markdown),
+    status, priority, assignee, reporter, labels, components, fix versions,
+    sprint, story points, created, updated, due date.
+  - Linked issues (inward and outward links with relationship type and status).
+  - Subtasks (key, summary, status, assignee).
+  - Attachments (filename, size, uploader) — listed, not downloaded.
+  - Latest 5 comments (abbreviated). Full comments via /jira issue <key> comments.
+  - Acceptance criteria: if present in the description or a dedicated field,
+    surface them in a clearly labeled block.
+
+6.3 /jira my-issues
+
+  Equivalent JQL: assignee = currentUser() AND status in (<statuses>)
+  Uses config.my_issues_default_status unless --status is passed.
+  Groups results by status in the output table.
+
+6.4 /jira sprint
+
+  Fetches the active sprint for the configured or specified board.
+  Displays issues grouped by status column (To Do / In Progress / In Review /
+  Done). Includes story point totals per column and overall sprint progress.
+
+6.5 /jira create  [WRITE OPERATION — operator-direct only; full protocol in Section 1A]
+
+  Required flags: --project, --type, --summary
+  Optional flags: --description, --priority, --assignee, --labels, --epic,
+                  --story-points, --due-date
+
+  Before creating, the skill MUST:
+  1. Fetch available issue types for the project and validate --type.
+  2. Fetch available priorities and validate --priority if supplied.
+  3. If --assignee is supplied, validate the user exists via jiratui users search.
+  4. Present a confirmation summary to the operator before executing:
+       About to create:
+         Project:  <KEY>
+         Type:     <type>
+         Summary:  <summary>
+         Priority: <priority>
+         Assignee: <assignee>
+       Confirm? [Y/n]
+  5. On confirmation, call the Jira REST API (POST /rest/api/3/issue).
+  6. Surface the created issue key and URL on success.
+  7. On failure, surface the full API error response without redaction.
+
+6.6 /jira update <issue-key>  [WRITE OPERATION — operator-direct only; full protocol in Section 1A]
+
+  At least one update flag must be supplied. Valid flags:
+    --status:    Fetch available transitions, validate the target status, and
+                 apply the correct transition ID (POST /rest/api/3/issue/<key>/transitions).
+                 Do not accept status strings that are not valid transitions from
+                 the current state.
+    --assignee:  Validate user exists first.
+    --summary:   Update summary field.
+    --labels:    Replace label set (not append). Display current labels before
+                 updating and confirm with operator.
+    --priority:  Validate against available priorities.
+
+  All updates require operator confirmation with a before/after summary.
+
+6.7 /jira comment add <issue-key> <text>  [WRITE OPERATION — operator-direct only; full protocol in Section 1A]
+
+  - Text may be passed inline or read from stdin (for multi-line comments).
+  - Uses jiratui comments add.
+  - Confirm before posting:
+      Posting comment to <issue-key>:
+      "<text>"
+      Confirm? [Y/n]
+  - Surface comment ID on success (for reference/deletion).
+
+6.8 /jira comment delete <issue-key> <comment-id>  [WRITE OPERATION — operator-direct only; double confirmation required; full protocol in Section 1A]
+
+  REQUIRES double confirmation:
+    Are you sure you want to delete comment <id> from <issue-key>? [y/N]
+    Type the issue key to confirm deletion: <operator types key>
+  Deletion is irreversible; this guardrail is non-negotiable.
+
+6.9 /jira export <jql> [--format md|json|csv] [--output <path>]
+
+  Default format: md. Default output path: config.export_default_path.
+  Filename: jira_export_<YYYYMMDD_HHMMSS>.<ext>
+  All pages of results are accumulated before writing (no partial exports).
+  Surface the output path on completion.
+
+6.10 /jira open <issue-key>
+
+  Opens the issue URL in the default browser:
+    open https://<base_url>/browse/<issue-key>   (macOS)
+    xdg-open <url>                               (Linux)
+
+--------------------------------------------------------------------------------
+SECTION 7: NATURAL LANGUAGE QUERY HANDLING
+--------------------------------------------------------------------------------
+
+When the operator's input is not a formal /jira subcommand, the skill must
+interpret intent and map to the closest subcommand:
+
+  "show me what I'm working on"     → /jira my-issues --status "In Progress"
+  "what's blocking the sprint?"     → /jira sprint (highlight blocked items)
+  "create a bug for <description>"  → /jira create --type Bug --summary <desc>
+  "move <KEY> to done"              → /jira update <KEY> --status Done
+  "what did we close last week?"    → /jira search project = DEFAULT AND
+                                       status changed to Done after -7d
+
+The skill must always surface the resolved subcommand before executing,
+so the operator can verify intent:
+  READ: "Interpreted as: /jira search [jql: ...]  — proceed? [Y/n]"
+  WRITE: "Interpreted as: /jira update PROJ-123 --status 'In Progress'"
+         Before executing, this MUST route through the full Section 1A
+         write protocol (operator-direct check + pre-flight confirmation).
+         Natural-language intent resolution does NOT bypass Section 1A.
+         Resolving a write subcommand from natural language is not the
+         same as the operator explicitly typing that subcommand — the
+         skill MUST present the resolved interpretation and require
+         explicit operator confirmation of both the interpretation AND
+         the operation before any API call is made.
+
+For ambiguous queries, the skill must ask for clarification rather than guess.
+For ambiguous write-intent queries, the skill MUST default to clarification,
+never to execution. Ambiguity is not resolved in favor of a write.
+
+--------------------------------------------------------------------------------
+SECTION 8: OUTPUT FORMAT
+--------------------------------------------------------------------------------
+
+All output must be structured Markdown rendered in the terminal. Rules:
+
+  - Issue keys are always hyperlinked: [PROJ-123](https://<base_url>/browse/PROJ-123)
+  - Statuses are rendered with consistent labels (not raw API values).
+  - Priority is rendered with text labels only (no emoji in non-interactive mode).
+  - Tables are used for list views; detail views use definition-list style Markdown.
+  - Long descriptions are truncated at 500 characters with a "[truncated — use
+    /jira issue <key> for full detail]" note unless --full is passed.
+  - JSON output (--format json) is pretty-printed with 2-space indent.
+  - CSV output (--format csv) includes a header row.
+
+Export files (from /jira export) are written to disk only; they are not
+printed to the terminal. Surface only the path and row count on completion.
+
+--------------------------------------------------------------------------------
+SECTION 9: OPERATIONAL GUARDRAILS
+--------------------------------------------------------------------------------
+
+Include this block verbatim at the top of the SKILL.md body:
+
+  ┌────────────────────────────── OPERATIONAL GUARDRAILS ─────────────────────────────━
+  │  DEFAULT MODE: READ-ONLY                                                     │
+  │    This skill is a read-only Jira intelligence tool by default.              │
+  │    Write operations are the exception, not the feature.                      │
+  │                                                                              │
+  │  PROHIBITED — NO EXCEPTIONS, UNDER ANY INVOCATION MODE                      │
+  │    • jiratui issues delete  (irreversible — use the Jira web UI)             │
+  │    • Write ops when JIRA_CALLER != operator (cross-skill = read-only always)  │
+  │    • Write ops inferred from context without explicit operator instruction    │
+  │    • Confirmation prompts presented on behalf of a cross-skill caller        │
+  │    • Writing to or modifying the jiratui config file                         │
+  │    • Caching or logging credentials or API keys                              │
+  │                                                                              │
+  │  OPERATOR-DIRECT AND CONFIRMED ONLY (full rules: Section 1A)                 │
+  │    • /jira create    (confirm full field set before POST)                    │
+  │    • /jira update    (confirm before/after diff before PATCH)                │
+  │    • /jira comment add    (confirm full text before submit)                  │
+  │    • /jira comment delete  (double confirmation required)                    │
+  └──────────────────────────────────────────────────────────────────────────────┘
+
+Issue deletion (jiratui issues delete) is PROHIBITED under all circumstances.
+If the operator requests deletion, the skill must decline and direct them to
+the Jira web UI where they can perform the action with full audit logging.
+
+--------------------------------------------------------------------------------
+SECTION 10: SKILL STRUCTURE & FILE LAYOUT
+--------------------------------------------------------------------------------
+
+  jira/
+  ├── SKILL.md
+  ├── config/
+  │   └── jira.yaml                  — Operator defaults (not credentials)
+  ├── scripts/
+  │   ├── check_env.py               — Pre-validation (run first on every invoke)
+  │   ├── jira_client.py             — Direct Jira REST API client (fallback)
+  │   ├── jiratui_runner.py          — Subprocess wrapper for jiratui CLI
+  │   ├── jql_translator.py          — Natural language → JQL translation
+  │   └── export_writer.py           — Export file generation (md/json/csv)
+  ├── cache/
+  │   └── jira/                      — Runtime cache (gitignored)
+  ├── references/
+  │   └── jiratui-docs/              — Cloned jiratui docs (cloned at first run)
+  └── tests/
+      └── fixtures/
+          ├── issue.json             — Mock Jira issue REST response
+          ├── search_results.json    — Mock search result set
+          ├── transitions.json       — Mock transitions API response
+          ├── sprint.json            — Mock sprint API response
+          └── jiratui_output.json    — Mock jiratui CLI JSON output
+
+scripts/jiratui_runner.py wraps all subprocess calls to jiratui. It must:
+  - Always pass --output json where supported.
+  - Capture stderr separately from stdout.
+  - On non-zero exit code, surface the full stderr to the operator with context.
+  - Never swallow errors silently.
+
+scripts/jql_translator.py handles natural-language-to-JQL conversion. It must:
+  - Use a rule-based approach for common patterns before resorting to LLM.
+  - Always return both the JQL string and a human-readable explanation of it.
+  - Log all translations to <skill_dir>/cache/jira/jql_translations.log for
+    debugging and operator review.
+
+--------------------------------------------------------------------------------
+SECTION 11: INTEGRATION WITH GITLAB MR REVIEW SKILL
+--------------------------------------------------------------------------------
+
+The jira skill and the gitlab-mr-review skill are sibling skills in the same
+operator workflow. Their integration points:
+
+  - When gitlab-mr-review parses a GitLab MR description and finds a Jira issue
+    key (e.g., "Closes PROJ-123" or "[PROJ-123]" in the title), it MUST invoke
+    the jira skill with JIRA_CALLER=gitlab-mr-review to fetch the linked issue
+    for context. This invocation is always and irrevocably read-only. The
+    gitlab-mr-review skill MUST NOT pass any write subcommand. If it does, the
+    jira skill will reject it and return a WRITE_BLOCKED_CROSS_SKILL error.
+
+  - The jira skill's export output (markdown format) is consumable by the
+    dispatch skill in the same directory convention as gitlab-mr-review artifacts.
+
+  - Both skills share the same check_env.py pattern but maintain separate
+    scripts. There is no shared library dependency between them.
+
+  - Credentials: gitlab-mr-review uses GITLAB_TOKEN env var; jira uses the
+    jiratui config file. These are never interchanged.
+
+--------------------------------------------------------------------------------
+SECTION 12: PROMPT ENGINEERING REQUIREMENTS FOR THE GENERATED SKILL.MD
+--------------------------------------------------------------------------------
+
+The generated SKILL.md must adhere to the following quality standards:
+
+12.1 Precision Over Brevity
+  - Every behavioral rule stated explicitly. Imperative mood throughout.
+  - No implicit defaults; all defaults documented.
+
+12.2 Constraint Hierarchy
+  - Guardrails block at the top of the SKILL.md body.
+  - Destructive operation policies stated twice: in the guardrails block and
+    in their respective subcommand specification.
+
+12.3 Failure Mode Specification
+  For each operation, document the behavior on failure:
+    - jiratui exits non-zero: surface stderr, suggest --verbose rerun.
+    - API 401/403: surface token expiry guidance.
+    - API 429 (rate limit): back off and retry with exponential delay.
+    - Network timeout: surface error, suggest --no-cache retry.
+    - JQL parse error: surface Jira's error message and suggest correction.
+
+12.4 Idempotency
+  - /jira search and /jira issue are always safe to re-run.
+  - /jira create, update, comment add are NOT idempotent; they require
+    explicit confirmation precisely because re-running has side effects.
+
+12.5 No Hallucination Guardrails
+  - All issue data, user data, and status values must come from the API or
+    jiratui output. The skill must never fabricate issue content, invent
+    usernames, or assume field values not returned by the API.
+  - JQL translation must be labeled [TRANSLATED JQL] in output so the operator
+    can verify the interpretation before execution.
+
+--------------------------------------------------------------------------------
+IMPLEMENTATION REQUIREMENTS
+--------------------------------------------------------------------------------
+
+Create all of the following files inside the skill directory. Follow the
+/skill-creator workflow: draft, test against the invocation patterns in
+Section 1, and iterate until the skill reliably triggers and produces correct
+output. All files must be complete and immediately functional.
+
+=== FILE: SKILL.md ===
+=== FILE: config/jira.yaml ===
+=== FILE: scripts/check_env.py ===
+=== FILE: scripts/jira_client.py ===
+=== FILE: scripts/jiratui_runner.py ===
+=== FILE: scripts/jql_translator.py ===
+=== FILE: scripts/export_writer.py ===
+=== FILE: references/jiratui-docs/README.md ===
+
+Requirements for each file:
+
+SKILL.md:
+  - Valid YAML frontmatter with name and description fields.
+  - DESCRIPTION FIELD: Must be written to be "pushy" — it should actively
+    encourage triggering and enumerate specific contexts. Undertriggering is
+    a known failure mode; the description is the primary defense against it.
+    It must cover: Jira issue lookup, sprint queries, JQL searches, natural-
+    language ticket queries, /jira subcommands, and phrases like "check my
+    tickets", "what's in the sprint", "Jira status", "look up <KEY>".
+    Write-intent phrases ("create a ticket", "update the status") must also
+    be listed with a note that they trigger operator-direct mode per Section 1A.
+  - OPERATIONAL GUARDRAILS block (verbatim from Section 9) immediately after
+    frontmatter.
+  - H2/H3 Markdown structure covering all sections.
+  - Inline code blocks for all script interfaces (argparse --help format,
+    example jiratui JSON output, example jira.yaml with all fields).
+  - Body under 500 lines; overflow into references/ with explicit load guidance.
+  - Every write subcommand section (6.5–6.8) must open with its
+    [WRITE OPERATION] tag and cite Section 1A before any implementation detail.
+
+config/jira.yaml:
+  - All fields from Section 4 with types, defaults, and inline comments.
+
+scripts/check_env.py:
+  - Full implementation (not stub) — safety-critical.
+  - All checks from Section 3 in order, with exact error message strings.
+  - --verbose and --json flags implemented.
+
+scripts/jira_client.py through scripts/export_writer.py:
+  - Stubs with complete docstrings, argparse interfaces, and function signatures.
+  - Return types and exception types documented.
+  - Implementation bodies outlined, not fully implemented.
+
+references/jiratui-docs/README.md:
+  - Clone instruction for the jiratui GitHub repository.
+  - Note that docs are fetched at first /jira invocation if not present.
+  - Summary of available jiratui CLI commands for quick reference.
+
+All files must satisfy all requirements in Sections 1–12.
+================================================================================

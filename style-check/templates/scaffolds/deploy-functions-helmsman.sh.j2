@@ -1,0 +1,56 @@
+#!/bin/bash
+set -euo pipefail
+
+function update_kubeconfig {
+  local kubeconfig_path=${1:-/tmp/${LABEL}.kubeconfig}
+  aws eks update-kubeconfig --name "${LABEL}" --kubeconfig "${kubeconfig_path}"
+  chmod go-r "${kubeconfig_path}"
+}
+
+function run_helmsman_isolated {
+  local component=$1
+  local workspace_scope=$2
+  shift 2
+
+  local seiji_tmp_root=${SEIJI_TMP_ROOT:-/tmp/seiji-tmp}
+  local run_id=${SEIJI_RUN_ID:-$(date +%s)}
+  local worker_root="${seiji_tmp_root}/${LABEL}/${component}/${workspace_scope}/${run_id}-$$"
+  local current_workdir
+  current_workdir="$(pwd)"
+  local worker_workdir="${worker_root}/workdir"
+
+  mkdir -p "${worker_root}/tmp" \
+           "${worker_root}/helm-cache" \
+           "${worker_root}/helm-config" \
+           "${worker_workdir}" \
+           "${worker_root}/logs"
+
+  local entry
+  shopt -s dotglob nullglob
+  for entry in "${current_workdir}"/*; do
+    local base
+    base="$(basename "${entry}")"
+    if [[ "${base}" == ".helmsman-tmp" ]]; then
+      continue
+    fi
+    ln -s "${entry}" "${worker_workdir}/${base}"
+  done
+  shopt -u dotglob nullglob
+
+  local kubeconfig_path="${worker_root}/kubeconfig"
+  update_kubeconfig "${kubeconfig_path}"
+
+  (
+    export KUBECONFIG="${kubeconfig_path}"
+    export TMPDIR="${worker_root}/tmp"
+    export HELM_CACHE_HOME="${worker_root}/helm-cache"
+    export HELM_CONFIG_HOME="${worker_root}/helm-config"
+
+    cd "${worker_workdir}"
+    helmsman "$@"
+  )
+
+  if [[ "${SEIJI_KEEP_TMP:-0}" != "1" ]]; then
+    rm -rf "${worker_root}"
+  fi
+}

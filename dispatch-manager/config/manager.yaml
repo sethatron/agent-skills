@@ -1,0 +1,10 @@
+---
+backup_retention_days: 30
+auto_validate_after_write: true
+require_changelog_entry: true
+dry_run_before_apply: true
+default_version_bump: PATCH
+
+optimus_sources:
+  - "~/.zsh/dispatch/optimus/"
+  - "~/.zsh/dispatch/{YYYY}/{MM}/{DD}/optimus_report.md"

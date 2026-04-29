@@ -1,0 +1,19 @@
+---
+project:
+  directory: ~/.zsh/dispatch
+  prefix: dsp
+  actor: zettatron
+
+label_taxonomy:
+  namespaces: [scope, layer, source, kind, phase, effort]
+  enforce: true
+
+audit:
+  report_dir: ~/.zsh/dispatch/auditor
+  max_br_commands: 50
+  stub_patterns: ['pass', 'raise NotImplementedError', '# STUB', '# TODO']
+
+integration:
+  optimus_finding_min_severity: HIGH
+  sync_on_eod: true
+  morning_show_p0_p1: true

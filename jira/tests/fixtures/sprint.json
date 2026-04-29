@@ -1,0 +1,16 @@
+{
+  "id": 201,
+  "self": "https://abacusinsights.atlassian.net/rest/agile/1.0/sprint/201",
+  "state": "active",
+  "name": "Sprint 42",
+  "startDate": "2026-03-25T00:00:00.000Z",
+  "endDate": "2026-04-07T00:00:00.000Z",
+  "goal": "Complete pipeline retry logic and deploy v2.5",
+  "issues": [
+    {"key": "PLAT-1234", "fields": {"summary": "Implement retry logic", "status": {"name": "In Progress"}, "assignee": {"displayName": "Seth Allen"}, "story_points": 5}},
+    {"key": "PLAT-1235", "fields": {"summary": "Deploy pipeline v2.5", "status": {"name": "To Do"}, "assignee": {"displayName": "Seth Allen"}, "story_points": 3}},
+    {"key": "PLAT-1230", "fields": {"summary": "Update Terraform provider", "status": {"name": "To Do"}, "assignee": {"displayName": "Seth Allen"}, "story_points": 2}},
+    {"key": "DSP-7729", "fields": {"summary": "Fix FHIR validation", "status": {"name": "In Review"}, "assignee": {"displayName": "Seth Allen"}, "story_points": 3}},
+    {"key": "PLAT-1220", "fields": {"summary": "Add CloudWatch dashboards", "status": {"name": "Done"}, "assignee": {"displayName": "Jane Doe"}, "story_points": 2}}
+  ]
+}

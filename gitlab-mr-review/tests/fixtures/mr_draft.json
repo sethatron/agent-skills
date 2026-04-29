@@ -1,0 +1,29 @@
+{
+  "id": 501235,
+  "iid": 43,
+  "title": "Draft: WIP - Refactor auth middleware",
+  "description": "Refactoring the auth middleware to use the new token service.",
+  "state": "opened",
+  "draft": true,
+  "source_branch": "refactor/auth-middleware",
+  "target_branch": "main",
+  "author": {"username": "Rivlin.pereira", "name": "Rivlin Pereira"},
+  "assignees": [],
+  "reviewers": [],
+  "labels": ["refactor"],
+  "milestone": null,
+  "created_at": "2026-03-30T08:00:00.000Z",
+  "updated_at": "2026-03-31T09:00:00.000Z",
+  "web_url": "https://gitlab.com/abacusinsights/abacus-v2/next-gen-platform/ng-auth/-/merge_requests/43",
+  "has_conflicts": false,
+  "head_pipeline": {
+    "id": 99002,
+    "status": "passed",
+    "web_url": "https://gitlab.com/abacusinsights/abacus-v2/next-gen-platform/ng-auth/-/pipelines/99002",
+    "created_at": "2026-03-31T08:30:00.000Z",
+    "finished_at": "2026-03-31T08:42:00.000Z",
+    "duration": 720,
+    "ref": "refactor/auth-middleware",
+    "sha": "def789"
+  }
+}

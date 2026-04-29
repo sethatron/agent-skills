@@ -1,0 +1,23 @@
+#!/bin/bash
+
+set -euE -o pipefail
+
+export AWS_RETRY_MODE=adaptive
+export AWS_MAX_ATTEMPTS=10
+
+source "$(dirname "${BASH_SOURCE[0]}")/deploy_functions.sh"
+
+desired_state_file_name="desired-state.yaml"
+
+update_kubeconfig
+
+export KUBECONFIG=/tmp/${LABEL}.kubeconfig
+export ACCOUNT_ID=$(aws sts get-caller-identity --query "Account" --output text)
+
+seiji config generate env --spec-path deploy/luna-config-spec.yaml
+source deploy/luna-config.env
+
+echo "[INFO] Running helmsman destroy"
+run_helmsman_isolated {{ subsystem }} "_" \
+  --destroy \
+  -f $desired_state_file_name

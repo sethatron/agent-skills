@@ -1,0 +1,337 @@
+{
+  "id": 469426928,
+  "iid": 1,
+  "project_id": 80906900,
+  "title": "DSP-7992: Initial commit, working but kind of unwieldy script",
+  "description": "This script isn't exactly code that I'm proud of, but it gets the job done. If you have specific recommendations for cleaning it up, I'll take it, but otherwise as I said in both the ticket and docstring intro I am hoping this is just a stopgap, not needed long-term.",
+  "state": "opened",
+  "created_at": "2026-03-31T19:42:01.024Z",
+  "updated_at": "2026-04-01T04:24:57.756Z",
+  "merged_by": null,
+  "merge_user": null,
+  "merged_at": null,
+  "closed_by": null,
+  "closed_at": null,
+  "target_branch": "master",
+  "source_branch": "DSP-7992",
+  "user_notes_count": 1,
+  "upvotes": 0,
+  "downvotes": 0,
+  "author": {
+    "id": 5938765,
+    "username": "srosenfeld",
+    "public_email": "",
+    "name": "Steve Rosenfeld",
+    "state": "active",
+    "locked": false,
+    "avatar_url": "https://secure.gravatar.com/avatar/25c818116c8ce2c185043ca59ff2a1e141a9f8211eeb4dd1248b9dc41b734527?s=80&d=identicon",
+    "web_url": "https://gitlab.com/srosenfeld"
+  },
+  "assignees": [],
+  "assignee": null,
+  "reviewers": [],
+  "source_project_id": 80906900,
+  "target_project_id": 80906900,
+  "labels": [],
+  "draft": false,
+  "imported": false,
+  "imported_from": "none",
+  "work_in_progress": false,
+  "milestone": null,
+  "merge_when_pipeline_succeeds": false,
+  "merge_status": "can_be_merged",
+  "detailed_merge_status": "not_approved",
+  "merge_after": null,
+  "sha": "7e462b981d7610875d74e041dabf6dfc76207ddd",
+  "merge_commit_sha": null,
+  "squash_commit_sha": null,
+  "discussion_locked": null,
+  "should_remove_source_branch": null,
+  "force_remove_source_branch": true,
+  "prepared_at": "2026-03-31T19:42:04.016Z",
+  "reference": "!1",
+  "references": {
+    "short": "!1",
+    "relative": "!1",
+    "full": "abacusinsights/randos/create-sso-app!1"
+  },
+  "web_url": "https://gitlab.com/abacusinsights/randos/create-sso-app/-/merge_requests/1",
+  "time_stats": {
+    "time_estimate": 0,
+    "total_time_spent": 0,
+    "human_time_estimate": null,
+    "human_total_time_spent": null
+  },
+  "squash": false,
+  "squash_on_merge": false,
+  "task_completion_status": {
+    "count": 0,
+    "completed_count": 0
+  },
+  "has_conflicts": false,
+  "blocking_discussions_resolved": true,
+  "approvals_before_merge": null,
+  "subscribed": false,
+  "changes_count": "2",
+  "latest_build_started_at": "2026-04-01T04:25:00.307Z",
+  "latest_build_finished_at": "2026-04-01T04:25:58.788Z",
+  "first_deployed_to_production_at": null,
+  "pipeline": {
+    "id": 2422442621,
+    "iid": 4,
+    "project_id": 80906900,
+    "sha": "7e462b981d7610875d74e041dabf6dfc76207ddd",
+    "ref": "DSP-7992",
+    "status": "success",
+    "source": "push",
+    "created_at": "2026-04-01T04:24:58.330Z",
+    "updated_at": "2026-04-01T04:25:58.803Z",
+    "web_url": "https://gitlab.com/abacusinsights/randos/create-sso-app/-/pipelines/2422442621"
+  },
+  "head_pipeline": {
+    "id": 2422442621,
+    "iid": 4,
+    "project_id": 80906900,
+    "sha": "7e462b981d7610875d74e041dabf6dfc76207ddd",
+    "ref": "DSP-7992",
+    "status": "success",
+    "source": "push",
+    "created_at": "2026-04-01T04:24:58.330Z",
+    "updated_at": "2026-04-01T04:25:58.803Z",
+    "web_url": "https://gitlab.com/abacusinsights/randos/create-sso-app/-/pipelines/2422442621",
+    "before_sha": "32afe97dda244fac71627fc48190f8a9893fa0a0",
+    "tag": false,
+    "yaml_errors": null,
+    "user": {
+      "id": 5938765,
+      "username": "srosenfeld",
+      "public_email": "",
+      "name": "Steve Rosenfeld",
+      "state": "active",
+      "locked": false,
+      "avatar_url": "https://secure.gravatar.com/avatar/25c818116c8ce2c185043ca59ff2a1e141a9f8211eeb4dd1248b9dc41b734527?s=80&d=identicon",
+      "web_url": "https://gitlab.com/srosenfeld"
+    },
+    "started_at": "2026-04-01T04:25:00.307Z",
+    "finished_at": "2026-04-01T04:25:58.788Z",
+    "committed_at": null,
+    "duration": 52,
+    "queued_duration": 1,
+    "coverage": null,
+    "detailed_status": {
+      "icon": "status_warning",
+      "text": "Warning",
+      "label": "passed with warnings",
+      "group": "success-with-warnings",
+      "tooltip": "passed with warnings",
+      "has_details": true,
+      "details_path": "/abacusinsights/randos/create-sso-app/-/pipelines/2422442621",
+      "illustration": null,
+      "favicon": "/assets/ci_favicons/favicon_status_success-8451333011eee8ce9f2ab25dc487fe24a8758c694827a582f17f42b0a90446a2.png"
+    },
+    "archived": false
+  },
+  "diff_refs": {
+    "base_sha": "ec979c299aa976d6c5dc61aea1d7f67728c0b41f",
+    "head_sha": "7e462b981d7610875d74e041dabf6dfc76207ddd",
+    "start_sha": "ec979c299aa976d6c5dc61aea1d7f67728c0b41f"
+  },
+  "merge_error": null,
+  "first_contribution": true,
+  "user": {
+    "can_merge": true
+  },
+  "diffs": [
+    {
+      "diff": "@@ -0,0 +1,9 @@\n+---\n+variables:\n+  SOUSCHEF_VERSION: &_SOUSCHEF_VERSION 'master'\n+  SOUSCHEF_VARIANT: \"py3.11\"\n+\n+include:\n+  - project: 'abacusinsights/lunatic-dove/kitchen-souschef'\n+    file: '/gitlab_templates/base/all.yml'\n+    ref: *_SOUSCHEF_VERSION\n",
+      "collapsed": false,
+      "too_large": false,
+      "new_path": ".gitlab-ci.yml",
+      "old_path": ".gitlab-ci.yml",
+      "a_mode": "0",
+      "b_mode": "100644",
+      "new_file": true,
+      "renamed_file": false,
+      "deleted_file": false,
+      "generated_file": false
+    },
+    {
+      "diff": "",
+      "collapsed": true,
+      "too_large": false,
+      "new_path": "create_sso_app.py",
+      "old_path": "create_sso_app.py",
+      "a_mode": "0",
+      "b_mode": "100644",
+      "new_file": true,
+      "renamed_file": false,
+      "deleted_file": false,
+      "generated_file": false
+    }
+  ],
+  "discussions": [
+    {
+      "id": "7a67cb6b7df220a7ef70bd454ea66d2f8ba94aa9",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3210676825,
+          "type": null,
+          "body": "<!-- policy_violation_comment -->\nSecurity policy violations have been resolved.",
+          "author": {
+            "id": 7849066,
+            "username": "GitLab-Security-Bot",
+            "public_email": "",
+            "name": "GitLab Security Bot",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/7849066/security-bot.png",
+            "web_url": "https://gitlab.com/GitLab-Security-Bot"
+          },
+          "created_at": "2026-03-31T19:42:04.490Z",
+          "updated_at": "2026-04-01T04:26:00.307Z",
+          "system": false,
+          "noteable_id": 469426928,
+          "noteable_type": "MergeRequest",
+          "project_id": 80906900,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 1,
+          "commands_changes": {}
+        }
+      ]
+    },
+    {
+      "id": "54f8fee0054457b320fb3f4eea29424b06885033",
+      "individual_note": true,
+      "resolvable": false,
+      "notes": [
+        {
+          "id": 3211528136,
+          "type": null,
+          "body": "added 1 commit\n\n<ul><li>7e462b98 - Fix Claude&#39;s hallucinations</li></ul>\n\n[Compare with previous version](/abacusinsights/randos/create-sso-app/-/merge_requests/1/diffs?diff_id=1730775898&start_sha=32afe97dda244fac71627fc48190f8a9893fa0a0)",
+          "author": {
+            "id": 5938765,
+            "username": "srosenfeld",
+            "public_email": "",
+            "name": "Steve Rosenfeld",
+            "state": "active",
+            "locked": false,
+            "avatar_url": "https://secure.gravatar.com/avatar/25c818116c8ce2c185043ca59ff2a1e141a9f8211eeb4dd1248b9dc41b734527?s=80&d=identicon",
+            "web_url": "https://gitlab.com/srosenfeld"
+          },
+          "created_at": "2026-04-01T04:24:57.660Z",
+          "updated_at": "2026-04-01T04:24:57.667Z",
+          "system": true,
+          "noteable_id": 469426928,
+          "noteable_type": "MergeRequest",
+          "project_id": 80906900,
+          "resolvable": false,
+          "confidential": false,
+          "internal": false,
+          "imported": false,
+          "imported_from": "none",
+          "noteable_iid": 1,
+          "commands_changes": {}
+        }
+      ]
+    }
+  ],
+  "approvals": {
+    "id": 469426928,
+    "iid": 1,
+    "project_id": 80906900,
+    "title": "DSP-7992: Initial commit, working but kind of unwieldy script",
+    "description": "This script isn't exactly code that I'm proud of, but it gets the job done. If you have specific recommendations for cleaning it up, I'll take it, but otherwise as I said in both the ticket and docstring intro I am hoping this is just a stopgap, not needed long-term.",
+    "state": "opened",
+    "created_at": "2026-03-31T19:42:01.024Z",
+    "updated_at": "2026-04-01T04:24:57.756Z",
+    "merge_status": "can_be_merged",
+    "approved": false,
+    "approvals_required": 1,
+    "approvals_left": 1,
+    "require_password_to_approve": false,
+    "approved_by": [],
+    "suggested_approvers": [
+      {
+        "id": 4971219,
+        "username": "overfl0wd",
+        "public_email": "",
+        "name": "dana taylor",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/4971219/avatar.png",
+        "web_url": "https://gitlab.com/overfl0wd"
+      },
+      {
+        "id": 5622501,
+        "username": "luisanevers",
+        "public_email": "",
+        "name": "Luisa Nevers",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/5622501/avatar.png",
+        "web_url": "https://gitlab.com/luisanevers"
+      },
+      {
+        "id": 5631801,
+        "username": "aitom",
+        "public_email": "",
+        "name": "Tom",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/5631801/avatar.png",
+        "web_url": "https://gitlab.com/aitom"
+      },
+      {
+        "id": 6729997,
+        "username": "matt_donaghey",
+        "public_email": "",
+        "name": "Matt Donaghey",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://secure.gravatar.com/avatar/c6cbcc03abbcff4ddd6a3b9848e2f56667ba177a287c5718a95cee4ed5b78cd5?s=80&d=identicon",
+        "web_url": "https://gitlab.com/matt_donaghey"
+      },
+      {
+        "id": 12171540,
+        "username": "bhuffman-sec",
+        "public_email": "",
+        "name": "Brad Huffman",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/12171540/avatar.png",
+        "web_url": "https://gitlab.com/bhuffman-sec"
+      },
+      {
+        "id": 14469776,
+        "username": "larry.king",
+        "public_email": "",
+        "name": "Larry King",
+        "state": "active",
+        "locked": false,
+        "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/14469776/avatar.png",
+        "web_url": "https://gitlab.com/larry.king"
+      }
+    ],
+    "approvers": [],
+    "approver_groups": [],
+    "user_has_approved": false,
+    "user_can_approve": true,
+    "approval_rules_left": [
+      {
+        "id": 78558660,
+        "name": "All Members",
+        "rule_type": "any_approver"
+      }
+    ],
+    "has_approval_rules": true,
+    "merge_request_approvers_available": true,
+    "multiple_approval_rules_available": true,
+    "invalid_approvers_rules": []
+  }
+}

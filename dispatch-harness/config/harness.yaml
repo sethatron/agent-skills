@@ -1,0 +1,36 @@
+version: '1.0'
+skills_root: /Users/sethallen/agent-skills
+dispatch_root: ~/.zsh/dispatch
+ecosystem_config: /Users/sethallen/agent-skills/dispatch-manager/config/ecosystem.yaml
+registry_path: /Users/sethallen/agent-skills/dispatch-manager/contracts/registry.yaml
+
+quality:
+  stub_patterns:
+    - pass
+    - 'raise NotImplementedError'
+    - '# STUB'
+    - '# TODO'
+  skill_md_max_lines: 200
+  docs_required_files:
+    - architecture.md
+    - integration.md
+    - failure-modes.md
+    - quality.md
+  grade_weights:
+    skill_md: 1
+    docs_coverage: 2
+    core_scripts: 3
+    check_env: 1
+    contracts: 1
+    workflow_steps: 1
+
+entropy:
+  schedule: monthly
+  max_issues_per_run: 20
+  stale_contract_days: 30
+  grade_regression_threshold: 3
+
+architecture:
+  violation_severity: WARN
+  log_path: harness/arch-violations.log
+  max_call_depth: 2

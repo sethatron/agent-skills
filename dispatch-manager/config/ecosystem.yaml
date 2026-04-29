@@ -1,0 +1,99 @@
+version: '1.0'
+last_updated: '2026-04-02'
+skills:
+  jira:
+    path: /Users/sethallen/agent-skills/jira/
+    symlink: ~/.claude/skills/jira
+    config: config/jira.yaml
+    dsi_type: B
+    dependencies: []
+    produces:
+    - jira_export
+    consumed_by:
+    - dispatch
+    - gitlab-mr-review
+  gitlab-mr-review:
+    path: /Users/sethallen/agent-skills/gitlab-mr-review/
+    symlink: ~/.claude/skills/gitlab-mr-review
+    aliases:
+    - mr-review
+    config: config/team.yaml
+    dsi_type: A
+    dependencies:
+    - jira
+    produces:
+    - review_md
+    consumed_by:
+    - dispatch
+  dispatch:
+    path: /Users/sethallen/agent-skills/dispatch/
+    symlink: ~/.claude/skills/dispatch
+    config: ~/.zsh/dispatch/workflow.yaml
+    runtime_db: ~/.zsh/dispatch/dispatch.db
+    dsi_type: A
+    dependencies:
+    - jira
+    - gitlab-mr-review
+    produces:
+    - session_yaml
+    - task_yaml
+    - optimus_report
+    consumed_by:
+    - dispatch-manager
+  dispatch-manager:
+    path: /Users/sethallen/agent-skills/dispatch-manager/
+    symlink: ~/.claude/skills/dispatch-manager
+    config: config/manager.yaml
+    dsi_type: B
+    dependencies:
+    - dispatch
+    - jira
+    - gitlab-mr-review
+    produces:
+    - changelog
+    - contract_registry_updates
+    consumed_by: []
+  dispatch-notebook:
+    path: /Users/sethallen/agent-skills/dispatch-notebook
+    symlink: ~/.claude/skills/dispatch-notebook
+    config: config/notebook.yaml
+    dsi_type: C
+    dependencies:
+    - dispatch
+    produces:
+    - update_log
+    - morning_briefing
+    consumed_by:
+    - dispatch
+    - dispatch-manager
+  beads:
+    path: /Users/sethallen/agent-skills/beads
+    symlink: ~/.claude/skills/beads
+    config: config/beads.yaml
+    dsi_type: B
+    dependencies:
+    - dispatch
+    produces:
+    - board_state
+    - audit_report
+    consumed_by:
+    - dispatch
+    - dispatch-manager
+  dispatch-harness:
+    path: /Users/sethallen/agent-skills/dispatch-harness/
+    symlink: ~/.claude/skills/dispatch-harness
+    config: config/harness.yaml
+    dsi_type: B
+    dependencies:
+    - dispatch
+    - beads
+    - dispatch-manager
+    produces:
+    - quality_grades
+    - architecture_check
+    - entropy_report
+    - telemetry_digest
+    consumed_by:
+    - dispatch
+    - dispatch-manager
+extended_skills: {}
