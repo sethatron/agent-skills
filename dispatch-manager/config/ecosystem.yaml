@@ -96,4 +96,11 @@ skills:
     consumed_by:
     - dispatch
     - dispatch-manager
-extended_skills: {}
+extended_skills:
+  dispatch-dose:
+    path: /Users/sethallen/agent-skills/dispatch-dose
+    symlink: ~/.claude/skills/dispatch-dose
+    dsi_type: C
+    dependencies: []
+    produces: []
+    consumed_by: []

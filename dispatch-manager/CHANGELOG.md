@@ -1,3 +1,9 @@
+# Changelog
+
+## [1.0.0] — 2026-04-29
+### Added
+- Registered new skill: dispatch-dose
+
 ## [1.0.1] — 2026-04-03
 ### Fixed
 - Jira search endpoint migrated from deprecated POST /rest/api/3/search to GET /rest/api/3/search/jql (jira skill: jira_client.py, jiratui_runner.py)

@@ -1,0 +1,117 @@
+---
+version: "1.0"
+operator:
+  gitlab_username: "@zettatron"
+  jira_username: ""
+  slack_channel: "#dispatch"
+  slack_channel_id: "C0AQC48GL1G"
+  timezone: "America/Phoenix"
+
+defaults:
+  git_permission: false
+  require_human_gate: true
+  slack_notify_on:
+    - step_complete
+    - blocker_detected
+    - bottleneck_detected
+    - task_closed
+    - session_start
+    - session_end
+    - optimus_complete
+
+steps:
+  - id: morning_briefing_load
+    name: "Morning Briefing Intelligence"
+    skill: /dispatch-notebook
+    args: "generate"
+    description: "Load NotebookLM intelligence briefing into session context"
+    on_blocker: log_and_continue
+    timeout_minutes: 10
+    tags: [notebook, morning]
+    enabled: true
+
+  - id: mr_review_personal
+    name: "Personal MR Review"
+    skill: /mr-review
+    args: "personal"
+    description: "Review open MRs authored by operator"
+    on_blocker: notify_slack
+    timeout_minutes: 30
+    tags: [gitlab, review, morning]
+    enabled: true
+
+  - id: mr_review_team
+    name: "Team MR Review"
+    skill: /mr-review
+    args: "team"
+    description: "Review open MRs from team members"
+    on_blocker: notify_slack
+    timeout_minutes: 60
+    tags: [gitlab, review, morning]
+    enabled: true
+
+  - id: jira_mentions
+    name: "Jira Mentions Check"
+    skill: /jira
+    args: 'dispatch --jql "(assignee = currentUser() OR watcher = currentUser()) AND updated >= -30d ORDER BY updated DESC"'
+    description: "Find Jira issues where operator is mentioned or assigned"
+    on_new_mention: notify_slack
+    timeout_minutes: 10
+    tags: [jira, morning]
+    enabled: true
+
+  - id: bottleneck_scan
+    name: "Bottleneck Detection"
+    runner: scripts/bottleneck_detector.py
+    description: "Identify cases where operator is blocking team progress"
+    on_bottleneck_found: notify_slack
+    timeout_minutes: 5
+    tags: [analysis, morning]
+    enabled: true
+
+  - id: beads_sync
+    name: "Sync Beads Board"
+    command: "br sync --flush-only"
+    cwd: "~/.zsh/dispatch"
+    on_blocker: notify_slack
+    timeout_minutes: 1
+    tags: [beads, morning, eod, sync]
+    enabled: true
+
+  - id: morning_dashboard_render
+    name: "Render Morning Dashboard"
+    runner: scripts/morning_dashboard.py
+    command: "python scripts/morning_dashboard.py render"
+    description: "Aggregate review/jira/notebook/dispatch artifacts into ~/.zsh/dispatch/dashboards/YYYY-MM-DD.md using the canonical template at templates/reports/morning_dashboard.md.j2. Must run AFTER mr_review_personal, mr_review_team, jira_mentions, and morning_briefing_load so all inputs are present. Also emits .oneline.txt companion for Slack cards."
+    on_blocker: notify_slack
+    timeout_minutes: 2
+    tags: [dashboard, morning, render]
+    enabled: true
+
+human_gates:
+  - after: mr_review_personal
+    message: "Personal MR review complete. Ready to proceed to team review?"
+  - after: jira_mentions
+    message: "Jira check complete. Proceed with task prioritization?"
+
+schedule:
+  morning_boot:
+    cron: "0 8 * * 1-5"
+    command: "dispatch_runner.py --mode=morning"
+    approval_required: true
+    approved: false
+  eod_summary:
+    cron: "0 17 * * 1-5"
+    command: "dispatch_runner.py --mode=eod"
+    approval_required: true
+    approved: false
+  optimus_nightly:
+    cron: "0 22 * * 1-5"
+    command: "optimus_runner.py --period=day"
+    approval_required: true
+    approved: false
+  notebook_update:
+    cron: "0 22 * * 1-5"
+    command: "dispatch-notebook update"
+    approval_required: true
+    approved: false

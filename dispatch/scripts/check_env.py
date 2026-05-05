@@ -11,18 +11,28 @@ Usage:
 """
 
 import argparse
+import difflib
 import importlib
 import json
 import os
 import shutil
 import sqlite3
+import subprocess
 import sys
 from pathlib import Path
 
 SKILL_DIR = Path(__file__).resolve().parent.parent
 STATE_ROOT = Path(os.path.expanduser("~/.zsh/dispatch"))
 DB_PATH = STATE_ROOT / "dispatch.db"
-WORKFLOW_PATH = STATE_ROOT / "workflow.yaml"
+REPO_WORKFLOW = SKILL_DIR / "workflow.yaml"
+RUNTIME_WORKFLOW = STATE_ROOT / "workflow.yaml"
+
+
+def _resolve_workflow_path() -> Path:
+    return REPO_WORKFLOW if REPO_WORKFLOW.exists() else RUNTIME_WORKFLOW
+
+
+WORKFLOW_PATH = _resolve_workflow_path()
 
 REQUIRED_PACKAGES = ["requests", "jinja2", "yaml"]
 PACKAGE_INSTALL_NAMES = {"requests": "requests", "jinja2": "jinja2", "yaml": "pyyaml"}
@@ -92,16 +102,105 @@ def check_state_dir(verbose: bool) -> tuple[bool, str]:
 
 def check_workflow_yaml(verbose: bool) -> tuple[bool, str]:
     if not WORKFLOW_PATH.exists():
-        return False, f"workflow.yaml not found at {WORKFLOW_PATH}. Run /dispatch scaffold first."
+        return False, (
+            f"workflow.yaml not found. Looked at {REPO_WORKFLOW} and {RUNTIME_WORKFLOW}. "
+            "Run /dispatch scaffold first."
+        )
     try:
         import yaml
         with open(WORKFLOW_PATH) as f:
             data = yaml.safe_load(f)
         if not data or "steps" not in data:
             return False, "workflow.yaml is missing 'steps' key."
-        return True, f"workflow.yaml valid ({len(data['steps'])} steps)" if verbose else "workflow.yaml OK"
+        if verbose:
+            return True, f"workflow.yaml valid: {WORKFLOW_PATH} ({len(data['steps'])} steps)"
+        return True, "workflow.yaml OK"
     except Exception as e:
         return False, f"workflow.yaml parse error: {e}"
+
+
+def check_workflow_yaml_drift(verbose: bool) -> tuple[bool, str]:
+    """Fail if both repo and runtime workflow.yaml exist and differ.
+
+    The runner reads from the repo by preference; a stale runtime copy would be
+    confusing if anyone hand-edited it. A .bak suffix is fine and ignored.
+    """
+    if not (REPO_WORKFLOW.exists() and RUNTIME_WORKFLOW.exists()):
+        return True, "no drift (only one workflow.yaml present)" if verbose else "drift OK"
+    repo_text = REPO_WORKFLOW.read_text()
+    runtime_text = RUNTIME_WORKFLOW.read_text()
+    if repo_text == runtime_text:
+        return True, "drift OK (repo == runtime)" if verbose else "drift OK"
+    diff = "".join(difflib.unified_diff(
+        repo_text.splitlines(keepends=True),
+        runtime_text.splitlines(keepends=True),
+        fromfile=str(REPO_WORKFLOW),
+        tofile=str(RUNTIME_WORKFLOW),
+        n=1,
+    ))[:600]
+    return False, (
+        f"workflow.yaml drift between repo and runtime. Runner reads repo. "
+        f"Either delete {RUNTIME_WORKFLOW} or sync it via dispatch-manager. Diff:\n{diff}"
+    )
+
+
+def check_claude_subprocess(verbose: bool) -> tuple[bool, str]:
+    """Resolve claude AND verify it spawns from a minimal-PATH env (cron context)."""
+    augmented_path = os.pathsep.join([
+        os.environ.get("PATH", ""),
+        os.path.expanduser("~/.local/bin"),
+        "/usr/local/bin",
+        "/opt/homebrew/bin",
+    ])
+    resolved = shutil.which("claude", path=augmented_path)
+    if not resolved:
+        return False, (
+            "claude binary not found in PATH or fallback locations "
+            "(~/.local/bin, /usr/local/bin, /opt/homebrew/bin)"
+        )
+    try:
+        result = subprocess.run(
+            [resolved, "--version"],
+            capture_output=True, text=True, timeout=10,
+            env={"PATH": "/usr/bin:/bin", "HOME": os.environ.get("HOME", "")},
+        )
+        if result.returncode != 0:
+            return False, (
+                f"claude at {resolved} failed --version under minimal PATH "
+                f"(exit {result.returncode}): {result.stderr.strip()[:200]}"
+            )
+        if verbose:
+            return True, f"claude OK at {resolved} ({result.stdout.strip()})"
+        return True, "claude subprocess OK"
+    except subprocess.TimeoutExpired:
+        return False, f"claude at {resolved} timed out on --version"
+    except Exception as e:
+        return False, f"claude subprocess check failed: {e}"
+
+
+def check_nlm_query_smoke(verbose: bool) -> tuple[bool, str]:
+    """One tiny notebook query, asserting non-empty answer.
+
+    Catches silent NLM failures (parser mismatch, auth drift, model errors).
+    Skipped automatically if the dispatch-notebook skill isn't installed.
+    """
+    nlm_runner = Path(os.path.expanduser("~/.claude/skills/dispatch-notebook/scripts/nlm_runner.py"))
+    if not nlm_runner.exists():
+        return True, "dispatch-notebook not installed; skipping" if verbose else "nlm smoke skipped"
+    try:
+        sys.path.insert(0, str(nlm_runner.parent))
+        from nlm_runner import NLMRunner, NLMError
+        runner = NLMRunner()
+        result = runner.notebook_query("dispatch", "Reply with the single word: pong", timeout=30)
+        if not result.answer.strip():
+            return False, "nlm returned empty answer (smoke test)"
+        if verbose:
+            return True, f"nlm smoke OK: {result.answer.strip()[:80]}"
+        return True, "nlm smoke OK"
+    except NLMError as e:
+        return False, f"nlm smoke failed: {e}"
+    except Exception as e:
+        return False, f"nlm smoke error: {type(e).__name__}: {e}"
 
 
 def check_slack_mcp(verbose: bool) -> tuple[bool, str]:
@@ -143,7 +242,7 @@ def check_git_binary(verbose: bool) -> tuple[bool, str]:
     return False, "git not found on PATH."
 
 
-def run_checks(verbose: bool = False, fix: bool = False) -> list[dict]:
+def run_checks(verbose: bool = False, fix: bool = False, skip_smoke: bool = False) -> list[dict]:
     results = []
 
     def add(name: str, ok: bool, msg: str):
@@ -158,13 +257,17 @@ def run_checks(verbose: bool = False, fix: bool = False) -> list[dict]:
         ("sqlite", lambda: check_sqlite(verbose, fix)),
         ("state_dir", lambda: check_state_dir(verbose)),
         ("workflow_yaml", lambda: check_workflow_yaml(verbose)),
+        ("workflow_yaml_drift", lambda: check_workflow_yaml_drift(verbose)),
         ("slack_mcp", lambda: check_slack_mcp(verbose)),
         ("mr_review_skill", lambda: check_sibling_skill("mr-review", verbose)),
         ("jira_skill", lambda: check_sibling_skill("jira", verbose)),
         ("claude_binary", lambda: check_claude_binary(verbose)),
+        ("claude_subprocess", lambda: check_claude_subprocess(verbose)),
         ("hooks_dir", lambda: check_hooks_dir(verbose)),
         ("git_binary", lambda: check_git_binary(verbose)),
     ]
+    if not skip_smoke:
+        checks.append(("nlm_query_smoke", lambda: check_nlm_query_smoke(verbose)))
 
     for name, check_fn in checks:
         ok, msg = check_fn()
@@ -178,9 +281,11 @@ def main():
     parser.add_argument("--verbose", action="store_true", help="Print each check result")
     parser.add_argument("--json", action="store_true", help="Emit results as JSON")
     parser.add_argument("--fix", action="store_true", help="Attempt to fix missing dirs and packages")
+    parser.add_argument("--skip-smoke", action="store_true",
+                        help="Skip slow/network-dependent smoke checks (nlm_query_smoke)")
     args = parser.parse_args()
 
-    results = run_checks(verbose=args.verbose, fix=args.fix)
+    results = run_checks(verbose=args.verbose, fix=args.fix, skip_smoke=args.skip_smoke)
 
     if args.json:
         print(json.dumps({"checks": results, "all_ok": all(r["ok"] for r in results)}, indent=2))

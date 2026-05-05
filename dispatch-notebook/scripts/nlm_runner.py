@@ -331,18 +331,28 @@ class NLMRunner:
 
         try:
             data = json.loads(result.stdout)
+            if isinstance(data, dict) and isinstance(data.get("value"), dict):
+                data = data["value"]
             answer = data.get("answer") or data.get("response") or data.get("text", "")
             sources = data.get("sources_used") or data.get("sources") or data.get("citations", [])
             if isinstance(sources, list) and sources and isinstance(sources[0], dict):
                 sources = [s.get("title", s.get("id", str(s))) for s in sources]
+            if not answer:
+                raise NLMError(
+                    f"nlm returned no answer field. Raw stdout (first 300 chars): "
+                    f"{result.stdout[:300]}"
+                )
             return NLMQueryResult(
                 answer=str(answer),
                 sources_used=sources,
                 raw_response=result.stdout,
             )
         except json.JSONDecodeError:
+            stripped = result.stdout.strip()
+            if not stripped:
+                raise NLMError("nlm returned empty stdout (no JSON, no text)")
             return NLMQueryResult(
-                answer=result.stdout.strip(),
+                answer=stripped,
                 sources_used=[],
                 raw_response=result.stdout,
             )

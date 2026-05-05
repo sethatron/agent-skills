@@ -1,0 +1,10 @@
+- id: dispatch_dose
+  name: Dispatch Dose
+  skill: /dispatch-dose
+  description: Curated daily 3-section briefing (DevOps/SWE/Security) with branch-topic
+    deep-dives and forced unfamiliar-topic exposure
+  on_blocker: log_and_continue
+  timeout_minutes: 5
+  tags:
+  - dispatch-dose
+  enabled: true

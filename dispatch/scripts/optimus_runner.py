@@ -21,6 +21,7 @@ import argparse
 import calendar
 import json
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -30,9 +31,29 @@ from typing import Any, Dict, Optional
 
 SKILL_DIR = Path(__file__).resolve().parent.parent
 STATE_ROOT = Path(os.path.expanduser("~/.zsh/dispatch"))
-WORKFLOW_PATH = STATE_ROOT / "workflow.yaml"
+
+
+def _resolve_workflow_path() -> Path:
+    repo_path = SKILL_DIR / "workflow.yaml"
+    return repo_path if repo_path.exists() else STATE_ROOT / "workflow.yaml"
+
+
+WORKFLOW_PATH = _resolve_workflow_path()
 TELEMETRY_DIR = STATE_ROOT / "harness" / "telemetry"
 OPTIMUS_AGENT = Path("~/.claude/agents/optimus.md").expanduser()
+
+
+def _resolve_claude_binary() -> Optional[str]:
+    augmented_path = os.pathsep.join([
+        os.environ.get("PATH", ""),
+        os.path.expanduser("~/.local/bin"),
+        "/usr/local/bin",
+        "/opt/homebrew/bin",
+    ])
+    return shutil.which("claude", path=augmented_path)
+
+
+CLAUDE_BINARY = _resolve_claude_binary()
 
 try:
     import yaml
@@ -176,7 +197,14 @@ class OptimusRunner:
     def invoke_agent(self, brief_path: Path, timeout: int = 600) -> str:
         brief_content = Path(brief_path).read_text()
 
-        cmd = ["claude", "-p", brief_content, "--model", self.model, "--print"]
+        if not CLAUDE_BINARY:
+            return self._synthetic_report(
+                "ERROR",
+                "claude binary not found. Looked in PATH, ~/.local/bin, "
+                "/usr/local/bin, /opt/homebrew/bin. Install or symlink it.",
+            )
+
+        cmd = [CLAUDE_BINARY, "-p", brief_content, "--model", self.model, "--print"]
 
         try:
             result = subprocess.run(
@@ -195,7 +223,7 @@ class OptimusRunner:
             )
         except FileNotFoundError:
             return self._synthetic_report(
-                "ERROR", "claude binary not found on PATH"
+                "ERROR", f"claude binary at {CLAUDE_BINARY} not executable"
             )
 
     def write_report(self, content: str, date: str) -> Path:

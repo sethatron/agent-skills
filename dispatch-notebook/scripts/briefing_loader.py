@@ -163,8 +163,16 @@ def main():
         runner = QueryRunner()
         queries_path = SKILL_DIR / "queries" / "morning_briefing.yaml"
         results = runner.run_query_set(queries_path)
+        ok_count = sum(1 for r in results if r.get("status") == "ok" and r.get("answer"))
         path = loader.generate_briefing(results)
-        print(f"Briefing written to {path}")
+        print(f"Briefing written to {path} ({ok_count}/{len(results)} queries returned content)")
+        if ok_count == 0:
+            print(
+                "ERROR: every query returned empty/error. Briefing is a placeholder. "
+                "Check stderr for [NLM ERROR] lines.",
+                file=sys.stderr,
+            )
+            sys.exit(2)
     elif args.command == "summarize":
         loader = BriefingLoader()
         result = loader.summarize_for_context(Path(args.briefing_path), args.max_bullets)

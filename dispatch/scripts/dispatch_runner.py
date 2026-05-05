@@ -34,8 +34,15 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 SKILL_DIR = Path(__file__).resolve().parent.parent
+
+
+def _resolve_workflow_path() -> Path:
+    repo_path = SKILL_DIR / "workflow.yaml"
+    if repo_path.exists():
+        return repo_path
+    return Path(os.path.expanduser("~/.zsh/dispatch")) / "workflow.yaml"
 STATE_ROOT = Path(os.path.expanduser("~/.zsh/dispatch"))
-WORKFLOW_PATH = STATE_ROOT / "workflow.yaml"
+WORKFLOW_PATH = _resolve_workflow_path()
 
 try:
     import yaml

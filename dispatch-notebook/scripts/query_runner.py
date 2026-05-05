@@ -94,6 +94,7 @@ class QueryRunner:
             self.save_to_cache(qid, entry)
             return entry
         except NLMError as e:
+            print(f"[NLM ERROR] {qid}: {e}", file=sys.stderr)
             return {
                 "id": qid,
                 "question": question,
